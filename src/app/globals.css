@@ -436,3 +436,35 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-lineca
     min-height: 44px;
   }
 }
+
+
+/* Speaking practice: touch-friendly and usable on narrow screens. */
+.speaking-recorder {
+  padding: 24px 28px;
+  border: 1px solid #d7e5df;
+  border-radius: 21px;
+  background: #f8fcfa;
+}
+.speaking-recorder-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.speaking-recorder h3 { margin: 3px 0 0; font-family: Georgia, serif; font-size: 23px; line-height: 1.25; }
+.speaking-recorder-header p[lang="te"] { margin: 9px 0 0; color: var(--green); font-size: 14px; line-height: 1.65; }
+.speaking-local-badge { padding: 7px 10px; border-radius: 99px; background: var(--green-pale); color: var(--green); font-size: 11px; font-weight: 800; white-space: nowrap; }
+.speaking-recorder-help { margin: 15px 0; color: var(--muted); font-size: 13px; line-height: 1.65; }
+.speaking-recorder-actions { display: flex; flex-wrap: wrap; gap: 13px; align-items: center; }
+.speaking-recorder-actions button { min-height: 46px; padding: 11px 16px; display: inline-flex; align-items: center; gap: 9px; border: 0; border-radius: 11px; color: white; background: var(--blue); font-size: 14px; font-weight: 800; cursor: pointer; }
+.speaking-recorder-actions .speaking-stop { background: #ad493a; }
+.speaking-recorder-actions button:disabled { opacity: .65; cursor: wait; }
+.speaking-timer { display: inline-flex; align-items: center; gap: 8px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.speaking-live-dot { width: 10px; height: 10px; border-radius: 50%; background: #d34f42; }
+.speaking-playback { margin-top: 18px; padding: 15px; display: grid; gap: 10px; border-radius: 13px; background: white; border: 1px solid #d7e5df; }
+.speaking-playback strong { font-size: 14px; }
+.speaking-playback audio { width: 100%; max-width: 530px; }
+.speaking-delete { padding: 6px 0; justify-self: start; border: 0; background: transparent; color: #a43e34; font-size: 13px; font-weight: 800; cursor: pointer; }
+.speaking-error { margin: 12px 0 0; color: #a43e34; font-size: 13px; line-height: 1.55; }
+.speaking-privacy { margin: 16px 0 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+@media (max-width: 700px) {
+  .speaking-recorder { padding: 20px 18px; }
+  .speaking-recorder-header { flex-direction: column; }
+  .speaking-local-badge { white-space: normal; }
+  .speaking-recorder-actions button { width: 100%; justify-content: center; }
+}

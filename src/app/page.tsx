@@ -4,6 +4,7 @@ import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { LanguageMode, lessons, units } from "@/data/lessons";
 import { conversations } from "@/data/conversations";
 import { wordPower } from "@/data/word-power";
+import SpeakingRecorder from "@/components/speaking-recorder";
 import { parseCompletedDays, parseSavedDayIndex } from "@/lib/progress";
 
 type InstallPromptEvent = Event & {
@@ -580,6 +581,8 @@ export default function Home() {
               {language !== "en" && <button type="button" className={`round-audio ${speaking === "speak-te" ? "playing" : ""}`} onClick={() => playAudio(audioPath("speak", "te"), "speak-te")} aria-label="Listen to speaking activity in Telugu"><SpeakerIcon /><span>తె</span></button>}
             </div>
           </section>
+
+          <SpeakingRecorder key={lesson.day} />
 
           <section className="conversation-lab section-block">
             <div className="conversation-header">

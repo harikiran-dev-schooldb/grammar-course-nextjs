@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "audio": "node --experimental-strip-types scripts/generate-audio.mjs",
-    "test": "node --experimental-strip-types --test scripts/test-progress.mjs"
+    "test": "node --experimental-strip-types --test scripts/test-*.mjs"
   },
   "dependencies": {
     "@neon/auth": "^0.8.2",
