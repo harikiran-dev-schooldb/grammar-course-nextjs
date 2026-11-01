@@ -1,0 +1,464 @@
+/*
+ * Grammar Studio — Floating Glass
+ * iOS-inspired layered material, adapted to the existing navy / gold identity.
+ * Every important foreground keeps a readable, stable color; blur is optional.
+ */
+.site-shell {
+  --glass-ink: #183b47;
+  --glass-outline: rgba(255, 255, 255, .84);
+  --glass-edge: rgba(160, 188, 190, .46);
+  --glass-lift: 0 20px 55px rgba(22, 62, 79, .105), 0 5px 14px rgba(26, 53, 62, .06);
+  --glass-inner: inset 0 1px 0 rgba(255, 255, 255, .93), inset 0 -1px 0 rgba(255, 255, 255, .28);
+  background:
+    radial-gradient(ellipse 570px 420px at 83% 17%, rgba(145, 205, 218, .32), transparent 72%),
+    radial-gradient(ellipse 600px 500px at 17% 58%, rgba(239, 188, 108, .20), transparent 72%),
+    linear-gradient(125deg, #f6f3eb 4%, #edf5f3 53%, #f9f2e8 100%);
+}
+.site-shell .course-layout {
+  background: transparent;
+  min-height: calc(100svh - 78px);
+}
+.site-shell .topbar {
+  border-bottom: 1px solid rgba(255, 255, 255, .16);
+  background: linear-gradient(105deg, rgba(15, 50, 65, .97), rgba(28, 80, 95, .95) 75%, rgba(16, 57, 71, .97));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .09), 0 12px 34px rgba(11, 40, 55, .14);
+}
+.site-shell .top-progress {
+  padding: 9px 13px;
+  border: 1px solid rgba(255, 255, 255, .13);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .065);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08);
+}
+.site-shell .top-progress-copy { margin-bottom: 6px; }
+.site-shell .account-button {
+  border-color: rgba(255, 255, 255, .23);
+  border-radius: 14px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, .13), rgba(255, 255, 255, .055));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .15), 0 8px 20px rgba(7, 35, 45, .15);
+}
+.site-shell .sidebar {
+  border-right: 1px solid rgba(255, 255, 255, .66);
+  background: linear-gradient(160deg, rgba(255, 249, 236, .89), rgba(237, 246, 241, .8) 65%, rgba(248, 241, 231, .88));
+  box-shadow: inset -1px 0 rgba(160, 189, 179, .23), 6px 0 24px rgba(42, 73, 70, .045);
+}
+.site-shell .sidebar-intro h2 { color: #123b49; }
+.site-shell .offline-card,
+.site-shell .learning-path-card {
+  border-radius: 18px;
+  box-shadow: 0 13px 29px rgba(19, 60, 71, .10), inset 0 1px 0 rgba(255, 255, 255, .52);
+}
+.site-shell .offline-card {
+  border: 1px solid rgba(255, 255, 255, .9);
+  background: linear-gradient(150deg, rgba(255, 255, 255, .91), rgba(234, 247, 242, .74));
+}
+.site-shell .offline-card.ready {
+  border-color: rgba(167, 217, 190, .6);
+  background: linear-gradient(150deg, rgba(240, 255, 248, .94), rgba(222, 242, 231, .81));
+}
+.site-shell .learning-path-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .14);
+  background: linear-gradient(142deg, #173d4e 0%, #246274 70%, #1c4c60 100%);
+  box-shadow: 0 16px 36px rgba(13, 58, 76, .20), inset 0 1px 0 rgba(255, 255, 255, .21);
+}
+.site-shell .learning-path-card::before {
+  content: "";
+  position: absolute;
+  top: -65px;
+  right: -35px;
+  width: 210px;
+  height: 160px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, .17), transparent 70%);
+  pointer-events: none;
+}
+.site-shell .lesson-link { border-radius: 14px; }
+.site-shell .lesson-link.active {
+  border-color: rgba(255, 255, 255, .95);
+  background: linear-gradient(120deg, rgba(255, 255, 255, .96), rgba(248, 254, 252, .88));
+  box-shadow: 0 11px 28px rgba(24, 69, 73, .12), inset 0 1px 0 #fff;
+}
+.site-shell .lesson-link.completed:not(.active) .lesson-number {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .76);
+}
+.site-shell .lesson-main {
+  padding-bottom: 90px;
+}
+.site-shell .lesson-hero {
+  position: relative;
+  isolation: isolate;
+  border: 1px solid rgba(255, 255, 255, .24);
+  border-radius: 29px;
+  background:
+    radial-gradient(circle at 90% 16%, rgba(115, 201, 216, .20), transparent 38%),
+    linear-gradient(128deg, #10364a 0%, #194c5f 62%, #225f72 100%);
+  box-shadow: 0 28px 65px rgba(17, 53, 74, .20),
+              0 7px 18px rgba(11, 38, 53, .09),
+              inset 0 1px 0 rgba(255, 255, 255, .26);
+}
+.site-shell .lesson-hero::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  right: -95px;
+  top: -220px;
+  width: 560px;
+  height: 500px;
+  border: 0;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(189, 239, 243, .13), rgba(91, 183, 203, .06) 48%, transparent 72%);
+  pointer-events: none;
+}
+.site-shell .lesson-hero::after,
+.site-shell .skills-lab::before,
+.site-shell .teacher-card::before,
+.site-shell .rule-column::before,
+.site-shell .example-column::before,
+.site-shell .speaking-recorder::before,
+.site-shell .daily-test-hub::before,
+.site-shell .word-power::before {
+  content: "";
+  position: absolute;
+  top: 1px;
+  left: 24px;
+  right: 24px;
+  height: 1px;
+  border-radius: 50%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .98) 25%, rgba(255, 255, 255, .72) 75%, transparent);
+  opacity: .92;
+  pointer-events: none;
+}
+.site-shell .lesson-hero::after { background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .64), transparent); }
+.site-shell .hero-progress-panel {
+  border-color: rgba(255, 255, 255, .31);
+  border-radius: 19px;
+  background: linear-gradient(140deg, rgba(255, 255, 255, .19), rgba(255, 255, 255, .055));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .21), 0 16px 38px rgba(6, 38, 52, .17);
+}
+.site-shell .hero-progress-panel > small { color: #e1eef1; }
+.site-shell .hero-controls {
+  border-top: 1px solid rgba(255, 255, 255, .11);
+  background: rgba(5, 27, 41, .19);
+}
+.site-shell .language-switch {
+  border-color: rgba(255, 255, 255, .24);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, .10);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .11);
+}
+.site-shell .language-switch button.active {
+  box-shadow: 0 5px 16px rgba(7, 38, 49, .18), inset 0 1px 0 rgba(255, 255, 255, .6);
+}
+/* Frosted light cards use a comfortably opaque fill to preserve reading contrast. */
+.site-shell .skills-lab,
+.site-shell .teacher-card,
+.site-shell .rule-column,
+.site-shell .example-column,
+.site-shell .speaking-recorder,
+.site-shell .daily-test-hub,
+.site-shell .word-power {
+  position: relative;
+  isolation: isolate;
+  border: 1px solid rgba(255, 255, 255, .89);
+  border-radius: 27px;
+  background: linear-gradient(150deg, rgba(255, 255, 255, .94), rgba(249, 253, 251, .78));
+  box-shadow: var(--glass-lift), var(--glass-inner);
+}
+.site-shell .skills-lab,
+.site-shell .daily-test-hub { padding: 31px; }
+.site-shell .teacher-card.english-card {
+  background: linear-gradient(143deg, rgba(251, 254, 255, .96), rgba(234, 246, 252, .85));
+}
+.site-shell .teacher-card.telugu-card {
+  background: linear-gradient(143deg, rgba(252, 255, 252, .95), rgba(227, 245, 235, .85));
+}
+.site-shell .skill-tabs {
+  padding: 7px;
+  border: 1px solid rgba(255, 255, 255, .8);
+  border-radius: 18px;
+  background: linear-gradient(115deg, rgba(229, 239, 236, .85), rgba(237, 244, 243, .75));
+  box-shadow: inset 0 2px 6px rgba(46, 87, 82, .05), inset 0 1px 0 #fff;
+}
+.site-shell .skill-tabs button.active,
+.site-shell .word-tabs button.active {
+  box-shadow: 0 11px 20px rgba(22, 97, 76, .19), inset 0 1px 0 rgba(255, 255, 255, .23);
+}
+.site-shell .skill-panel {
+  border: 1px solid rgba(210, 231, 227, .82);
+  border-radius: 20px;
+  background: linear-gradient(140deg, rgba(255, 255, 255, .97), rgba(245, 251, 249, .86));
+  box-shadow: inset 0 1px 0 #fff, 0 9px 27px rgba(20, 58, 68, .045);
+}
+.site-shell .skill-instruction {
+  border: 1px solid rgba(207, 229, 235, .72);
+  border-radius: 17px;
+  background: linear-gradient(146deg, #edf8fa 0%, #e5f3f7 100%);
+  box-shadow: inset 0 1px 0 #fff;
+}
+.site-shell .reading-passage,
+.site-shell .spelling-prompt {
+  border: 1px solid rgba(255, 255, 255, .82);
+  border-radius: 16px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .90);
+}
+.site-shell .skill-options button,
+.site-shell .daily-quiz-option,
+.site-shell .example-row {
+  border: 1px solid rgba(207, 224, 223, .86);
+  border-radius: 15px;
+  background: linear-gradient(130deg, rgba(255, 255, 255, .97), rgba(247, 251, 250, .84));
+  box-shadow: inset 0 1px 0 #fff, 0 4px 13px rgba(34, 80, 83, .035);
+}
+.site-shell .skill-options button.correct,
+.site-shell .daily-quiz-option.is-correct { background: #e5f4ec; border-color: #83c5a1; }
+.site-shell .skill-options button.wrong,
+.site-shell .daily-quiz-option.is-wrong { background: #fae9e6; border-color: #d98a78; }
+.site-shell .primary-skill-audio,
+.site-shell .start-spelling,
+.site-shell .daily-test-primary {
+  border-radius: 13px;
+  background: linear-gradient(155deg, #327d9a, #1e627e);
+  box-shadow: 0 8px 17px rgba(30, 101, 122, .18), inset 0 1px 0 rgba(255, 255, 255, .26);
+}
+.site-shell .rule-list li { border-bottom-color: rgba(68, 116, 117, .12); }
+.site-shell .example-row {
+  min-height: 85px;
+  padding: 14px;
+  box-shadow: 0 8px 21px rgba(22, 67, 69, .055), inset 0 1px 0 #fff;
+}
+.site-shell .example-row p { font-size: 15px; line-height: 1.5; }
+.site-shell .example-row small { font-size: 13px; line-height: 1.6; }
+.site-shell .example-row .example-audio-group button {
+  width: 43px;
+  height: 45px;
+  border: 1px solid rgba(224, 239, 243, .8);
+  box-shadow: inset 0 1px 0 #fff;
+}
+.site-shell .practice-section,
+.site-shell .conversation-lab {
+  position: relative;
+  isolation: isolate;
+  border: 1px solid rgba(255, 255, 255, .25);
+  border-radius: 27px;
+  background:
+    radial-gradient(circle at 95% 0%, rgba(137, 214, 217, .16), transparent 38%),
+    linear-gradient(135deg, #143a4d, #20586c);
+  box-shadow: 0 22px 51px rgba(17, 54, 71, .18), 0 5px 16px rgba(17, 54, 71, .08),
+              inset 0 1px 0 rgba(255, 255, 255, .21);
+}
+.site-shell .practice-section::before,
+.site-shell .conversation-lab::before {
+  content: "";
+  position: absolute;
+  inset: 1px 22px auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .48), transparent);
+  pointer-events: none;
+}
+.site-shell .question-copy,
+.site-shell .partner-bubble,
+.site-shell .choice-list {
+  border: 1px solid rgba(255, 255, 255, .17);
+  border-radius: 18px;
+  background: linear-gradient(140deg, rgba(255, 255, 255, .12), rgba(255, 255, 255, .055));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12);
+}
+.site-shell .answer-option,
+.site-shell .conversation-choice {
+  border-color: rgba(255, 255, 255, .22);
+  border-radius: 15px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, .12), rgba(255, 255, 255, .055));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .11);
+}
+.site-shell .answer-option.correct,
+.site-shell .conversation-choice.correct { border-color: #7ac7a7; background: rgba(122, 199, 167, .2); }
+.site-shell .answer-option.wrong,
+.site-shell .conversation-choice.wrong { border-color: #df8a78; background: rgba(223, 138, 120, .19); }
+.site-shell .speak-card {
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, .88);
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(255, 249, 233, .94), rgba(255, 232, 177, .73));
+  box-shadow: 0 16px 38px rgba(120, 81, 33, .11), inset 0 1px 0 #fff;
+}
+.site-shell .word-power {
+  background:
+    radial-gradient(ellipse at 90% 2%, rgba(152, 214, 190, .21), transparent 50%),
+    linear-gradient(145deg, rgba(255, 255, 255, .95), rgba(238, 251, 244, .83));
+}
+.site-shell .word-learning-card,
+.site-shell .spelling-quiz,
+.site-shell .daily-quiz,
+.site-shell .speaking-playback {
+  border: 1px solid rgba(214, 231, 225, .89);
+  border-radius: 19px;
+  background: linear-gradient(130deg, rgba(255, 255, 255, .98), rgba(248, 252, 250, .9));
+  box-shadow: 0 11px 27px rgba(22, 67, 70, .065), inset 0 1px 0 #fff;
+}
+.site-shell .daily-revision-card,
+.site-shell .metric-grid article,
+.site-shell .badge-section,
+.site-shell .teacher-report {
+  border: 1px solid rgba(255, 255, 255, .82);
+  border-radius: 18px;
+  box-shadow: 0 10px 24px rgba(20, 58, 73, .075), inset 0 1px 0 #fff;
+}
+.site-shell .daily-revision-card {
+  background: linear-gradient(133deg, rgba(235, 247, 252, .93), rgba(244, 250, 250, .89));
+}
+.site-shell .hub-modal {
+  border: 1px solid rgba(255, 255, 255, .56);
+  border-radius: 27px;
+  box-shadow: 0 32px 100px rgba(7, 35, 50, .29), inset 0 1px 0 rgba(255, 255, 255, .8);
+}
+.site-shell .hub-header {
+  background: linear-gradient(135deg, #143a4d, #245d70);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .19);
+}
+.site-shell .hub-tabs { background: rgba(255, 255, 255, .92); }
+.site-shell .lesson-pagination button,
+.site-shell .complete-button {
+  border-radius: 13px;
+  box-shadow: 0 6px 16px rgba(27, 65, 68, .065), inset 0 1px 0 rgba(255, 255, 255, .8);
+}
+/* Only animate for pointer devices; this avoids jumpy cards on touchscreen scroll. */
+@media (hover: hover) and (pointer: fine) {
+  .site-shell .lesson-hero,
+  .site-shell .skills-lab,
+  .site-shell .teacher-card,
+  .site-shell .rule-column,
+  .site-shell .example-column,
+  .site-shell .speaking-recorder,
+  .site-shell .daily-test-hub,
+  .site-shell .word-power,
+  .site-shell .practice-section,
+  .site-shell .conversation-lab,
+  .site-shell .speak-card {
+    transition: translate .24s ease, box-shadow .24s ease, border-color .24s ease;
+  }
+  .site-shell .lesson-hero:hover,
+  .site-shell .skills-lab:hover,
+  .site-shell .teacher-card:hover,
+  .site-shell .rule-column:hover,
+  .site-shell .example-column:hover,
+  .site-shell .speaking-recorder:hover,
+  .site-shell .daily-test-hub:hover,
+  .site-shell .word-power:hover,
+  .site-shell .practice-section:hover,
+  .site-shell .conversation-lab:hover,
+  .site-shell .speak-card:hover {
+    translate: 0 -3px;
+    box-shadow: 0 27px 62px rgba(19, 59, 75, .16),
+                0 7px 20px rgba(19, 59, 75, .07),
+                inset 0 1px 0 rgba(255, 255, 255, .66);
+  }
+  .site-shell .skill-options button,
+  .site-shell .answer-option,
+  .site-shell .conversation-choice,
+  .site-shell .example-row,
+  .site-shell .lesson-link,
+  .site-shell .daily-test-primary {
+    transition: translate .16s ease, box-shadow .16s ease, border-color .16s ease, background .16s ease;
+  }
+  .site-shell .skill-options button:hover,
+  .site-shell .example-row:hover,
+  .site-shell .lesson-link:not(.active):hover { translate: 0 -2px; }
+  .site-shell .skill-options button:hover,
+  .site-shell .example-row:hover {
+    box-shadow: 0 11px 22px rgba(28, 75, 78, .11), inset 0 1px 0 #fff;
+  }
+  .site-shell .primary-skill-audio:hover:not(:disabled),
+  .site-shell .daily-test-primary:hover:not(:disabled) { filter: brightness(1.06); }
+}
+/* The frosted effect is progressive; all cards have readable opaque fallbacks. */
+@supports ((backdrop-filter: blur(14px)) or (-webkit-backdrop-filter: blur(14px))) {
+  .site-shell .topbar {
+    background: linear-gradient(105deg, rgba(15, 50, 65, .89), rgba(28, 80, 95, .85), rgba(16, 57, 71, .9));
+    backdrop-filter: blur(20px) saturate(1.3);
+    -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  }
+  .site-shell .sidebar {
+    backdrop-filter: blur(17px) saturate(1.18);
+    -webkit-backdrop-filter: blur(17px) saturate(1.18);
+  }
+  .site-shell .skills-lab,
+  .site-shell .teacher-card,
+  .site-shell .rule-column,
+  .site-shell .example-column,
+  .site-shell .speaking-recorder,
+  .site-shell .daily-test-hub,
+  .site-shell .word-power {
+    backdrop-filter: blur(12px) saturate(1.12);
+    -webkit-backdrop-filter: blur(12px) saturate(1.12);
+  }
+  .site-shell .hero-progress-panel {
+    backdrop-filter: blur(14px) saturate(1.15);
+    -webkit-backdrop-filter: blur(14px) saturate(1.15);
+  }
+}
+/* Cost-conscious rendering on touch devices: opaque surfaces and no full-page blur. */
+@media (max-width: 980px) {
+  .site-shell .sidebar {
+    background: linear-gradient(155deg, #fbf8ee, #eaf3ef);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: 18px 0 48px rgba(16, 48, 63, .20);
+  }
+  .site-shell .lesson-main { padding-bottom: 62px; }
+}
+@media (max-width: 700px) {
+  .site-shell .course-layout { min-height: calc(100svh - 68px); }
+  .site-shell .topbar { backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .site-shell .top-progress { border: 0; background: transparent; box-shadow: none; padding: 0; }
+  .site-shell .lesson-main { padding-bottom: 44px; }
+  .site-shell .lesson-hero,
+  .site-shell .skills-lab,
+  .site-shell .teacher-card,
+  .site-shell .rule-column,
+  .site-shell .example-column,
+  .site-shell .speaking-recorder,
+  .site-shell .daily-test-hub,
+  .site-shell .word-power,
+  .site-shell .practice-section,
+  .site-shell .conversation-lab { border-radius: 21px; }
+  .site-shell .skills-lab, .site-shell .daily-test-hub { padding: 21px 16px; }
+  .site-shell .teacher-card, .site-shell .rule-column, .site-shell .example-column { padding: 21px 18px; }
+  .site-shell .skill-panel { padding: 16px; }
+  .site-shell .word-power { padding: 22px 17px; }
+  .site-shell .lesson-hero { box-shadow: 0 18px 40px rgba(20, 56, 73, .19), inset 0 1px 0 rgba(255, 255, 255, .23); }
+  .site-shell .skills-lab,
+  .site-shell .teacher-card,
+  .site-shell .rule-column,
+  .site-shell .example-column,
+  .site-shell .speaking-recorder,
+  .site-shell .daily-test-hub,
+  .site-shell .word-power { backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .site-shell .example-row { min-height: 74px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-shell *,
+  .site-shell *::before,
+  .site-shell *::after { animation: none !important; transition: none !important; translate: none !important; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .site-shell .sidebar { background: #f7f1e7; }
+  .site-shell .skills-lab,
+  .site-shell .teacher-card,
+  .site-shell .rule-column,
+  .site-shell .example-column,
+  .site-shell .speaking-recorder,
+  .site-shell .daily-test-hub,
+  .site-shell .word-power { background: #fff; backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .site-shell .topbar { background: #15384a; backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .site-shell .hero-progress-panel { background: #24566a; backdrop-filter: none; -webkit-backdrop-filter: none; }
+}
+@media print {
+  .site-shell, .site-shell .hub-modal, .site-shell .metric-grid article {
+    background: white !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}
