@@ -7,6 +7,8 @@ import { wordPower } from "@/data/word-power";
 import SpeakingRecorder from "@/components/speaking-recorder";
 import DailyTestHub from "@/components/daily-test-hub";
 import { authClient } from "@/lib/auth-client";
+import { claimUsername, getMyUsername, requestUsernamePasswordReset, signInWithUsername } from "@/app/actions/username-auth";
+import { isValidUsername, normalizeUsername } from "@/lib/usernames";
 import { CloudProgress, emptyProgress, mergeProgress, Mistake, parseCompletedDays, parseSavedDayIndex } from "@/lib/progress";
 
 type InstallPromptEvent = Event & {
@@ -45,7 +47,12 @@ export default function Home() {
   const [authReady, setAuthReady] = useState(false);
   const [learnerName, setLearnerName] = useState<string | null>(null);
   const [learnerEmail, setLearnerEmail] = useState("");
-  const [authMode, setAuthMode] = useState<"signin" | "signup">("signin");
+  const [authMode, setAuthMode] = useState<"signin" | "signup" | "forgot">("signin");
+  const [authUsername, setAuthUsername] = useState("");
+  const [emailFallback, setEmailFallback] = useState(false);
+  const [needsUsername, setNeedsUsername] = useState(false);
+  const [skipUsernameSetup, setSkipUsernameSetup] = useState(false);
+  const [authNotice, setAuthNotice] = useState("");
   const [authName, setAuthName] = useState("");
   const [authPassword, setAuthPassword] = useState("");
   const [authError, setAuthError] = useState("");
@@ -117,6 +124,11 @@ export default function Home() {
       if (data?.user) {
         setLearnerName(data.user.name || data.user.email.split("@")[0]);
         setLearnerEmail(data.user.email);
+        void getMyUsername().then((username) => {
+          if (!active) return;
+          setNeedsUsername(!username);
+          if (username) setAuthUsername(username);
+        });
       }
     }).catch(() => undefined).finally(() => { if (active) setAuthReady(true); });
     return () => { active = false; };
@@ -451,27 +463,87 @@ export default function Home() {
     event.preventDefault();
     const name = authName.trim();
     const email = learnerEmail.trim().toLowerCase();
-    if (authMode === "signup" && name.length < 2) { setAuthError("Please enter the learner’s name."); return; }
-    if (!/^\S+@\S+\.\S+$/.test(email)) { setAuthError("Enter a valid email address."); return; }
+    const username = normalizeUsername(authUsername);
+    setAuthError("");
+    setAuthNotice("");
+    if (authMode === "forgot") {
+      if (!isValidUsername(username)) { setAuthError("Enter your username (3–30 characters)."); return; }
+      setAuthBusy(true);
+      try {
+        const result = await requestUsernamePasswordReset(username);
+        setAuthNotice(result.message);
+      } catch {
+        setAuthError("Could not request reset instructions. Try again.");
+      } finally { setAuthBusy(false); }
+      return;
+    }
+    if (authMode === "signup") {
+      if (name.length < 2) { setAuthError("Please enter the learner’s name."); return; }
+      if (!isValidUsername(username)) { setAuthError("Choose a username using 3–30 letters, numbers or underscores."); return; }
+      if (!/^\S+@\S+\.\S+$/.test(email)) { setAuthError("Enter a valid recovery email address."); return; }
+    } else if (emailFallback) {
+      if (!/^\S+@\S+\.\S+$/.test(email)) { setAuthError("Enter your existing account email."); return; }
+    } else if (!isValidUsername(username)) {
+      setAuthError("Enter your username."); return;
+    }
     if (authPassword.length < 8) { setAuthError("Password must be at least 8 characters."); return; }
     setAuthBusy(true);
-    setAuthError("");
     try {
-      const result = authMode === "signup"
-        ? await authClient.signUp.email({ name, email, password: authPassword })
-        : await authClient.signIn.email({ email, password: authPassword });
-      if (result.error) throw new Error(result.error.message || "Could not sign in.");
+      if (authMode === "signup") {
+        const result = await authClient.signUp.email({ name, email, password: authPassword });
+        if (result.error) throw new Error(result.error.message || "Unable to create your account.");
+      } else if (emailFallback) {
+        const result = await authClient.signIn.email({ email, password: authPassword });
+        if (result.error) throw new Error(result.error.message || "Invalid email or password.");
+      } else {
+        const result = await signInWithUsername(username, authPassword);
+        if (!result.ok) throw new Error(result.message);
+      }
       const session = await authClient.getSession();
       const user = session.data?.user;
-      if (!user) throw new Error(authMode === "signup" ? "Account created. Please sign in." : "Could not start your session.");
+      if (!user) {
+        if (authMode === "signup") {
+          setAuthMode("signin");
+          setEmailFallback(true);
+          setAuthPassword("");
+          setAuthNotice("Account created. Verify your recovery email if requested, then sign in with your email once to finish username setup.");
+          return;
+        }
+        throw new Error("Could not start your session. Please sign in again.");
+      }
+      const existing = await getMyUsername();
+      if (existing) {
+        setAuthUsername(existing);
+        setNeedsUsername(false);
+      } else if (authMode === "signup") {
+        const saved = await claimUsername(username);
+        setNeedsUsername(!saved.ok);
+        if (!saved.ok) setAuthNotice(saved.message + " Please choose a username below.");
+      } else {
+        setNeedsUsername(true);
+        setAuthNotice("Choose a username for future sign-ins.");
+      }
+      setSkipUsernameSetup(false);
       setLearnerName(user.name || user.email.split("@")[0]);
       setLearnerEmail(user.email);
       setCloudLoaded(false);
       setAuthPassword("");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Cloud login is unavailable.";
-      setAuthError(message.includes("fetch") || message.includes("Network") ? "Neon login is not connected yet. Complete the Neon setup and try again." : message);
+      setAuthError(message.includes("fetch") || message.includes("Network") ? "Neon login is unavailable right now. Please try again." : message);
     } finally { setAuthBusy(false); }
+  };
+
+  const submitUsername = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setAuthBusy(true);
+    setAuthError("");
+    try {
+      const result = await claimUsername(authUsername);
+      if (!result.ok) setAuthError(result.message);
+      else { setNeedsUsername(false); setAuthUsername(normalizeUsername(authUsername)); setAuthNotice(""); }
+    } catch { setAuthError("Unable to save username."); }
+    finally { setAuthBusy(false); }
   };
 
   const logout = async () => {
@@ -480,6 +552,9 @@ export default function Home() {
     setLearnerEmail("");
     setAuthPassword("");
     setAuthError("");
+    setAuthNotice("");
+    setNeedsUsername(false);
+    setSkipUsernameSetup(false);
     setCloudLoaded(false);
     setHubView(null);
   };
@@ -492,20 +567,47 @@ export default function Home() {
         <section className="login-card">
           <div className="login-brand"><span className="brand-mark">G</span><div><strong>Grammar Studio</strong><small>Complete English · సంపూర్ణ ఇంగ్లీష్</small></div></div>
           <p className="kicker">Secure cloud learning with Neon</p>
-          <h1>{authMode === "signin" ? "Welcome back to your course." : "Create your learner account."}</h1>
-          <p className="login-intro">Grammar, listening, reading, writing, conversations, vocabulary, spelling, and translation—in one offline-friendly course.</p>
-          <p className="login-intro telugu" lang="te">Grammar మాత్రమే కాదు—English లో వినడం, చదవడం, రాయడం, మాట్లాడడం అన్నీ practice చేయండి.</p>
+          <h1>{authMode === "signin" ? "Welcome back to your course." : authMode === "signup" ? "Create your learner account." : "Reset your password."}</h1>
+          <p className="login-intro">{authMode === "forgot" ? "Enter your username. We’ll email a reset link to the recovery address on your account." : "Learn English with grammar, conversations, speaking, daily tests, and progress saved with Neon."}</p>
+          <p className="login-intro telugu" lang="te">Username తో sign in అవ్వండి. Password మర్చిపోతే మీ recovery email కి link వస్తుంది.</p>
           <form onSubmit={submitAuth}>
-            {authMode === "signup" && <label>Learner name<input value={authName} onChange={(event) => setAuthName(event.target.value)} autoComplete="name" placeholder="Enter learner name" /></label>}
-            <label>Email address<input value={learnerEmail} onChange={(event) => setLearnerEmail(event.target.value)} autoComplete="email" inputMode="email" type="email" placeholder="name@example.com" /></label>
-            <label>Password<input value={authPassword} onChange={(event) => setAuthPassword(event.target.value)} autoComplete={authMode === "signin" ? "current-password" : "new-password"} type="password" placeholder="At least 8 characters" /></label>
+            {authMode === "signup" && <label>Learner name<input value={authName} onChange={(event) => setAuthName(event.target.value)} autoComplete="name" required placeholder="Enter learner name" /></label>}
+            {(authMode !== "signin" || !emailFallback) && <label>Username<input value={authUsername} onChange={(event) => setAuthUsername(event.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "").slice(0, 30))} autoComplete={authMode === "signin" ? "username" : "off"} minLength={3} maxLength={30} required placeholder="e.g. harikiran_123" /></label>}
+            {(authMode === "signup" || (authMode === "signin" && emailFallback)) &&
+              <label>{authMode === "signup" ? "Recovery email (for password reset)" : "Existing account email"}<input value={learnerEmail} onChange={(event) => setLearnerEmail(event.target.value)} autoComplete="email" inputMode="email" type="email" required placeholder="name@example.com" /></label>}
+            {authMode !== "forgot" && <label>Password<input value={authPassword} onChange={(event) => setAuthPassword(event.target.value)} autoComplete={authMode === "signin" ? "current-password" : "new-password"} type="password" required minLength={8} placeholder="At least 8 characters" /></label>}
             {authError && <p className="auth-error" role="alert">{authError}</p>}
-            <button type="submit" disabled={authBusy}>{authBusy ? "Please wait…" : authMode === "signin" ? "Sign in & continue" : "Create account & start"}</button>
+            {authNotice && <p className="auth-notice" role="status">{authNotice}</p>}
+            <button type="submit" disabled={authBusy}>{authBusy ? "Please wait…" : authMode === "forgot" ? "Send reset link" : authMode === "signin" ? "Sign in & continue" : "Create account & start"}</button>
           </form>
-          <button type="button" className="auth-mode-switch" onClick={() => { setAuthMode((mode) => mode === "signin" ? "signup" : "signin"); setAuthError(""); }}>{authMode === "signin" ? "New learner? Create an account" : "Already have an account? Sign in"}</button>
-          <div className="local-profile-note"><CheckIcon /><span><strong>Secure sync + offline learning.</strong> Neon keeps progress across devices; the course remains usable when the internet drops.</span></div>
+          {authMode === "signin" && <div className="auth-assist-row">
+            <button type="button" className="auth-mode-switch" onClick={() => { setAuthMode("forgot"); setAuthError(""); setAuthNotice(""); }}>Forgot password?</button>
+            <button type="button" className="auth-mode-switch" onClick={() => { setEmailFallback((current) => !current); setAuthError(""); setAuthNotice(""); }}>{emailFallback ? "Sign in using username" : "Existing account? Use email once"}</button>
+          </div>}
+          <button type="button" className="auth-mode-switch" onClick={() => { setAuthMode((mode) => mode === "signin" ? "signup" : "signin"); setEmailFallback(false); setAuthError(""); setAuthNotice(""); }}>{authMode === "signin" ? "New learner? Create an account" : "Back to username sign in"}</button>
+          <div className="local-profile-note"><CheckIcon /><span><strong>Secure sync + offline learning.</strong> Username for login; recovery email is used for password resets. Neon manages passwords and account sessions.</span></div>
         </section>
         <aside className="login-preview" aria-hidden="true"><span>30 days</span><h2>From beginner basics to confident everyday English.</h2><div className="login-skill-list"><b>Listen</b><b>Read</b><b>Write</b><b>Speak</b></div></aside>
+      </main>
+    );
+  }
+
+  if (needsUsername && !skipUsernameSetup) {
+    return (
+      <main className="login-page">
+        <section className="login-card">
+          <div className="login-brand"><span className="brand-mark">G</span><div><strong>Grammar Studio</strong><small>English · తెలుగు</small></div></div>
+          <p className="kicker">One-time account setup</p>
+          <h1>Choose your login username.</h1>
+          <p className="login-intro">Your existing Neon account and learning progress stay the same. Use this username instead of email next time you sign in.</p>
+          <form onSubmit={submitUsername}>
+            <label>Username<input value={authUsername} onChange={(event) => setAuthUsername(event.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "").slice(0, 30))} minLength={3} maxLength={30} required autoComplete="username" placeholder="e.g. harikiran_123" /></label>
+            {authError && <p className="auth-error" role="alert">{authError}</p>}
+            <button type="submit" disabled={authBusy}>{authBusy ? "Saving…" : "Save username & continue"}</button>
+          </form>
+          <button type="button" className="auth-mode-switch" onClick={() => { setSkipUsernameSetup(true); setAuthError(""); }}>Continue with existing account for now</button>
+          <button type="button" className="auth-mode-switch" onClick={() => { void logout(); }}>Sign out</button>
+        </section>
       </main>
     );
   }

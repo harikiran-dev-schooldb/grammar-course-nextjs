@@ -15,7 +15,8 @@ A responsive 30-day complete English course built with Next.js, TypeScript, and 
 - End-of-lesson Word Power with spelling practice, syllables, Telugu meanings, and neural pronunciation audio
 - Daily listening comprehension with neural dialogue audio and optional transcripts
 - Reading comprehension, saved writing practice, and English-to-Telugu translation activities
-- Secure email/password accounts powered by Neon Auth
+- Username/password login backed by Neon Auth, with recovery email for password resets
+- Existing Neon email-only users can sign in once with email and claim a username
 - Offline-first Neon progress sync across devices
 - Smart revision queue built from the learner's grammar, listening, reading, conversation, and spelling mistakes
 - Daily tests, a 10-question final test, achievement badges, streaks, and a printable certificate
@@ -65,3 +66,17 @@ Install `edge-tts`, then run the command above. It uses Neerja Expressive for In
 npm run lint
 npm run build
 ```
+
+## Username sign-in and password recovery
+
+The application now uses **username + password** at sign-in. Passwords and sessions stay with Neon Auth; a separate Neon Postgres table maps unique usernames to the Neon Auth user ID and recovery email. **Do not store passwords in this table.**
+
+1. Ensure `DATABASE_URL`, `NEON_AUTH_BASE_URL`, and `NEON_AUTH_COOKIE_SECRET` are set in Vercel.
+2. Run `scripts/neon-usernames.sql` in the Neon SQL Editor if the application's database role cannot create tables automatically.
+3. Optional: set `APP_BASE_URL=https://your-production-domain` in Vercel for the email password-reset link. By default it uses `https://grammar-course-nextjs.vercel.app`.
+4. Configure Neon Auth's password-reset email delivery and allowlist your app's `/reset-password` redirect URL in the Neon Auth settings. Test this flow with a disposable account and a real inbox.
+5. Existing users may choose **Existing account? Use email once**, sign in, and register a username without losing their Neon Auth identity or saved progress.
+
+New users enter their **name, unique username, recovery email, and password**. The recovery email is only used by Neon Auth and the server-side username mapping; it is not needed on subsequent username logins. If Neon requires email verification before a session can be created, finish verification and sign in once with the recovery email to claim the username. Username-password login uses a server-side lookup, and recovery addresses are never returned to the browser. Reset requests return a generic message to avoid exposing account existence and are throttled per username.
+
+**Important:** Managed Neon Auth doesn't allow adding Better Auth's custom username plugin directly. The app-side mapping is an adapter over Neon Auth's existing email/password verification; it is not an independent password store. The exact password-reset method and email delivery should be verified against your deployed Neon Auth configuration.
