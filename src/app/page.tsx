@@ -7,7 +7,7 @@ import { wordPower } from "@/data/word-power";
 import SpeakingRecorder from "@/components/speaking-recorder";
 import DailyTestHub from "@/components/daily-test-hub";
 import { authClient } from "@/lib/auth-client";
-import { claimUsername, getMyUsername, requestUsernamePasswordReset, signInWithUsername } from "@/app/actions/username-auth";
+import { claimUsername, getMyUsername, requestLegacyPasswordReset, requestUsernamePasswordReset, signInWithUsername } from "@/app/actions/username-auth";
 import { isValidUsername, normalizeUsername } from "@/lib/usernames";
 import { CloudProgress, emptyProgress, mergeProgress, Mistake, parseCompletedDays, parseSavedDayIndex } from "@/lib/progress";
 
@@ -467,10 +467,12 @@ export default function Home() {
     setAuthError("");
     setAuthNotice("");
     if (authMode === "forgot") {
-      if (!isValidUsername(username)) { setAuthError("Enter your username (3–30 characters)."); return; }
+      if (emailFallback) {
+        if (!/^\S+@\S+\.\S+$/.test(email)) { setAuthError("Enter your existing account email."); return; }
+      } else if (!isValidUsername(username)) { setAuthError("Enter your username (3–30 characters)."); return; }
       setAuthBusy(true);
       try {
-        const result = await requestUsernamePasswordReset(username);
+        const result = emailFallback ? await requestLegacyPasswordReset(email) : await requestUsernamePasswordReset(username);
         setAuthNotice(result.message);
       } catch {
         setAuthError("Could not request reset instructions. Try again.");
@@ -568,18 +570,19 @@ export default function Home() {
           <div className="login-brand"><span className="brand-mark">G</span><div><strong>Grammar Studio</strong><small>Complete English · సంపూర్ణ ఇంగ్లీష్</small></div></div>
           <p className="kicker">Secure cloud learning with Neon</p>
           <h1>{authMode === "signin" ? "Welcome back to your course." : authMode === "signup" ? "Create your learner account." : "Reset your password."}</h1>
-          <p className="login-intro">{authMode === "forgot" ? "Enter your username. We’ll email a reset link to the recovery address on your account." : "Learn English with grammar, conversations, speaking, daily tests, and progress saved with Neon."}</p>
+          <p className="login-intro">{authMode === "forgot" ? emailFallback ? "Enter your existing account email. We'll send password reset instructions if an account exists." : "Enter your username. We’ll email a reset link to the recovery address on your account." : "Learn English with grammar, conversations, speaking, daily tests, and progress saved with Neon."}</p>
           <p className="login-intro telugu" lang="te">Username తో sign in అవ్వండి. Password మర్చిపోతే మీ recovery email కి link వస్తుంది.</p>
           <form onSubmit={submitAuth}>
             {authMode === "signup" && <label>Learner name<input value={authName} onChange={(event) => setAuthName(event.target.value)} autoComplete="name" required placeholder="Enter learner name" /></label>}
-            {(authMode !== "signin" || !emailFallback) && <label>Username<input value={authUsername} onChange={(event) => setAuthUsername(event.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "").slice(0, 30))} autoComplete={authMode === "signin" ? "username" : "off"} minLength={3} maxLength={30} required placeholder="e.g. harikiran_123" /></label>}
-            {(authMode === "signup" || (authMode === "signin" && emailFallback)) &&
+            {((authMode === "signin" && !emailFallback) || authMode === "signup" || (authMode === "forgot" && !emailFallback)) && <label>Username<input value={authUsername} onChange={(event) => setAuthUsername(event.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "").slice(0, 30))} autoComplete={authMode === "signin" ? "username" : "off"} minLength={3} maxLength={30} required placeholder="e.g. harikiran_123" /></label>}
+            {(authMode === "signup" || (authMode === "signin" && emailFallback) || (authMode === "forgot" && emailFallback)) &&
               <label>{authMode === "signup" ? "Recovery email (for password reset)" : "Existing account email"}<input value={learnerEmail} onChange={(event) => setLearnerEmail(event.target.value)} autoComplete="email" inputMode="email" type="email" required placeholder="name@example.com" /></label>}
             {authMode !== "forgot" && <label>Password<input value={authPassword} onChange={(event) => setAuthPassword(event.target.value)} autoComplete={authMode === "signin" ? "current-password" : "new-password"} type="password" required minLength={8} placeholder="At least 8 characters" /></label>}
             {authError && <p className="auth-error" role="alert">{authError}</p>}
             {authNotice && <p className="auth-notice" role="status">{authNotice}</p>}
             <button type="submit" disabled={authBusy}>{authBusy ? "Please wait…" : authMode === "forgot" ? "Send reset link" : authMode === "signin" ? "Sign in & continue" : "Create account & start"}</button>
           </form>
+          {authMode === "forgot" && <button type="button" className="auth-mode-switch" onClick={() => { setEmailFallback((current) => !current); setAuthError(""); setAuthNotice(""); }}>{emailFallback ? "Recover using username" : "Old account? Recover using email"}</button>}
           {authMode === "signin" && <div className="auth-assist-row">
             <button type="button" className="auth-mode-switch" onClick={() => { setAuthMode("forgot"); setAuthError(""); setAuthNotice(""); }}>Forgot password?</button>
             <button type="button" className="auth-mode-switch" onClick={() => { setEmailFallback((current) => !current); setAuthError(""); setAuthNotice(""); }}>{emailFallback ? "Sign in using username" : "Existing account? Use email once"}</button>

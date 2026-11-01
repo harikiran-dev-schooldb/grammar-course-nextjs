@@ -47,6 +47,10 @@ export async function getMyUsername():Promise<string|null>{
     if(!data?.user?.id)return null;
     const sql=await usernames();
     const rows=await sql`SELECT username FROM learner_usernames WHERE user_id=${data.user.id} LIMIT 1`;
+    if(rows.length && data.user.email) {
+      await sql`UPDATE learner_usernames SET recovery_email=${data.user.email.toLowerCase()}
+        WHERE user_id=${data.user.id} AND recovery_email <> ${data.user.email.toLowerCase()}`;
+    }
     return typeof rows[0]?.username==="string"?rows[0].username:null;
   }catch{return null;}
 }
@@ -97,6 +101,34 @@ export async function requestUsernamePasswordReset(input:string):Promise<Result>
     if(result.error)console.error("Neon password reset delivery:",result.error.message);
   }catch(error){console.error("Password reset:",error instanceof Error?error.message:"Unknown");}
   return {ok:true,message:generic};
+}
+
+/** Legacy email-only accounts can request a reset before claiming a username. */
+export async function requestLegacyPasswordReset(input:string):Promise<Result>{
+  const email=input.trim().toLowerCase();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||email.length>254||!neonConfigured||!process.env.DATABASE_URL)
+    return {ok:true,message:"If this email has an account, password reset instructions will be sent."};
+  try{
+    const sql=sqlClient();
+    await sql`CREATE TABLE IF NOT EXISTS learner_reset_throttle (
+      username TEXT PRIMARY KEY,
+      last_request_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )`;
+    const key="email:"+email;
+    const permit=await sql`INSERT INTO learner_reset_throttle (username,last_request_at)
+      VALUES (${key},NOW())
+      ON CONFLICT (username) DO UPDATE SET last_request_at=NOW()
+      WHERE learner_reset_throttle.last_request_at < NOW() - INTERVAL '2 minutes'
+      RETURNING username`;
+    if(permit.length){
+      const origin=new URL(process.env.APP_BASE_URL||"https://grammar-course-nextjs.vercel.app");
+      if(["https:","http:"].includes(origin.protocol)){
+        const result=await resetApi.requestPasswordReset({email,redirectTo:new URL("/reset-password",origin).toString()});
+        if(result.error)console.error("Legacy password reset delivery:",result.error.message);
+      }
+    }
+  }catch(error){console.error("Legacy password reset:",error instanceof Error?error.message:"Unknown");}
+  return {ok:true,message:"If this email has an account, password reset instructions will be sent."};
 }
 
 export async function confirmPasswordReset(token:string,newPassword:string):Promise<Result>{
