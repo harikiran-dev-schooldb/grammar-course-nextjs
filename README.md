@@ -2,6 +2,10 @@
 
 A responsive 30-day English grammar course built with Next.js, TypeScript, and Tailwind CSS.
 
+## Live site
+
+[https://grammar-course-nextjs.vercel.app](https://grammar-course-nextjs.vercel.app)
+
 ## Features
 
 - 30 structured grammar lessons
