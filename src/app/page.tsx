@@ -6,7 +6,8 @@ import { conversations } from "@/data/conversations";
 import { wordPower } from "@/data/word-power";
 import SpeakingRecorder from "@/components/speaking-recorder";
 import DailyTestHub from "@/components/daily-test-hub";
-import { parseCompletedDays, parseSavedDayIndex } from "@/lib/progress";
+import { authClient } from "@/lib/auth-client";
+import { CloudProgress, emptyProgress, mergeProgress, Mistake, parseCompletedDays, parseSavedDayIndex } from "@/lib/progress";
 
 type InstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -15,12 +16,21 @@ type InstallPromptEvent = Event & {
 
 type OfflineStatus = "idle" | "downloading" | "ready" | "error";
 type SkillTab = "listen" | "read" | "write" | "translate";
-type LearnerProfile = { name: string; pinHash: string };
+type HubView = "dashboard" | "revision" | "test" | "certificate";
 
-async function hashPin(pin: string) {
-  const bytes = new TextEncoder().encode(`grammar-studio:${pin}`);
-  const digest = await crypto.subtle.digest("SHA-256", bytes);
-  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+const todayKey = () => new Date().toLocaleDateString("en-CA");
+
+function calculateStreak(dates: string[], today: string) {
+  if (!today) return 0;
+  const days = new Set(dates);
+  const cursor = new Date(`${today}T12:00:00`);
+  if (!days.has(today)) cursor.setDate(cursor.getDate() - 1);
+  let streak = 0;
+  while (days.has(cursor.toLocaleDateString("en-CA"))) {
+    streak += 1;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  return streak;
 }
 
 function SpeakerIcon() {
@@ -33,11 +43,17 @@ function CheckIcon() {
 
 export default function Home() {
   const [authReady, setAuthReady] = useState(false);
-  const [profile, setProfile] = useState<LearnerProfile | null>(null);
   const [learnerName, setLearnerName] = useState<string | null>(null);
+  const [learnerEmail, setLearnerEmail] = useState("");
+  const [authMode, setAuthMode] = useState<"signin" | "signup">("signin");
   const [authName, setAuthName] = useState("");
-  const [authPin, setAuthPin] = useState("");
+  const [authPassword, setAuthPassword] = useState("");
   const [authError, setAuthError] = useState("");
+  const [authBusy, setAuthBusy] = useState(false);
+  const [today, setToday] = useState("");
+  const [displayDate, setDisplayDate] = useState("");
+  const [cloudLoaded, setCloudLoaded] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<"local" | "syncing" | "synced" | "error">("local");
   const [current, setCurrent] = useState(0);
   const [language, setLanguage] = useState<LanguageMode>("both");
   const [completed, setCompleted] = useState<number[]>([]);
@@ -64,6 +80,13 @@ export default function Home() {
   const [translationText, setTranslationText] = useState("");
   const [showTranslation, setShowTranslation] = useState(false);
   const [skillsDone, setSkillsDone] = useState<string[]>([]);
+  const [writings, setWritings] = useState<Record<string, string>>({});
+  const [mistakes, setMistakes] = useState<Mistake[]>([]);
+  const [activityDates, setActivityDates] = useState<string[]>([]);
+  const [badges, setBadges] = useState<string[]>([]);
+  const [hubView, setHubView] = useState<HubView | null>(null);
+  const [testAnswers, setTestAnswers] = useState<Record<number, number>>({});
+  const [testScore, setTestScore] = useState<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const lesson = lessons[current];
   const conversation = conversations[current];
@@ -88,31 +111,15 @@ export default function Home() {
   }, [conversation, current]);
 
   useEffect(() => {
-    const frame = window.requestAnimationFrame(() => {
-      try {
-        const stored = window.localStorage.getItem("grammar-studio-learner-profile");
-        if (stored) {
-          try {
-            const parsed = JSON.parse(stored) as Partial<LearnerProfile> | null;
-            if (typeof parsed?.name !== "string" || parsed.name.trim().length < 2 ||
-                typeof parsed.pinHash !== "string" || !/^[a-f0-9]{64}$/.test(parsed.pinHash)) {
-              throw new Error("Invalid learner profile");
-            }
-            const validProfile = { name: parsed.name.trim(), pinHash: parsed.pinHash };
-            setProfile(validProfile);
-            setAuthName(validProfile.name);
-            if (window.sessionStorage.getItem("grammar-studio-authenticated") === "yes") setLearnerName(validProfile.name);
-          } catch {
-            window.localStorage.removeItem("grammar-studio-learner-profile");
-            window.sessionStorage.removeItem("grammar-studio-authenticated");
-          }
-        }
-      } catch {
-        // Storage access can be denied in private browsing modes.
+    let active = true;
+    void authClient.getSession().then(({ data }) => {
+      if (!active) return;
+      if (data?.user) {
+        setLearnerName(data.user.name || data.user.email.split("@")[0]);
+        setLearnerEmail(data.user.email);
       }
-      setAuthReady(true);
-    });
-    return () => window.cancelAnimationFrame(frame);
+    }).catch(() => undefined).finally(() => { if (active) setAuthReady(true); });
+    return () => { active = false; };
   }, []);
 
   useEffect(() => {
@@ -121,10 +128,23 @@ export default function Home() {
       // replaces the learner's saved progress with the default empty array.
       try {
         const validDays = lessons.map((item) => item.day);
-        setCompleted(parseCompletedDays(window.localStorage.getItem("grammar-studio-progress"), validDays));
-        setCurrent(parseSavedDayIndex(window.localStorage.getItem("grammar-studio-day"), validDays));
+        const cloudLocal = window.localStorage.getItem("grammar-studio-cloud-progress");
+        if (cloudLocal) {
+          const saved = JSON.parse(cloudLocal) as CloudProgress;
+          setCompleted(parseCompletedDays(JSON.stringify(saved.completed || []), validDays));
+          setCurrent(Math.max(0, Math.min(29, (saved.currentDay || 1) - 1)));
+          setSkillsDone(saved.skillsDone || []);
+          setWritings(saved.writings || {});
+          setMistakes(saved.mistakes || []);
+          setActivityDates(saved.activityDates || []);
+          setBadges(saved.badges || []);
+        } else {
+          setCompleted(parseCompletedDays(window.localStorage.getItem("grammar-studio-progress"), validDays));
+          setCurrent(parseSavedDayIndex(window.localStorage.getItem("grammar-studio-day"), validDays));
+        }
       } catch {
-        // Browsers can block localStorage; keep the course usable without it.
+        // Browsers can block localStorage or contain malformed legacy data.
+        window.localStorage.removeItem("grammar-studio-cloud-progress");
       }
       setProgressReady(true);
     });
@@ -158,15 +178,65 @@ export default function Home() {
     const frame = window.requestAnimationFrame(() => {
       const learnerKey = learnerName.trim().toLocaleLowerCase("en");
       setWritingText(window.localStorage.getItem(`grammar-studio-writing-${learnerKey}-${current + 1}`) || "");
+      setWritingText((currentText) => writings[String(current + 1)] || currentText);
       setWritingSaved(false);
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [current, learnerName]);
+  }, [current, learnerName, writings]);
+
+  useEffect(() => {
+    if (!learnerName || cloudLoaded) return;
+    let active = true;
+    const savedRaw = window.localStorage.getItem("grammar-studio-cloud-progress");
+    let local = emptyProgress(learnerName);
+    if (savedRaw) {
+      try { local = { ...local, ...(JSON.parse(savedRaw) as CloudProgress), displayName: learnerName }; } catch { /* use current state */ }
+    } else {
+      local = { ...local, completed, currentDay: current + 1, skillsDone, writings, mistakes, activityDates, badges };
+    }
+    void fetch("/api/progress", { cache: "no-store" }).then(async (response) => {
+      if (!response.ok) throw new Error("Cloud progress unavailable");
+      const merged = mergeProgress(local, await response.json() as CloudProgress);
+      if (!active) return;
+      setCompleted(merged.completed);
+      setCurrent(Math.max(0, Math.min(29, merged.currentDay - 1)));
+      setSkillsDone(merged.skillsDone);
+      setWritings(merged.writings);
+      setMistakes(merged.mistakes);
+      setActivityDates([...new Set([...merged.activityDates, todayKey()])]);
+      setBadges(merged.badges);
+      setSyncStatus("synced");
+    }).catch(() => {
+      if (active) {
+        setActivityDates((dates) => [...new Set([...dates, todayKey()])]);
+        setSyncStatus(navigator.onLine ? "error" : "local");
+      }
+    }).finally(() => { if (active) setCloudLoaded(true); });
+    return () => { active = false; };
+    // Run once for each authenticated learner; later updates use the sync effect below.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [learnerName, cloudLoaded]);
+
+  useEffect(() => {
+    if (!learnerName || !cloudLoaded) return;
+    const snapshot: CloudProgress = { displayName: learnerName, completed, currentDay: current + 1, skillsDone, writings, mistakes, activityDates, badges };
+    window.localStorage.setItem("grammar-studio-cloud-progress", JSON.stringify(snapshot));
+    const timer = window.setTimeout(() => {
+      if (!navigator.onLine) { setSyncStatus("local"); return; }
+      setSyncStatus("syncing");
+      void fetch("/api/progress", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(snapshot) })
+        .then((response) => { if (!response.ok) throw new Error("Sync failed"); setSyncStatus("synced"); })
+        .catch(() => setSyncStatus("error"));
+    }, 700);
+    return () => window.clearTimeout(timer);
+  }, [activityDates, badges, cloudLoaded, completed, current, learnerName, mistakes, skillsDone, writings]);
 
   useEffect(() => {
     const environmentFrame = window.requestAnimationFrame(() => {
       setIsOnline(window.navigator.onLine);
       setIsInstalled(window.matchMedia("(display-mode: standalone)").matches);
+      setToday(todayKey());
+      setDisplayDate(new Date().toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }));
     });
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
@@ -216,6 +286,33 @@ export default function Home() {
   }, []);
 
   const progress = Math.round((completed.length / lessons.length) * 100);
+  const writingWordCount = writingText.trim() ? writingText.trim().split(/\s+/).length : 0;
+  const streak = calculateStreak(activityDates, today);
+  const reviewItems = mistakes.filter((item) => !item.reviewed).sort((a, b) => b.attempts - a.attempts);
+  const achievementBadges = [
+    ...(completed.length >= 1 ? ["First lesson"] : []),
+    ...(completed.length >= 10 ? ["10-day explorer"] : []),
+    ...(completed.length >= 20 ? ["20-day builder"] : []),
+    ...(completed.length === 30 ? ["Course champion"] : []),
+    ...(skillsDone.length >= 40 ? ["Skills starter"] : []),
+    ...(skillsDone.length >= 100 ? ["Skills master"] : []),
+    ...(streak >= 3 ? ["3-day streak"] : []),
+    ...(streak >= 7 ? ["7-day streak"] : []),
+  ];
+  const allBadges = [...new Set([...badges, ...achievementBadges])];
+  const testQuestions = useMemo(() => lessons.filter((_, index) => index % 3 === 0).slice(0, 10), []);
+  const writingFeedback = useMemo(() => {
+    const text = writingText.trim();
+    if (!text) return [];
+    const notes: string[] = [];
+    if (!/^[A-Z]/.test(text)) notes.push("Start your first sentence with a capital letter.");
+    if (!/[.!?]$/.test(text)) notes.push("Finish your answer with a full stop, question mark, or exclamation mark.");
+    if (/\bi\b/.test(text)) notes.push("Write the pronoun “I” with a capital letter.");
+    if (/\b(he|she|it) (go|do|have)\b/i.test(text)) notes.push("Check the verb after he/she/it: goes, does, or has.");
+    if (/(\b\w+\b)(\s+\1\b)/i.test(text)) notes.push("A word is repeated. Read the sentence once and remove the duplicate.");
+    if (writingWordCount < 8) notes.push("Add one more detail to make your answer clearer.");
+    return notes.length ? notes : ["Clear writing—capital letters, grammar, and punctuation look good."];
+  }, [writingText, writingWordCount]);
   const groupedLessons = useMemo(
     () => units.map((unit) => ({ unit, lessons: lessons.filter((item) => item.unit === unit) })),
     [],
@@ -244,6 +341,16 @@ export default function Home() {
 
   const toggleComplete = () => {
     setCompleted((items) => items.includes(lesson.day) ? items.filter((day) => day !== lesson.day) : [...items, lesson.day]);
+    setActivityDates((dates) => [...new Set([...dates, todayKey()])]);
+  };
+
+  const rememberMistake = (type: Mistake["type"], prompt: string, answer: string) => {
+    const id = `${type}-${lesson.day}-${prompt.slice(0, 32)}`;
+    setMistakes((items) => {
+      const existing = items.find((item) => item.id === id);
+      if (existing) return items.map((item) => item.id === id ? { ...item, attempts: item.attempts + 1, reviewed: false, lastSeen: new Date().toISOString() } : item);
+      return [...items, { id, type, day: lesson.day, prompt, answer, attempts: 1, reviewed: false, lastSeen: new Date().toISOString() }].slice(-100);
+    });
   };
 
   const playAudio = (src: string, key: string) => {
@@ -295,7 +402,6 @@ export default function Home() {
 
   const isCorrect = selected === lesson.practice.answer;
   const spellingIsCorrect = spellingInput.trim().toLocaleLowerCase("en") === activeWord.word.toLocaleLowerCase("en");
-  const writingWordCount = writingText.trim() ? writingText.trim().split(/\s+/).length : 0;
 
   const selectWord = (index: number) => {
     setWordIndex(index);
@@ -311,6 +417,11 @@ export default function Home() {
     playAudio(audioPath(`word-${String(wordIndex + 1).padStart(2, "0")}`, "en"), `word-${wordIndex + 1}`);
   };
 
+  const checkSpelling = () => {
+    setSpellingChecked(true);
+    if (!spellingIsCorrect) rememberMistake("spelling", `Spell the word you heard: ${activeWord.meaningTe}`, activeWord.word);
+  };
+
   const markSkill = (skill: SkillTab) => {
     if (!learnerName) return;
     const key = `${skill}-${lesson.day}`;
@@ -324,36 +435,53 @@ export default function Home() {
     if (!learnerName || writingText.trim().split(/\s+/).filter(Boolean).length < 5) return;
     const learnerKey = learnerName.trim().toLocaleLowerCase("en");
     window.localStorage.setItem(`grammar-studio-writing-${learnerKey}-${lesson.day}`, writingText.trim());
+    setWritings((items) => ({ ...items, [String(lesson.day)]: writingText.trim() }));
     setWritingSaved(true);
     markSkill("write");
+  };
+
+  const submitFinalTest = () => {
+    const correct = testQuestions.filter((item) => testAnswers[item.day] === item.practice.answer).length;
+    const score = Math.round((correct / testQuestions.length) * 100);
+    setTestScore(score);
+    if (score >= 80) setBadges((items) => [...new Set([...items, "Final test passed"])]);
   };
 
   const submitAuth = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const name = authName.trim();
-    if (name.length < 2) { setAuthError("Please enter your name."); return; }
-    if (!/^\d{4}$/.test(authPin)) { setAuthError("Enter a 4-digit PIN."); return; }
-    const pinHash = await hashPin(authPin);
-
-    if (profile) {
-      if (pinHash !== profile.pinHash) { setAuthError("That PIN is not correct. Please try again."); return; }
-      setLearnerName(profile.name);
-    } else {
-      const newProfile = { name, pinHash };
-      window.localStorage.setItem("grammar-studio-learner-profile", JSON.stringify(newProfile));
-      setProfile(newProfile);
-      setLearnerName(name);
-    }
-    window.sessionStorage.setItem("grammar-studio-authenticated", "yes");
-    setAuthPin("");
+    const email = learnerEmail.trim().toLowerCase();
+    if (authMode === "signup" && name.length < 2) { setAuthError("Please enter the learner’s name."); return; }
+    if (!/^\S+@\S+\.\S+$/.test(email)) { setAuthError("Enter a valid email address."); return; }
+    if (authPassword.length < 8) { setAuthError("Password must be at least 8 characters."); return; }
+    setAuthBusy(true);
     setAuthError("");
+    try {
+      const result = authMode === "signup"
+        ? await authClient.signUp.email({ name, email, password: authPassword })
+        : await authClient.signIn.email({ email, password: authPassword });
+      if (result.error) throw new Error(result.error.message || "Could not sign in.");
+      const session = await authClient.getSession();
+      const user = session.data?.user;
+      if (!user) throw new Error(authMode === "signup" ? "Account created. Please sign in." : "Could not start your session.");
+      setLearnerName(user.name || user.email.split("@")[0]);
+      setLearnerEmail(user.email);
+      setCloudLoaded(false);
+      setAuthPassword("");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Cloud login is unavailable.";
+      setAuthError(message.includes("fetch") || message.includes("Network") ? "Neon login is not connected yet. Complete the Neon setup and try again." : message);
+    } finally { setAuthBusy(false); }
   };
 
-  const logout = () => {
-    window.sessionStorage.removeItem("grammar-studio-authenticated");
+  const logout = async () => {
+    await authClient.signOut();
     setLearnerName(null);
-    setAuthPin("");
+    setLearnerEmail("");
+    setAuthPassword("");
     setAuthError("");
+    setCloudLoaded(false);
+    setHubView(null);
   };
 
   if (!authReady) return <div className="app-loading"><span className="brand-mark">G</span><p>Preparing your English course…</p></div>;
@@ -363,17 +491,19 @@ export default function Home() {
       <main className="login-page">
         <section className="login-card">
           <div className="login-brand"><span className="brand-mark">G</span><div><strong>Grammar Studio</strong><small>Complete English · సంపూర్ణ ఇంగ్లీష్</small></div></div>
-          <p className="kicker">{profile ? "Welcome back" : "Create your learner profile"}</p>
-          <h1>{profile ? `Hello, ${profile.name}` : "Learn English one day at a time."}</h1>
+          <p className="kicker">Secure cloud learning with Neon</p>
+          <h1>{authMode === "signin" ? "Welcome back to your course." : "Create your learner account."}</h1>
           <p className="login-intro">Grammar, listening, reading, writing, conversations, vocabulary, spelling, and translation—in one offline-friendly course.</p>
           <p className="login-intro telugu" lang="te">Grammar మాత్రమే కాదు—English లో వినడం, చదవడం, రాయడం, మాట్లాడడం అన్నీ practice చేయండి.</p>
           <form onSubmit={submitAuth}>
-            {!profile && <label>Your name<input value={authName} onChange={(event) => setAuthName(event.target.value)} autoComplete="name" placeholder="Enter your name" /></label>}
-            <label>4-digit PIN<input value={authPin} onChange={(event) => setAuthPin(event.target.value.replace(/\D/g, "").slice(0, 4))} inputMode="numeric" autoComplete={profile ? "current-password" : "new-password"} type="password" placeholder="••••" /></label>
+            {authMode === "signup" && <label>Learner name<input value={authName} onChange={(event) => setAuthName(event.target.value)} autoComplete="name" placeholder="Enter learner name" /></label>}
+            <label>Email address<input value={learnerEmail} onChange={(event) => setLearnerEmail(event.target.value)} autoComplete="email" inputMode="email" type="email" placeholder="name@example.com" /></label>
+            <label>Password<input value={authPassword} onChange={(event) => setAuthPassword(event.target.value)} autoComplete={authMode === "signin" ? "current-password" : "new-password"} type="password" placeholder="At least 8 characters" /></label>
             {authError && <p className="auth-error" role="alert">{authError}</p>}
-            <button type="submit">{profile ? "Open my course" : "Create profile & start"}</button>
+            <button type="submit" disabled={authBusy}>{authBusy ? "Please wait…" : authMode === "signin" ? "Sign in & continue" : "Create account & start"}</button>
           </form>
-          <div className="local-profile-note"><CheckIcon /><span><strong>Works offline.</strong> Your progress is stored in this browser and may be lost if its data is cleared. The 4-digit PIN is a convenience lock, not secure account protection.</span></div>
+          <button type="button" className="auth-mode-switch" onClick={() => { setAuthMode((mode) => mode === "signin" ? "signup" : "signin"); setAuthError(""); }}>{authMode === "signin" ? "New learner? Create an account" : "Already have an account? Sign in"}</button>
+          <div className="local-profile-note"><CheckIcon /><span><strong>Secure sync + offline learning.</strong> Neon keeps progress across devices; the course remains usable when the internet drops.</span></div>
         </section>
         <aside className="login-preview" aria-hidden="true"><span>30 days</span><h2>From beginner basics to confident everyday English.</h2><div className="login-skill-list"><b>Listen</b><b>Read</b><b>Write</b><b>Speak</b></div></aside>
       </main>
@@ -392,8 +522,32 @@ export default function Home() {
           <div className="top-progress-copy"><span>Course progress</span><strong>{completed.length} / 30</strong></div>
           <div className="progress-rail"><span style={{ width: `${progress}%` }} /></div>
         </div>
-        <button type="button" className="account-button" onClick={logout} title="Log out of this device"><span>{learnerName.charAt(0).toUpperCase()}</span><small>{learnerName}</small><b>Log out</b></button>
+        <button type="button" className="account-button" onClick={() => setHubView("dashboard")} title="Open learner dashboard"><span>{learnerName.charAt(0).toUpperCase()}</span><small>{learnerName}</small><b>{syncStatus === "synced" ? "Cloud synced" : syncStatus === "syncing" ? "Syncing…" : syncStatus === "error" ? "Sync retry" : "Offline saved"}</b></button>
       </header>
+
+      {hubView && (
+        <div className="hub-overlay" role="dialog" aria-modal="true" aria-label="Learner progress hub">
+          <section className="hub-modal">
+            <header className="hub-header"><div><p className="kicker">My learning hub · నా ప్రగతి</p><h2>{learnerName}&apos;s English journey</h2><small>{learnerEmail} · {syncStatus === "synced" ? "Saved securely in Neon" : "Saved offline; cloud will retry"}</small></div><button type="button" onClick={() => setHubView(null)} aria-label="Close dashboard">×</button></header>
+            <nav className="hub-tabs" aria-label="Learning hub sections">
+              {([ ["dashboard", "Progress"], ["revision", `Review ${reviewItems.length}`], ["test", "Final test"], ["certificate", "Certificate"] ] as [HubView, string][]).map(([view, label]) => <button type="button" key={view} className={hubView === view ? "active" : ""} onClick={() => setHubView(view)}>{label}</button>)}
+            </nav>
+
+            {hubView === "dashboard" && <div className="hub-body dashboard-body">
+              <div className="metric-grid"><article><span>Course</span><strong>{progress}%</strong><small>{completed.length} of 30 lessons</small></article><article><span>Activities</span><strong>{skillsDone.length}</strong><small>of 120 complete</small></article><article><span>Current streak</span><strong>{streak} 🔥</strong><small>days learning</small></article><article><span>To review</span><strong>{reviewItems.length}</strong><small>personal practice items</small></article></div>
+              <section className="badge-section"><h3>Achievements</h3><div className="badge-list">{allBadges.length ? allBadges.map((badge) => <span key={badge}>★ {badge}</span>) : <p>Complete your first lesson to earn a badge.</p>}</div></section>
+              <section className="teacher-report"><div><h3>Teacher / parent report</h3><p>Grammar {completed.length}/30 · Skill practice {skillsDone.length}/120 · Writing samples {Object.keys(writings).length} · Revision queue {reviewItems.length}</p><p lang="te">పాఠాలు, practice, writing, mistakes అన్నీ ఒకే చోట చూడవచ్చు.</p></div><button type="button" onClick={() => window.print()}>Print report</button></section>
+              <button type="button" className="hub-logout" onClick={() => void logout()}>Sign out of this account</button>
+            </div>}
+
+            {hubView === "revision" && <div className="hub-body"><div className="revision-intro"><h3>Smart revision</h3><p>Your difficult questions rise to the top. Review them, then mark them done.</p><p lang="te">మీరు తప్పు చేసిన ప్రశ్నలను మళ్లీ practice చేయండి.</p></div>{reviewItems.length ? <div className="revision-list">{reviewItems.map((item) => <article key={item.id}><span>{item.type} · Day {item.day} · tried {item.attempts}×</span><h4>{item.prompt}</h4><p>Correct answer: <strong>{item.answer}</strong></p><div><button type="button" onClick={() => { setHubView(null); goToLesson(item.day - 1); }}>Open lesson</button><button type="button" onClick={() => setMistakes((items) => items.map((entry) => entry.id === item.id ? { ...entry, reviewed: true } : entry))}>I reviewed this ✓</button></div></article>)}</div> : <div className="empty-hub"><strong>All caught up!</strong><p>No mistakes are waiting for review.</p></div>}</div>}
+
+            {hubView === "test" && <div className="hub-body"><div className="revision-intro"><h3>Final 10-question test</h3><p>Score 80% or higher to unlock your course certificate.</p><p lang="te">Certificate పొందడానికి కనీసం 80% score చేయండి.</p></div><div className="final-test">{testQuestions.map((item, questionIndex) => <fieldset key={item.day}><legend>{questionIndex + 1}. {item.practice.prompt}</legend>{item.practice.options.map((option, optionIndex) => <label key={option}><input type="radio" name={`test-${item.day}`} checked={testAnswers[item.day] === optionIndex} onChange={() => { setTestAnswers((answers) => ({ ...answers, [item.day]: optionIndex })); setTestScore(null); }} />{option}</label>)}</fieldset>)}</div><button type="button" className="submit-test" disabled={Object.keys(testAnswers).length < testQuestions.length} onClick={submitFinalTest}>Check my final test</button>{testScore !== null && <div className={`test-result ${testScore >= 80 ? "pass" : "retry"}`}><strong>{testScore}% — {testScore >= 80 ? "Passed! Certificate unlocked." : "Keep learning and try again."}</strong><p>{testScore >= 80 ? "Excellent work. చాలా బాగా చేశారు!" : "Review your mistakes and aim for 80%."}</p></div>}</div>}
+
+            {hubView === "certificate" && <div className="hub-body"><div className={`certificate ${badges.includes("Final test passed") ? "unlocked" : "locked"}`}><span className="certificate-mark">G</span><p>Certificate of Completion</p><h3>This certifies that</h3><strong>{learnerName}</strong><h4>completed the Grammar Studio English course</h4><p>English grammar · listening · reading · writing · speaking · vocabulary</p><div><span>30-day bilingual learning journey</span><span>{displayDate}</span></div>{!badges.includes("Final test passed") && <aside>Pass the final test with 80% to unlock this certificate.</aside>}</div>{badges.includes("Final test passed") && <button type="button" className="submit-test" onClick={() => window.print()}>Print / Save certificate as PDF</button>}</div>}
+          </section>
+        </div>
+      )}
 
       <div className="course-layout">
         <aside className={`sidebar ${menuOpen ? "is-open" : ""}`}>
@@ -487,7 +641,7 @@ export default function Home() {
                 </div>
                 <div className="skill-workspace">
                   <div className="skill-options">
-                    {activity.listeningOptions.map((option, index) => <button type="button" key={option} className={listeningAnswer === null ? "" : index === activity.listeningAnswer ? "correct" : listeningAnswer === index ? "wrong" : ""} onClick={() => { setListeningAnswer(index); if (index === activity.listeningAnswer) markSkill("listen"); }}><span>{String.fromCharCode(65 + index)}</span>{option}</button>)}
+                    {activity.listeningOptions.map((option, index) => <button type="button" key={option} className={listeningAnswer === null ? "" : index === activity.listeningAnswer ? "correct" : listeningAnswer === index ? "wrong" : ""} onClick={() => { setListeningAnswer(index); if (index === activity.listeningAnswer) markSkill("listen"); else rememberMistake("listening", "Where does this conversation happen?", activity.listeningOptions[activity.listeningAnswer]); }}><span>{String.fromCharCode(65 + index)}</span>{option}</button>)}
                   </div>
                   {listeningAnswer !== null && <p className={`skill-feedback ${listeningAnswer === activity.listeningAnswer ? "success" : "retry"}`}>{listeningAnswer === activity.listeningAnswer ? "Correct—listen once more and notice every word. చాలా బాగుంది!" : "Listen again and focus on the setting. మరొక్కసారి వినండి."}</p>}
                   <button type="button" className="text-action" onClick={() => setShowTranscript((shown) => !shown)}>{showTranscript ? "Hide transcript" : "Show transcript after listening"}</button>
@@ -499,14 +653,14 @@ export default function Home() {
             {skillTab === "read" && (
               <div className="skill-panel reading-panel">
                 <article className="reading-passage"><span className="skill-number">02</span><p className="kicker">Read slowly</p><h3>{conversation.title}</h3>{activity.readingPassage.split("\n").map((line) => <p key={line}>{line}</p>)}</article>
-                <div className="skill-workspace"><h3>Which reply makes the conversation natural?</h3><p lang="te">Conversation natural గా ఉండే reply ఎంచుకోండి.</p><div className="skill-options">{conversation.options.map((option, index) => <button type="button" key={option.text} className={readingAnswer === null ? "" : index === conversation.best ? "correct" : readingAnswer === index ? "wrong" : ""} onClick={() => { setReadingAnswer(index); if (index === conversation.best) markSkill("read"); }}><span>{String.fromCharCode(65 + index)}</span>{option.text}</button>)}</div>{readingAnswer !== null && <p className={`skill-feedback ${readingAnswer === conversation.best ? "success" : "retry"}`}>{readingAnswer === conversation.best ? `Correct. ${conversation.tip}` : `Try again. ${conversation.tip}`}</p>}</div>
+                <div className="skill-workspace"><h3>Which reply makes the conversation natural?</h3><p lang="te">Conversation natural గా ఉండే reply ఎంచుకోండి.</p><div className="skill-options">{conversation.options.map((option, index) => <button type="button" key={option.text} className={readingAnswer === null ? "" : index === conversation.best ? "correct" : readingAnswer === index ? "wrong" : ""} onClick={() => { setReadingAnswer(index); if (index === conversation.best) markSkill("read"); else rememberMistake("reading", "Choose the natural reply", conversation.options[conversation.best].text); }}><span>{String.fromCharCode(65 + index)}</span>{option.text}</button>)}</div>{readingAnswer !== null && <p className={`skill-feedback ${readingAnswer === conversation.best ? "success" : "retry"}`}>{readingAnswer === conversation.best ? `Correct. ${conversation.tip}` : `Try again. ${conversation.tip}`}</p>}</div>
               </div>
             )}
 
             {skillTab === "write" && (
               <div className="skill-panel writing-panel">
                 <div className="skill-instruction"><span className="skill-number">03</span><p className="kicker">Write in your own words</p><h3>{lesson.speak}</h3><p lang="te">{lesson.speakTe}</p><div className="writing-tips"><span>Use 5+ words</span><span>Check capital letters</span><span>Finish with punctuation</span></div></div>
-                <div className="skill-workspace"><label htmlFor="daily-writing">Your writing</label><textarea id="daily-writing" value={writingText} onChange={(event) => {setWritingText(event.target.value); setWritingSaved(false);}} placeholder="Write your answer in English…" /><div className="writing-footer"><span className={writingWordCount >= 5 ? "ready" : ""}>{writingWordCount} words</span><button type="button" onClick={saveWriting} disabled={writingWordCount < 5}>Save writing</button></div>{writingSaved && <p className="skill-feedback success">Saved on this device. మీ writing save అయింది.</p>}</div>
+                <div className="skill-workspace"><label htmlFor="daily-writing">Your writing</label><textarea id="daily-writing" value={writingText} onChange={(event) => {setWritingText(event.target.value); setWritingSaved(false);}} placeholder="Write your answer in English…" /><div className="writing-coach"><strong>Smart writing coach</strong>{writingWordCount >= 5 ? <ul>{writingFeedback.map((note) => <li key={note}>{note}</li>)}</ul> : <p>Write at least 5 words to receive instant feedback.</p>}</div><div className="writing-footer"><span className={writingWordCount >= 5 ? "ready" : ""}>{writingWordCount} words</span><button type="button" onClick={saveWriting} disabled={writingWordCount < 5}>Save writing</button></div>{writingSaved && <p className="skill-feedback success">Saved offline and synced to your account. మీ writing save అయింది.</p>}</div>
               </div>
             )}
 
@@ -567,7 +721,7 @@ export default function Home() {
                   const chosen = selected === index;
                   const revealCorrect = selected !== null && index === lesson.practice.answer;
                   const wrong = chosen && !revealCorrect;
-                  return <button type="button" key={option} className={`answer-option ${chosen ? "chosen" : ""} ${revealCorrect ? "correct" : ""} ${wrong ? "wrong" : ""}`} onClick={() => setSelected(index)}><span>{String.fromCharCode(65 + index)}</span>{option}</button>;
+                  return <button type="button" key={option} className={`answer-option ${chosen ? "chosen" : ""} ${revealCorrect ? "correct" : ""} ${wrong ? "wrong" : ""}`} onClick={() => { setSelected(index); if (index !== lesson.practice.answer) rememberMistake("grammar", lesson.practice.prompt, lesson.practice.options[lesson.practice.answer]); }}><span>{String.fromCharCode(65 + index)}</span>{option}</button>;
                 })}
               </div>
               <div className={`answer-feedback ${selected === null ? "waiting" : isCorrect ? "success" : "retry"}`} aria-live="polite">{selected === null ? "Choose an answer to see feedback." : isCorrect ? `Correct. ${lesson.practice.explanation}` : `Not quite. ${lesson.practice.explanation}`}</div>
@@ -623,7 +777,7 @@ export default function Home() {
                       type="button"
                       key={option.text}
                       className={`conversation-choice ${chosen ? "chosen" : ""} ${correct ? "correct" : ""} ${wrong ? "wrong" : ""}`}
-                      onClick={() => setConversationChoice(index)}
+                      onClick={() => { setConversationChoice(index); if (index !== conversation.best) rememberMistake("conversation", conversation.partner, conversation.options[conversation.best].text); }}
                     >
                       <span>{String.fromCharCode(65 + index)}</span>
                       {option.text}
@@ -711,13 +865,13 @@ export default function Home() {
                       id="spelling-input"
                       value={spellingInput}
                       onChange={(event) => { setSpellingInput(event.target.value); setSpellingChecked(false); }}
-                      onKeyDown={(event) => { if (event.key === "Enter" && spellingInput.trim()) setSpellingChecked(true); }}
+                      onKeyDown={(event) => { if (event.key === "Enter" && spellingInput.trim()) checkSpelling(); }}
                       autoComplete="off"
                       autoCapitalize="none"
                       spellCheck={false}
                       placeholder="Type what you heard"
                     />
-                    <button type="button" onClick={() => setSpellingChecked(true)} disabled={!spellingInput.trim()}>Check</button>
+                    <button type="button" onClick={checkSpelling} disabled={!spellingInput.trim()}>Check</button>
                   </div>
                   {spellingChecked && (
                     <div className={`spelling-feedback ${spellingIsCorrect ? "correct" : "retry"}`}>

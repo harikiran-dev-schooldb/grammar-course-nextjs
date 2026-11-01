@@ -44,6 +44,8 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-lineca
 .login-card input { height: 51px; padding: 0 15px; border: 2px solid #dce5e2; border-radius: 12px; color: var(--ink); background: #fbfdfc; font-size: 15px; outline: 0; }
 .login-card input:focus { border-color: #6db6d0; box-shadow: 0 0 0 4px rgba(109,182,208,.13); }
 .login-card form > button { min-height: 51px; border: 0; border-radius: 12px; color: white; background: var(--blue); font-size: 11px; font-weight: 900; cursor: pointer; }
+.login-card form > button:disabled { opacity: .65; cursor: wait; }
+.auth-mode-switch { margin-top: 15px; padding: 0; border: 0; color: var(--blue); background: transparent; font-size: 10px; font-weight: 900; cursor: pointer; }
 .auth-error { margin: 0; color: #a84938; font-size: 11px; }
 .local-profile-note { max-width: 420px; margin-top: 18px; padding: 12px; display: flex; gap: 10px; border-radius: 11px; color: #4f6b61; background: var(--green-pale); font-size: 9px; line-height: 1.5; }
 .local-profile-note svg { flex: 0 0 17px; width: 17px; height: 17px; color: var(--green); }
@@ -347,6 +349,68 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-lineca
 .lesson-pagination .next-button { color: white; background: var(--blue); border-color: var(--blue); }
 .page-overlay { display: none; }
 
+.writing-coach { margin-top: 10px; padding: 11px 12px; border: 1px solid #d9e7e1; border-radius: 10px; background: #f2f8f5; }
+.writing-coach strong { color: var(--green); font-size: 9px; letter-spacing: .04em; }
+.writing-coach p, .writing-coach ul { margin: 6px 0 0; color: #526c63; font-size: 9px; line-height: 1.5; }
+.writing-coach ul { padding-left: 16px; }
+
+.hub-overlay { padding: 22px; display: grid; place-items: center; position: fixed; z-index: 100; inset: 0; background: rgba(10,31,40,.72); backdrop-filter: blur(7px); }
+.hub-modal { width: min(920px, 100%); max-height: calc(100vh - 44px); overflow: auto; border-radius: 25px; background: var(--cream); box-shadow: 0 30px 90px rgba(0,0,0,.3); }
+.hub-header { padding: 27px 30px 21px; display: flex; justify-content: space-between; gap: 20px; color: white; background: var(--navy); }
+.hub-header .kicker { color: #8fd0e5; }
+.hub-header h2 { margin: 3px 0 4px; font-family: Georgia, serif; font-size: 28px; }
+.hub-header small { color: rgba(255,255,255,.62); font-size: 9px; }
+.hub-header > button { width: 36px; height: 36px; flex: 0 0 36px; border: 1px solid rgba(255,255,255,.16); border-radius: 50%; color: white; background: rgba(255,255,255,.07); font-size: 24px; cursor: pointer; }
+.hub-tabs { padding: 8px 30px 0; display: flex; gap: 5px; border-bottom: 1px solid var(--line); background: white; }
+.hub-tabs button { min-height: 45px; padding: 8px 14px; border: 0; border-bottom: 3px solid transparent; color: var(--muted); background: transparent; font-size: 10px; font-weight: 900; cursor: pointer; }
+.hub-tabs button.active { color: var(--blue); border-bottom-color: var(--blue); }
+.hub-body { padding: 27px 30px 32px; }
+.metric-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.metric-grid article { padding: 18px; display: grid; gap: 5px; border: 1px solid var(--line); border-radius: 15px; background: white; }
+.metric-grid span { color: var(--muted); font-size: 8px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+.metric-grid strong { color: var(--navy); font-family: Georgia, serif; font-size: 27px; }
+.metric-grid small { color: var(--muted); font-size: 8px; }
+.badge-section, .teacher-report { margin-top: 16px; padding: 18px; border-radius: 15px; background: white; border: 1px solid var(--line); }
+.badge-section h3, .teacher-report h3, .revision-intro h3 { margin: 0; font-family: Georgia, serif; font-size: 19px; }
+.badge-list { margin-top: 11px; display: flex; flex-wrap: wrap; gap: 7px; }
+.badge-list span { padding: 7px 9px; border-radius: 99px; color: #805e20; background: var(--gold-pale); font-size: 8px; font-weight: 900; }
+.badge-list p { margin: 0; color: var(--muted); font-size: 10px; }
+.teacher-report { display: flex; align-items: center; justify-content: space-between; gap: 18px; background: var(--green-pale); border-color: #d5e7df; }
+.teacher-report p { margin: 7px 0 0; color: #506b62; font-size: 10px; line-height: 1.5; }
+.teacher-report button, .revision-list button, .hub-logout, .submit-test { min-height: 38px; padding: 8px 13px; border: 0; border-radius: 10px; color: white; background: var(--blue); font-size: 9px; font-weight: 900; cursor: pointer; }
+.hub-logout { margin-top: 18px; color: #924c3d; background: #f5e3df; }
+.revision-intro p { margin: 7px 0 0; color: var(--muted); font-size: 10px; }
+.revision-intro p[lang="te"] { color: var(--green); }
+.revision-list { margin-top: 17px; display: grid; gap: 10px; }
+.revision-list article { padding: 17px; border: 1px solid var(--line); border-radius: 14px; background: white; }
+.revision-list article > span { color: var(--coral); font-size: 8px; font-weight: 900; text-transform: uppercase; }
+.revision-list h4 { margin: 8px 0 0; font-size: 13px; }
+.revision-list p { margin: 6px 0 0; color: var(--muted); font-size: 10px; }
+.revision-list article > div { margin-top: 12px; display: flex; gap: 7px; }
+.revision-list button:last-child { color: var(--green); background: var(--green-pale); }
+.empty-hub { margin-top: 18px; padding: 45px 20px; border: 1px dashed #b9ccc6; border-radius: 15px; color: var(--green); background: var(--green-pale); text-align: center; }
+.empty-hub p { margin: 7px 0 0; font-size: 10px; }
+.final-test { margin-top: 18px; display: grid; gap: 11px; }
+.final-test fieldset { padding: 16px; display: grid; gap: 8px; border: 1px solid var(--line); border-radius: 13px; background: white; }
+.final-test legend { padding: 0 6px; font-size: 11px; font-weight: 900; }
+.final-test label { padding: 7px 9px; display: flex; gap: 9px; align-items: center; border-radius: 8px; color: #53656b; background: #f5f8f7; font-size: 10px; cursor: pointer; }
+.submit-test { margin-top: 16px; background: var(--green); }
+.submit-test:disabled { opacity: .4; cursor: not-allowed; }
+.test-result { margin-top: 12px; padding: 14px; border-radius: 12px; }
+.test-result.pass { color: #285f4d; background: var(--green-pale); }
+.test-result.retry { color: #8b4d3e; background: #fae8e2; }
+.test-result p { margin: 6px 0 0; font-size: 10px; }
+.certificate { padding: 43px; position: relative; border: 8px double #d4a140; color: var(--navy); background: white; text-align: center; }
+.certificate.locked { filter: grayscale(.7); opacity: .7; }
+.certificate-mark { width: 55px; height: 55px; margin: 0 auto 18px; display: grid; place-items: center; border-radius: 50%; color: var(--navy); background: var(--gold); font-family: Georgia, serif; font-size: 32px; font-weight: 900; }
+.certificate > p:first-of-type { color: #9a6d1a; font-size: 10px; font-weight: 900; letter-spacing: .18em; text-transform: uppercase; }
+.certificate h3 { margin: 24px 0 8px; color: var(--muted); font-size: 11px; font-weight: 400; }
+.certificate > strong { font-family: Georgia, serif; font-size: 40px; border-bottom: 1px solid #d5c18f; }
+.certificate h4 { margin: 19px 0 7px; font-family: Georgia, serif; font-size: 18px; }
+.certificate p { color: var(--muted); font-size: 9px; }
+.certificate > div { margin-top: 30px; padding-top: 13px; display: flex; justify-content: space-between; border-top: 1px solid #e4dccb; color: #8b7651; font-size: 8px; }
+.certificate aside { margin-top: 22px; padding: 10px; color: #894d3f; background: #fae8e2; font-size: 10px; font-weight: 900; }
+
 @media (max-width: 980px) {
   .login-page { padding: 18px; grid-template-columns: 1fr; }
   .login-preview { min-height: 380px; }
@@ -411,6 +475,27 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-lineca
   .lesson-footer { align-items: stretch; flex-direction: column; }
   .lesson-pagination { width: 100%; }
   .lesson-pagination button { flex: 1; }
+  .hub-overlay { padding: 0; place-items: stretch; }
+  .hub-modal { max-height: 100vh; border-radius: 0; }
+  .hub-header { padding: 21px 18px 17px; }
+  .hub-header h2 { font-size: 22px; }
+  .hub-tabs { padding: 5px 9px 0; overflow-x: auto; }
+  .hub-tabs button { padding: 7px 10px; white-space: nowrap; }
+  .hub-body { padding: 19px 15px 28px; }
+  .metric-grid { grid-template-columns: 1fr 1fr; }
+  .teacher-report { align-items: stretch; flex-direction: column; }
+  .certificate { padding: 28px 15px; }
+  .certificate > strong { font-size: 30px; }
+}
+
+@media print {
+  body * { visibility: hidden !important; }
+  .hub-overlay, .hub-overlay *, .hub-modal, .hub-body, .teacher-report, .teacher-report *, .certificate, .certificate * { visibility: visible !important; }
+  .hub-overlay { padding: 0; position: absolute; inset: 0; display: block; background: white; }
+  .hub-modal { width: 100%; max-height: none; overflow: visible; box-shadow: none; }
+  .hub-header, .hub-tabs, .hub-logout, .submit-test { display: none !important; }
+  .hub-body { padding: 20px; }
+  .certificate { filter: none !important; opacity: 1 !important; }
 }
 
 @media (prefers-reduced-motion: reduce) {
