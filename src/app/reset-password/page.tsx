@@ -6,7 +6,7 @@ export default function ResetPasswordPage(){
  const [token,setToken]=useState("");const [password,setPassword]=useState("");
  const [confirm,setConfirm]=useState("");const [message,setMessage]=useState("");
  const [busy,setBusy]=useState(false);const [done,setDone]=useState(false);
- useEffect(()=>{setToken(new URLSearchParams(window.location.search).get("token")||"");},[]);
+ useEffect(()=>{const frame=window.requestAnimationFrame(()=>setToken(new URLSearchParams(window.location.search).get("token")||""));return ()=>window.cancelAnimationFrame(frame);},[]);
  async function submit(event:FormEvent<HTMLFormElement>){
   event.preventDefault();
   if(password!==confirm){setMessage("Passwords do not match.");return;}
