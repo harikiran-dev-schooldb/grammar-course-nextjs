@@ -1,7 +1,7 @@
-const VERSION = "grammar-studio-v3-neural-audio";
+const VERSION = "grammar-studio-v4-word-power";
 const CORE_CACHE = `${VERSION}-core`;
 const AUDIO_CACHE = `${VERSION}-audio`;
-const OFFLINE_MARKER = "/__grammar_studio_neural_audio_ready_v3__";
+const OFFLINE_MARKER = "/__grammar_studio_word_power_ready_v4__";
 
 const audioFiles = [];
 for (let day = 1; day <= 30; day += 1) {
@@ -12,6 +12,9 @@ for (let day = 1; day <= 30; day += 1) {
     for (let example = 1; example <= 3; example += 1) {
       audioFiles.push(`/audio/day-${number}-example-${String(example).padStart(2, "0")}-${language}.mp3`);
     }
+  }
+  for (let word = 1; word <= 3; word += 1) {
+    audioFiles.push(`/audio/day-${number}-word-${String(word).padStart(2, "0")}-en.mp3`);
   }
 }
 

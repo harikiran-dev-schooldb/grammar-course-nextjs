@@ -12,8 +12,9 @@ A responsive 30-day English grammar course built with Next.js, TypeScript, and T
 - English, Telugu, and bilingual display modes
 - Neural Indian English and Telugu audio for every explanation, example, and speaking prompt
 - 30 interactive English conversation role-plays with natural replies and bilingual teacher tips
+- End-of-lesson Word Power with spelling practice, syllables, Telugu meanings, and neural pronunciation audio
 - Installable Progressive Web App with offline navigation and lesson progress
-- Optional one-tap download of all 300 audio clips for complete offline study
+- Optional one-tap download of all 390 audio clips for complete offline study
 - Interactive practice questions with instant feedback
 - Saved lesson progress using browser local storage
 - Responsive desktop and mobile navigation
@@ -37,7 +38,7 @@ The checked-in audio files are ready to use. To rebuild them after editing lesso
 npm run audio
 ```
 
-Install `edge-tts`, then run the command above. It uses Neerja Expressive for Indian English and Shruti Neural for Telugu and writes MP3 clips to `public/audio`. If `edge-tts` is not on your `PATH`, set `EDGE_TTS_BIN` to its executable path.
+Install `edge-tts`, then run the command above. It uses Neerja Expressive for Indian English and Shruti Neural for Telugu and writes MP3 clips to `public/audio`. Add `-- --words-only` to regenerate only the 90 Word Power pronunciations. If `edge-tts` is not on your `PATH`, set `EDGE_TTS_BIN` to its executable path.
 
 ## Validate
 

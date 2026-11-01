@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { LanguageMode, lessons, units } from "@/data/lessons";
 import { conversations } from "@/data/conversations";
+import { wordPower } from "@/data/word-power";
 
 type InstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -27,14 +28,20 @@ export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [speaking, setSpeaking] = useState<string | null>(null);
   const [offlineStatus, setOfflineStatus] = useState<OfflineStatus>("idle");
-  const [offlineProgress, setOfflineProgress] = useState({ completed: 0, total: 300 });
+  const [offlineProgress, setOfflineProgress] = useState({ completed: 0, total: 390 });
   const [isOnline, setIsOnline] = useState(true);
   const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
   const [conversationChoice, setConversationChoice] = useState<number | null>(null);
+  const [wordIndex, setWordIndex] = useState(0);
+  const [spellingMode, setSpellingMode] = useState<"learn" | "quiz">("learn");
+  const [spellingInput, setSpellingInput] = useState("");
+  const [spellingChecked, setSpellingChecked] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const lesson = lessons[current];
   const conversation = conversations[current];
+  const words = wordPower[current];
+  const activeWord = words[wordIndex];
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -85,7 +92,7 @@ export default function Home() {
 
     if ("serviceWorker" in navigator) {
       void navigator.serviceWorker.register("/sw.js").then(async () => {
-        const ready = await caches.match("/__grammar_studio_neural_audio_ready_v3__");
+        const ready = await caches.match("/__grammar_studio_word_power_ready_v4__");
         if (ready) setOfflineStatus("ready");
       });
     }
@@ -117,6 +124,10 @@ export default function Home() {
     setSpeaking(null);
     setSelected(null);
     setConversationChoice(null);
+    setWordIndex(0);
+    setSpellingMode("learn");
+    setSpellingInput("");
+    setSpellingChecked(false);
     setCurrent(Math.max(0, Math.min(lessons.length - 1, index)));
     setMenuOpen(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -155,7 +166,7 @@ export default function Home() {
   const downloadForOffline = async () => {
     if (!("serviceWorker" in navigator) || !isOnline) return;
     setOfflineStatus("downloading");
-    setOfflineProgress({ completed: 0, total: 300 });
+    setOfflineProgress({ completed: 0, total: 390 });
     const registration = await navigator.serviceWorker.ready;
     registration.active?.postMessage({ type: "CACHE_ALL_AUDIO" });
   };
@@ -168,6 +179,21 @@ export default function Home() {
   };
 
   const isCorrect = selected === lesson.practice.answer;
+  const spellingIsCorrect = spellingInput.trim().toLocaleLowerCase("en") === activeWord.word.toLocaleLowerCase("en");
+
+  const selectWord = (index: number) => {
+    setWordIndex(index);
+    setSpellingMode("learn");
+    setSpellingInput("");
+    setSpellingChecked(false);
+  };
+
+  const startSpellingQuiz = () => {
+    setSpellingMode("quiz");
+    setSpellingInput("");
+    setSpellingChecked(false);
+    playAudio(audioPath(`word-${String(wordIndex + 1).padStart(2, "0")}`, "en"), `word-${wordIndex + 1}`);
+  };
 
   return (
     <div className="site-shell">
@@ -189,7 +215,7 @@ export default function Home() {
             <p className="kicker">30-day course</p><h2>Small lessons.<br />Real progress.</h2><p>One focused grammar idea each day, explained in the language that helps you most.</p>
             <section className={`offline-card ${offlineStatus}`} aria-live="polite">
               <div className="offline-card-heading"><strong>Offline course</strong><span className={isOnline ? "online" : "offline"}>{isOnline ? "Online" : "Offline"}</span></div>
-              <p>{offlineStatus === "ready" ? "All 30 lessons and neural audio are ready offline. అన్ని పాఠాలు సిద్ధం." : offlineStatus === "downloading" ? `Downloading neural audio ${offlineProgress.completed} / ${offlineProgress.total}…` : offlineStatus === "error" ? "Download paused. Connect to the internet and try again." : "Save all lessons and the new neural audio to this device (about 9 MB)."}</p>
+              <p>{offlineStatus === "ready" ? "All 30 lessons, word practice, and neural audio are ready offline. అన్ని పాఠాలు సిద్ధం." : offlineStatus === "downloading" ? `Downloading neural audio ${offlineProgress.completed} / ${offlineProgress.total}…` : offlineStatus === "error" ? "Download paused. Connect to the internet and try again." : "Save all lessons, pronunciation practice, and 390 audio clips to this device (about 11 MB)."}</p>
               {offlineStatus !== "ready" && <button type="button" onClick={downloadForOffline} disabled={!isOnline || offlineStatus === "downloading"}>{offlineStatus === "downloading" ? "Downloading…" : offlineStatus === "error" ? "Try again" : "Download offline"}</button>}
               {offlineStatus === "downloading" && <div className="offline-progress"><span style={{ width: `${Math.round((offlineProgress.completed / offlineProgress.total) * 100)}%` }} /></div>}
               {!isInstalled && installPrompt && <button type="button" className="install-button" onClick={installApp}>Install app</button>}
@@ -358,6 +384,91 @@ export default function Home() {
                   <p>{conversation.tip}</p>
                   <p lang="te">{conversation.tipTe}</p>
                   <button type="button" onClick={() => setConversationChoice(null)}>Practice again</button>
+                </div>
+              </div>
+            )}
+          </section>
+
+          <section className="word-power section-block">
+            <div className="word-power-header">
+              <div>
+                <p className="kicker">Word power · పదాల సాధన</p>
+                <h2>Learn the spelling and pronunciation</h2>
+                <p lang="te">పదాన్ని వినండి, పలకండి, తర్వాత spelling practice చేయండి.</p>
+              </div>
+              <span className="word-count">3 words</span>
+            </div>
+
+            <div className="word-tabs" role="tablist" aria-label="Words for this lesson">
+              {words.map((item, index) => (
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={wordIndex === index}
+                  className={wordIndex === index ? "active" : ""}
+                  key={item.word}
+                  onClick={() => selectWord(index)}
+                >
+                  <span>{index + 1}</span>{spellingMode === "quiz" && wordIndex === index ? "Your word" : item.word}
+                </button>
+              ))}
+            </div>
+
+            {spellingMode === "learn" ? (
+              <div className="word-learning-card">
+                <div className="word-main">
+                  <span className="learning-label">Look · Listen · Repeat</span>
+                  <h3>{activeWord.word}</h3>
+                  <p className="pronunciation-guide">Say it: <strong>{activeWord.pronunciation}</strong></p>
+                  <div className="syllable-row" aria-label={`Spelling parts: ${activeWord.syllables.join(", ")}`}>
+                    {activeWord.syllables.map((part) => <span key={part}>{part}</span>)}
+                  </div>
+                  <p className="word-meaning" lang="te">తెలుగు అర్థం: <strong>{activeWord.meaningTe}</strong></p>
+                </div>
+                <div className="word-actions">
+                  <button
+                    type="button"
+                    className={`word-listen ${speaking === `word-${wordIndex + 1}` ? "playing" : ""}`}
+                    onClick={() => speaking === `word-${wordIndex + 1}` ? stopSpeaking() : playAudio(audioPath(`word-${String(wordIndex + 1).padStart(2, "0")}`, "en"), `word-${wordIndex + 1}`)}
+                  >
+                    <SpeakerIcon />{speaking === `word-${wordIndex + 1}` ? "Stop" : "Hear pronunciation"}
+                  </button>
+                  <button type="button" className="start-spelling" onClick={startSpellingQuiz}>I’m ready — spell it</button>
+                </div>
+              </div>
+            ) : (
+              <div className="spelling-quiz" aria-live="polite">
+                <div className="spelling-prompt">
+                  <span className="learning-label">Hear it. Type it.</span>
+                  <h3>What word do you hear?</h3>
+                  <p lang="te">Audio విని, ఆ word spelling టైప్ చేయండి.</p>
+                  <button type="button" className={`word-listen ${speaking === `word-${wordIndex + 1}` ? "playing" : ""}`} onClick={() => playAudio(audioPath(`word-${String(wordIndex + 1).padStart(2, "0")}`, "en"), `word-${wordIndex + 1}`)}><SpeakerIcon />Play again</button>
+                </div>
+                <div className="spelling-answer">
+                  <label htmlFor="spelling-input">Type the spelling</label>
+                  <div className="spelling-input-row">
+                    <input
+                      id="spelling-input"
+                      value={spellingInput}
+                      onChange={(event) => { setSpellingInput(event.target.value); setSpellingChecked(false); }}
+                      onKeyDown={(event) => { if (event.key === "Enter" && spellingInput.trim()) setSpellingChecked(true); }}
+                      autoComplete="off"
+                      autoCapitalize="none"
+                      spellCheck={false}
+                      placeholder="Type what you heard"
+                    />
+                    <button type="button" onClick={() => setSpellingChecked(true)} disabled={!spellingInput.trim()}>Check</button>
+                  </div>
+                  {spellingChecked && (
+                    <div className={`spelling-feedback ${spellingIsCorrect ? "correct" : "retry"}`}>
+                      <strong>{spellingIsCorrect ? "Correct — excellent!" : `Almost. The spelling is “${activeWord.word}”.`}</strong>
+                      <span lang="te">{spellingIsCorrect ? "చాలా బాగా చేశారు!" : "మరొక్కసారి విని, పదాన్ని నెమ్మదిగా టైప్ చేయండి."}</span>
+                    </div>
+                  )}
+                  <div className="spelling-controls">
+                    <button type="button" onClick={() => setSpellingMode("learn")}>Back to learn</button>
+                    <button type="button" onClick={() => selectWord((wordIndex + 1) % words.length)}>Next word →</button>
+                  </div>
                 </div>
               </div>
             )}

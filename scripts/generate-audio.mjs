@@ -3,10 +3,12 @@ import { spawn } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { lessons } from "../src/data/lessons.ts";
+import { wordPower } from "../src/data/word-power.ts";
 
 const projectRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
 const outputDir = join(projectRoot, "public", "audio");
 const onlyDay = Number(process.argv.find((value) => value.startsWith("--day="))?.split("=")[1]) || null;
+const wordsOnly = process.argv.includes("--words-only");
 const edgeTts = process.env.EDGE_TTS_BIN || "edge-tts";
 
 const voices = {
@@ -72,17 +74,24 @@ const tasks = [];
 for (const lesson of lessons) {
   if (onlyDay && lesson.day !== onlyDay) continue;
   const day = String(lesson.day).padStart(2, "0");
-  tasks.push({ day: lesson.day, text: lesson.teacherEn, language: "en", basename: `day-${day}-teacher-en` });
-  tasks.push({ day: lesson.day, text: lesson.teacherTe, language: "te", basename: `day-${day}-teacher-te` });
+  if (!wordsOnly) {
+    tasks.push({ day: lesson.day, text: lesson.teacherEn, language: "en", basename: `day-${day}-teacher-en` });
+    tasks.push({ day: lesson.day, text: lesson.teacherTe, language: "te", basename: `day-${day}-teacher-te` });
 
-  for (const [index, example] of lesson.examples.entries()) {
-    const exampleNumber = String(index + 1).padStart(2, "0");
-    tasks.push({ day: lesson.day, text: example.en, language: "en", basename: `day-${day}-example-${exampleNumber}-en` });
-    tasks.push({ day: lesson.day, text: example.te, language: "te", basename: `day-${day}-example-${exampleNumber}-te` });
+    for (const [index, example] of lesson.examples.entries()) {
+      const exampleNumber = String(index + 1).padStart(2, "0");
+      tasks.push({ day: lesson.day, text: example.en, language: "en", basename: `day-${day}-example-${exampleNumber}-en` });
+      tasks.push({ day: lesson.day, text: example.te, language: "te", basename: `day-${day}-example-${exampleNumber}-te` });
+    }
+
+    tasks.push({ day: lesson.day, text: lesson.speak, language: "en", basename: `day-${day}-speak-en` });
+    tasks.push({ day: lesson.day, text: lesson.speakTe, language: "te", basename: `day-${day}-speak-te` });
   }
 
-  tasks.push({ day: lesson.day, text: lesson.speak, language: "en", basename: `day-${day}-speak-en` });
-  tasks.push({ day: lesson.day, text: lesson.speakTe, language: "te", basename: `day-${day}-speak-te` });
+  for (const [index, item] of wordPower[lesson.day - 1].entries()) {
+    const wordNumber = String(index + 1).padStart(2, "0");
+    tasks.push({ day: lesson.day, text: item.word, language: "en", basename: `day-${day}-word-${wordNumber}-en` });
+  }
 }
 
 let cursor = 0;
@@ -95,7 +104,7 @@ async function worker() {
     await render(task.text, task.language, task.basename);
     const completed = (completedByDay.get(task.day) || 0) + 1;
     completedByDay.set(task.day, completed);
-    if (completed === 10) console.log(`Generated lesson ${task.day}`);
+    if (completed === (wordsOnly ? 3 : 13)) console.log(`Generated lesson ${task.day}`);
   }
 }
 
