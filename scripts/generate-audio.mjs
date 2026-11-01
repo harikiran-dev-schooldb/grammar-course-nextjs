@@ -4,11 +4,13 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { lessons } from "../src/data/lessons.ts";
 import { wordPower } from "../src/data/word-power.ts";
+import { conversations } from "../src/data/conversations.ts";
 
 const projectRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
 const outputDir = join(projectRoot, "public", "audio");
 const onlyDay = Number(process.argv.find((value) => value.startsWith("--day="))?.split("=")[1]) || null;
 const wordsOnly = process.argv.includes("--words-only");
+const listeningOnly = process.argv.includes("--listening-only");
 const edgeTts = process.env.EDGE_TTS_BIN || "edge-tts";
 
 const voices = {
@@ -74,7 +76,7 @@ const tasks = [];
 for (const lesson of lessons) {
   if (onlyDay && lesson.day !== onlyDay) continue;
   const day = String(lesson.day).padStart(2, "0");
-  if (!wordsOnly) {
+  if (!wordsOnly && !listeningOnly) {
     tasks.push({ day: lesson.day, text: lesson.teacherEn, language: "en", basename: `day-${day}-teacher-en` });
     tasks.push({ day: lesson.day, text: lesson.teacherTe, language: "te", basename: `day-${day}-teacher-te` });
 
@@ -88,9 +90,17 @@ for (const lesson of lessons) {
     tasks.push({ day: lesson.day, text: lesson.speakTe, language: "te", basename: `day-${day}-speak-te` });
   }
 
-  for (const [index, item] of wordPower[lesson.day - 1].entries()) {
-    const wordNumber = String(index + 1).padStart(2, "0");
-    tasks.push({ day: lesson.day, text: item.word, language: "en", basename: `day-${day}-word-${wordNumber}-en` });
+  if (!listeningOnly) {
+    for (const [index, item] of wordPower[lesson.day - 1].entries()) {
+      const wordNumber = String(index + 1).padStart(2, "0");
+      tasks.push({ day: lesson.day, text: item.word, language: "en", basename: `day-${day}-word-${wordNumber}-en` });
+    }
+  }
+
+  if (!wordsOnly) {
+    const conversation = conversations[lesson.day - 1];
+    const correctReply = conversation.options[conversation.best];
+    tasks.push({ day: lesson.day, text: `${conversation.partner} ${correctReply.text} ${correctReply.reply}`, language: "en", basename: `day-${day}-listening-en` });
   }
 }
 
@@ -104,7 +114,8 @@ async function worker() {
     await render(task.text, task.language, task.basename);
     const completed = (completedByDay.get(task.day) || 0) + 1;
     completedByDay.set(task.day, completed);
-    if (completed === (wordsOnly ? 3 : 13)) console.log(`Generated lesson ${task.day}`);
+    const expectedPerDay = wordsOnly ? 3 : listeningOnly ? 1 : 14;
+    if (completed === expectedPerDay) console.log(`Generated lesson ${task.day}`);
   }
 }
 

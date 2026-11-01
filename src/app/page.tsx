@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { LanguageMode, lessons, units } from "@/data/lessons";
 import { conversations } from "@/data/conversations";
 import { wordPower } from "@/data/word-power";
@@ -11,6 +11,14 @@ type InstallPromptEvent = Event & {
 };
 
 type OfflineStatus = "idle" | "downloading" | "ready" | "error";
+type SkillTab = "listen" | "read" | "write" | "translate";
+type LearnerProfile = { name: string; pinHash: string };
+
+async function hashPin(pin: string) {
+  const bytes = new TextEncoder().encode(`grammar-studio:${pin}`);
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
 
 function SpeakerIcon() {
   return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4Zm12.5-1.5a6 6 0 0 1 0 9M18.8 5a9 9 0 0 1 0 14" /></svg>;
@@ -21,6 +29,12 @@ function CheckIcon() {
 }
 
 export default function Home() {
+  const [authReady, setAuthReady] = useState(false);
+  const [profile, setProfile] = useState<LearnerProfile | null>(null);
+  const [learnerName, setLearnerName] = useState<string | null>(null);
+  const [authName, setAuthName] = useState("");
+  const [authPin, setAuthPin] = useState("");
+  const [authError, setAuthError] = useState("");
   const [current, setCurrent] = useState(0);
   const [language, setLanguage] = useState<LanguageMode>("both");
   const [completed, setCompleted] = useState<number[]>([]);
@@ -28,7 +42,7 @@ export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [speaking, setSpeaking] = useState<string | null>(null);
   const [offlineStatus, setOfflineStatus] = useState<OfflineStatus>("idle");
-  const [offlineProgress, setOfflineProgress] = useState({ completed: 0, total: 390 });
+  const [offlineProgress, setOfflineProgress] = useState({ completed: 0, total: 420 });
   const [isOnline, setIsOnline] = useState(true);
   const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
@@ -37,11 +51,53 @@ export default function Home() {
   const [spellingMode, setSpellingMode] = useState<"learn" | "quiz">("learn");
   const [spellingInput, setSpellingInput] = useState("");
   const [spellingChecked, setSpellingChecked] = useState(false);
+  const [skillTab, setSkillTab] = useState<SkillTab>("listen");
+  const [listeningAnswer, setListeningAnswer] = useState<number | null>(null);
+  const [showTranscript, setShowTranscript] = useState(false);
+  const [readingAnswer, setReadingAnswer] = useState<number | null>(null);
+  const [writingText, setWritingText] = useState("");
+  const [writingSaved, setWritingSaved] = useState(false);
+  const [translationText, setTranslationText] = useState("");
+  const [showTranslation, setShowTranslation] = useState(false);
+  const [skillsDone, setSkillsDone] = useState<string[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const lesson = lessons[current];
   const conversation = conversations[current];
   const words = wordPower[current];
   const activeWord = words[wordIndex];
+
+  const activity = useMemo(() => {
+    const correctReply = conversation.options[conversation.best];
+    const settings = [
+      conversation.setting,
+      conversations[(current + 1) % conversations.length].setting,
+      conversations[(current + 2) % conversations.length].setting,
+    ];
+    const shift = current % 3;
+    const listeningOptions = settings.map((_, index) => settings[(index + shift) % settings.length]);
+    return {
+      transcript: `${conversation.partner} ${correctReply.text} ${correctReply.reply}`,
+      listeningOptions,
+      listeningAnswer: listeningOptions.indexOf(conversation.setting),
+      readingPassage: `“${conversation.partner}”\n“${correctReply.text}”\n“${correctReply.reply}”`,
+    };
+  }, [conversation, current]);
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      const stored = window.localStorage.getItem("grammar-studio-learner-profile");
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored) as LearnerProfile;
+          setProfile(parsed);
+          setAuthName(parsed.name);
+          if (window.sessionStorage.getItem("grammar-studio-authenticated") === "yes") setLearnerName(parsed.name);
+        } catch { window.localStorage.removeItem("grammar-studio-learner-profile"); }
+      }
+      setAuthReady(true);
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -59,6 +115,28 @@ export default function Home() {
     window.localStorage.setItem("grammar-studio-progress", JSON.stringify(completed));
     window.localStorage.setItem("grammar-studio-day", String(current + 1));
   }, [completed, current]);
+
+  useEffect(() => {
+    if (!learnerName) return;
+    const frame = window.requestAnimationFrame(() => {
+      const learnerKey = learnerName.trim().toLocaleLowerCase("en");
+      const storedSkills = window.localStorage.getItem(`grammar-studio-skills-${learnerKey}`);
+      if (storedSkills) {
+        try { setSkillsDone(JSON.parse(storedSkills)); } catch { setSkillsDone([]); }
+      }
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [learnerName]);
+
+  useEffect(() => {
+    if (!learnerName) return;
+    const frame = window.requestAnimationFrame(() => {
+      const learnerKey = learnerName.trim().toLocaleLowerCase("en");
+      setWritingText(window.localStorage.getItem(`grammar-studio-writing-${learnerKey}-${current + 1}`) || "");
+      setWritingSaved(false);
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [current, learnerName]);
 
   useEffect(() => {
     const environmentFrame = window.requestAnimationFrame(() => {
@@ -92,7 +170,7 @@ export default function Home() {
 
     if ("serviceWorker" in navigator) {
       void navigator.serviceWorker.register("/sw.js").then(async () => {
-        const ready = await caches.match("/__grammar_studio_word_power_ready_v4__");
+        const ready = await caches.match("/__grammar_studio_complete_english_ready_v5__");
         if (ready) setOfflineStatus("ready");
       });
     }
@@ -128,6 +206,12 @@ export default function Home() {
     setSpellingMode("learn");
     setSpellingInput("");
     setSpellingChecked(false);
+    setSkillTab("listen");
+    setListeningAnswer(null);
+    setShowTranscript(false);
+    setReadingAnswer(null);
+    setTranslationText("");
+    setShowTranslation(false);
     setCurrent(Math.max(0, Math.min(lessons.length - 1, index)));
     setMenuOpen(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -166,7 +250,7 @@ export default function Home() {
   const downloadForOffline = async () => {
     if (!("serviceWorker" in navigator) || !isOnline) return;
     setOfflineStatus("downloading");
-    setOfflineProgress({ completed: 0, total: 390 });
+    setOfflineProgress({ completed: 0, total: 420 });
     const registration = await navigator.serviceWorker.ready;
     registration.active?.postMessage({ type: "CACHE_ALL_AUDIO" });
   };
@@ -180,6 +264,7 @@ export default function Home() {
 
   const isCorrect = selected === lesson.practice.answer;
   const spellingIsCorrect = spellingInput.trim().toLocaleLowerCase("en") === activeWord.word.toLocaleLowerCase("en");
+  const writingWordCount = writingText.trim() ? writingText.trim().split(/\s+/).length : 0;
 
   const selectWord = (index: number) => {
     setWordIndex(index);
@@ -195,6 +280,75 @@ export default function Home() {
     playAudio(audioPath(`word-${String(wordIndex + 1).padStart(2, "0")}`, "en"), `word-${wordIndex + 1}`);
   };
 
+  const markSkill = (skill: SkillTab) => {
+    if (!learnerName) return;
+    const key = `${skill}-${lesson.day}`;
+    const updated = skillsDone.includes(key) ? skillsDone : [...skillsDone, key];
+    setSkillsDone(updated);
+    const learnerKey = learnerName.trim().toLocaleLowerCase("en");
+    window.localStorage.setItem(`grammar-studio-skills-${learnerKey}`, JSON.stringify(updated));
+  };
+
+  const saveWriting = () => {
+    if (!learnerName || writingText.trim().split(/\s+/).filter(Boolean).length < 5) return;
+    const learnerKey = learnerName.trim().toLocaleLowerCase("en");
+    window.localStorage.setItem(`grammar-studio-writing-${learnerKey}-${lesson.day}`, writingText.trim());
+    setWritingSaved(true);
+    markSkill("write");
+  };
+
+  const submitAuth = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const name = authName.trim();
+    if (name.length < 2) { setAuthError("Please enter your name."); return; }
+    if (!/^\d{4}$/.test(authPin)) { setAuthError("Enter a 4-digit PIN."); return; }
+    const pinHash = await hashPin(authPin);
+
+    if (profile) {
+      if (pinHash !== profile.pinHash) { setAuthError("That PIN is not correct. Please try again."); return; }
+      setLearnerName(profile.name);
+    } else {
+      const newProfile = { name, pinHash };
+      window.localStorage.setItem("grammar-studio-learner-profile", JSON.stringify(newProfile));
+      setProfile(newProfile);
+      setLearnerName(name);
+    }
+    window.sessionStorage.setItem("grammar-studio-authenticated", "yes");
+    setAuthPin("");
+    setAuthError("");
+  };
+
+  const logout = () => {
+    window.sessionStorage.removeItem("grammar-studio-authenticated");
+    setLearnerName(null);
+    setAuthPin("");
+    setAuthError("");
+  };
+
+  if (!authReady) return <div className="app-loading"><span className="brand-mark">G</span><p>Preparing your English course…</p></div>;
+
+  if (!learnerName) {
+    return (
+      <main className="login-page">
+        <section className="login-card">
+          <div className="login-brand"><span className="brand-mark">G</span><div><strong>Grammar Studio</strong><small>Complete English · సంపూర్ణ ఇంగ్లీష్</small></div></div>
+          <p className="kicker">{profile ? "Welcome back" : "Create your learner profile"}</p>
+          <h1>{profile ? `Hello, ${profile.name}` : "Learn English one day at a time."}</h1>
+          <p className="login-intro">Grammar, listening, reading, writing, conversations, vocabulary, spelling, and translation—in one offline-friendly course.</p>
+          <p className="login-intro telugu" lang="te">Grammar మాత్రమే కాదు—English లో వినడం, చదవడం, రాయడం, మాట్లాడడం అన్నీ practice చేయండి.</p>
+          <form onSubmit={submitAuth}>
+            {!profile && <label>Your name<input value={authName} onChange={(event) => setAuthName(event.target.value)} autoComplete="name" placeholder="Enter your name" /></label>}
+            <label>4-digit PIN<input value={authPin} onChange={(event) => setAuthPin(event.target.value.replace(/\D/g, "").slice(0, 4))} inputMode="numeric" autoComplete={profile ? "current-password" : "new-password"} type="password" placeholder="••••" /></label>
+            {authError && <p className="auth-error" role="alert">{authError}</p>}
+            <button type="submit">{profile ? "Open my course" : "Create profile & start"}</button>
+          </form>
+          <div className="local-profile-note"><CheckIcon /><span><strong>Works offline.</strong> Your profile and progress stay on this device; nothing is uploaded.</span></div>
+        </section>
+        <aside className="login-preview" aria-hidden="true"><span>30 days</span><h2>From beginner basics to confident everyday English.</h2><div className="login-skill-list"><b>Listen</b><b>Read</b><b>Write</b><b>Speak</b></div></aside>
+      </main>
+    );
+  }
+
   return (
     <div className="site-shell">
       <header className="topbar">
@@ -207,19 +361,30 @@ export default function Home() {
           <div className="top-progress-copy"><span>Course progress</span><strong>{completed.length} / 30</strong></div>
           <div className="progress-rail"><span style={{ width: `${progress}%` }} /></div>
         </div>
+        <button type="button" className="account-button" onClick={logout} title="Log out of this device"><span>{learnerName.charAt(0).toUpperCase()}</span><small>{learnerName}</small><b>Log out</b></button>
       </header>
 
       <div className="course-layout">
         <aside className={`sidebar ${menuOpen ? "is-open" : ""}`}>
           <div className="sidebar-intro">
-            <p className="kicker">30-day course</p><h2>Small lessons.<br />Real progress.</h2><p>One focused grammar idea each day, explained in the language that helps you most.</p>
+            <p className="kicker">30-day complete English course</p><h2>Every skill.<br />Real progress.</h2><p>Grammar, listening, reading, writing, speaking, vocabulary, and translation—together each day.</p>
             <section className={`offline-card ${offlineStatus}`} aria-live="polite">
               <div className="offline-card-heading"><strong>Offline course</strong><span className={isOnline ? "online" : "offline"}>{isOnline ? "Online" : "Offline"}</span></div>
-              <p>{offlineStatus === "ready" ? "All 30 lessons, word practice, and neural audio are ready offline. అన్ని పాఠాలు సిద్ధం." : offlineStatus === "downloading" ? `Downloading neural audio ${offlineProgress.completed} / ${offlineProgress.total}…` : offlineStatus === "error" ? "Download paused. Connect to the internet and try again." : "Save all lessons, pronunciation practice, and 390 audio clips to this device (about 11 MB)."}</p>
+              <p>{offlineStatus === "ready" ? "The complete course and all neural audio are ready offline. అన్ని పాఠాలు సిద్ధం." : offlineStatus === "downloading" ? `Downloading neural audio ${offlineProgress.completed} / ${offlineProgress.total}…` : offlineStatus === "error" ? "Download paused. Connect to the internet and try again." : "Save every activity and all 420 audio clips to this device (about 12 MB)."}</p>
               {offlineStatus !== "ready" && <button type="button" onClick={downloadForOffline} disabled={!isOnline || offlineStatus === "downloading"}>{offlineStatus === "downloading" ? "Downloading…" : offlineStatus === "error" ? "Try again" : "Download offline"}</button>}
               {offlineStatus === "downloading" && <div className="offline-progress"><span style={{ width: `${Math.round((offlineProgress.completed / offlineProgress.total) * 100)}%` }} /></div>}
               {!isInstalled && installPrompt && <button type="button" className="install-button" onClick={installApp}>Install app</button>}
               {isInstalled && <small>Installed as an app ✓</small>}
+            </section>
+            <section className="learning-path-card">
+              <div><p className="kicker">Your learning path</p><strong>{lesson.day <= 10 ? "Beginner foundations" : lesson.day <= 20 ? "Everyday English" : "Confident English"}</strong></div>
+              <div className="path-stages">
+                {[{name:"Beginner",start:1,end:10},{name:"Everyday",start:11,end:20},{name:"Confident",start:21,end:30}].map((stage) => {
+                  const count = completed.filter((day) => day >= stage.start && day <= stage.end).length;
+                  return <div key={stage.name}><span>{stage.name}</span><b>{count}/10</b><i><em style={{width:`${count * 10}%`}} /></i></div>;
+                })}
+              </div>
+              <small>{skillsDone.length} of 120 language activities completed</small>
             </section>
           </div>
           <nav aria-label="Lessons" className="lesson-nav">
@@ -262,6 +427,64 @@ export default function Home() {
               </div>
               <span className="control-note">Choose how you want the lesson explained.</span>
             </div>
+          </section>
+
+          <section className="skills-lab section-block">
+            <div className="skills-lab-header">
+              <div><p className="kicker">Complete English practice</p><h2>Build every language skill</h2><p lang="te">వినడం, చదవడం, రాయడం, అనువాదం—ప్రతి lesson లో practice చేయండి.</p></div>
+              <div className="skills-score"><strong>{skillsDone.length}</strong><span>/ 120 activities</span></div>
+            </div>
+
+            <div className="skill-tabs" role="tablist" aria-label="English skill activities">
+              {([
+                ["listen", "Listening", "వినడం"],
+                ["read", "Reading", "చదవడం"],
+                ["write", "Writing", "రాయడం"],
+                ["translate", "Translation", "అనువాదం"],
+              ] as [SkillTab, string, string][]).map(([tab, label, labelTe]) => (
+                <button type="button" role="tab" aria-selected={skillTab === tab} className={skillTab === tab ? "active" : ""} key={tab} onClick={() => setSkillTab(tab)}>
+                  <span>{skillsDone.includes(`${tab}-${lesson.day}`) ? <CheckIcon /> : label.charAt(0)}</span><b>{label}</b><small lang="te">{labelTe}</small>
+                </button>
+              ))}
+            </div>
+
+            {skillTab === "listen" && (
+              <div className="skill-panel listening-panel">
+                <div className="skill-instruction">
+                  <span className="skill-number">01</span><p className="kicker">Listen first</p><h3>Which situation best matches the dialogue?</h3><p lang="te">ముందు transcript చూడకుండా audio వినండి. సరైన situation ఎంచుకోండి.</p>
+                  <button type="button" className={`primary-skill-audio ${speaking === "listening-en" ? "playing" : ""}`} onClick={() => speaking === "listening-en" ? stopSpeaking() : playAudio(audioPath("listening", "en"), "listening-en")}><SpeakerIcon />{speaking === "listening-en" ? "Stop audio" : "Play dialogue"}</button>
+                </div>
+                <div className="skill-workspace">
+                  <div className="skill-options">
+                    {activity.listeningOptions.map((option, index) => <button type="button" key={option} className={listeningAnswer === null ? "" : index === activity.listeningAnswer ? "correct" : listeningAnswer === index ? "wrong" : ""} onClick={() => { setListeningAnswer(index); if (index === activity.listeningAnswer) markSkill("listen"); }}><span>{String.fromCharCode(65 + index)}</span>{option}</button>)}
+                  </div>
+                  {listeningAnswer !== null && <p className={`skill-feedback ${listeningAnswer === activity.listeningAnswer ? "success" : "retry"}`}>{listeningAnswer === activity.listeningAnswer ? "Correct—listen once more and notice every word. చాలా బాగుంది!" : "Listen again and focus on the setting. మరొక్కసారి వినండి."}</p>}
+                  <button type="button" className="text-action" onClick={() => setShowTranscript((shown) => !shown)}>{showTranscript ? "Hide transcript" : "Show transcript after listening"}</button>
+                  {showTranscript && <div className="transcript-box"><span>Transcript</span><p>{activity.transcript}</p><small lang="te">ఈ dialogue యొక్క situation: {conversation.settingTe}</small></div>}
+                </div>
+              </div>
+            )}
+
+            {skillTab === "read" && (
+              <div className="skill-panel reading-panel">
+                <article className="reading-passage"><span className="skill-number">02</span><p className="kicker">Read slowly</p><h3>{conversation.title}</h3>{activity.readingPassage.split("\n").map((line) => <p key={line}>{line}</p>)}</article>
+                <div className="skill-workspace"><h3>Which reply makes the conversation natural?</h3><p lang="te">Conversation natural గా ఉండే reply ఎంచుకోండి.</p><div className="skill-options">{conversation.options.map((option, index) => <button type="button" key={option.text} className={readingAnswer === null ? "" : index === conversation.best ? "correct" : readingAnswer === index ? "wrong" : ""} onClick={() => { setReadingAnswer(index); if (index === conversation.best) markSkill("read"); }}><span>{String.fromCharCode(65 + index)}</span>{option.text}</button>)}</div>{readingAnswer !== null && <p className={`skill-feedback ${readingAnswer === conversation.best ? "success" : "retry"}`}>{readingAnswer === conversation.best ? `Correct. ${conversation.tip}` : `Try again. ${conversation.tip}`}</p>}</div>
+              </div>
+            )}
+
+            {skillTab === "write" && (
+              <div className="skill-panel writing-panel">
+                <div className="skill-instruction"><span className="skill-number">03</span><p className="kicker">Write in your own words</p><h3>{lesson.speak}</h3><p lang="te">{lesson.speakTe}</p><div className="writing-tips"><span>Use 5+ words</span><span>Check capital letters</span><span>Finish with punctuation</span></div></div>
+                <div className="skill-workspace"><label htmlFor="daily-writing">Your writing</label><textarea id="daily-writing" value={writingText} onChange={(event) => {setWritingText(event.target.value); setWritingSaved(false);}} placeholder="Write your answer in English…" /><div className="writing-footer"><span className={writingWordCount >= 5 ? "ready" : ""}>{writingWordCount} words</span><button type="button" onClick={saveWriting} disabled={writingWordCount < 5}>Save writing</button></div>{writingSaved && <p className="skill-feedback success">Saved on this device. మీ writing save అయింది.</p>}</div>
+              </div>
+            )}
+
+            {skillTab === "translate" && (
+              <div className="skill-panel translation-panel">
+                <div className="skill-instruction"><span className="skill-number">04</span><p className="kicker">English → తెలుగు</p><h3>{lesson.examples[0].en}</h3><p lang="te">ఈ sentence ను సహజమైన తెలుగులో రాయండి. Exact word-to-word translation అవసరం లేదు.</p></div>
+                <div className="skill-workspace"><label htmlFor="translation-answer">Your Telugu translation</label><textarea id="translation-answer" lang="te" value={translationText} onChange={(event) => setTranslationText(event.target.value)} placeholder="తెలుగులో రాయండి…" /><button type="button" className="reveal-model" onClick={() => {setShowTranslation(true); markSkill("translate");}} disabled={!translationText.trim()}>Compare with teacher’s answer</button>{showTranslation && <div className="model-translation"><span>Teacher’s natural translation</span><p lang="te">{lesson.examples[0].te}</p><small>Your wording can be different if the meaning is the same.</small></div>}</div>
+              </div>
+            )}
           </section>
 
           <section className="teacher-section section-block">

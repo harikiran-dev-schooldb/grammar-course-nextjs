@@ -3,8 +3,8 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Grammar Studio | English and Telugu",
-  description: "A 30-day interactive English grammar course with natural Telugu explanations, audio, quizzes, and progress tracking.",
+  title: "Grammar Studio | Complete English in Telugu",
+  description: "A 30-day complete English course with grammar, listening, reading, writing, speaking, vocabulary, translation, and natural Telugu support.",
   applicationName: "Grammar Studio",
   manifest: "/manifest.webmanifest",
   appleWebApp: {

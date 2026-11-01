@@ -1,7 +1,7 @@
-const VERSION = "grammar-studio-v4-word-power";
+const VERSION = "grammar-studio-v5-complete-english";
 const CORE_CACHE = `${VERSION}-core`;
 const AUDIO_CACHE = `${VERSION}-audio`;
-const OFFLINE_MARKER = "/__grammar_studio_word_power_ready_v4__";
+const OFFLINE_MARKER = "/__grammar_studio_complete_english_ready_v5__";
 
 const audioFiles = [];
 for (let day = 1; day <= 30; day += 1) {
@@ -16,6 +16,7 @@ for (let day = 1; day <= 30; day += 1) {
   for (let word = 1; word <= 3; word += 1) {
     audioFiles.push(`/audio/day-${number}-word-${String(word).padStart(2, "0")}-en.mp3`);
   }
+  audioFiles.push(`/audio/day-${number}-listening-en.mp3`);
 }
 
 async function cacheAppShell() {

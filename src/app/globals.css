@@ -27,6 +27,33 @@ button, a { -webkit-tap-highlight-color: transparent; }
 button:focus-visible { outline: 3px solid #6db6d0; outline-offset: 3px; }
 svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; }
 
+.app-loading { min-height: 100vh; display: grid; place-content: center; justify-items: center; gap: 14px; color: var(--navy); background: var(--paper); }
+.app-loading p { margin: 0; color: var(--muted); font-size: 12px; }
+.login-page { min-height: 100vh; padding: 34px; display: grid; grid-template-columns: minmax(0, 560px) minmax(320px, 1fr); gap: 28px; background: var(--paper); }
+.login-card, .login-preview { border-radius: 29px; box-shadow: var(--shadow); }
+.login-card { padding: clamp(30px, 6vw, 64px); background: white; }
+.login-brand { margin-bottom: 52px; display: flex; align-items: center; gap: 13px; }
+.login-brand strong, .login-brand small { display: block; }
+.login-brand strong { color: var(--navy); font-family: Georgia, serif; font-size: 20px; }
+.login-brand small { margin-top: 3px; color: var(--muted); font-size: 8px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
+.login-card h1 { max-width: 430px; margin: 7px 0 0; color: var(--navy); font-family: Georgia, serif; font-size: clamp(34px, 5vw, 52px); line-height: 1.03; letter-spacing: -.035em; }
+.login-intro { max-width: 440px; margin: 21px 0 0; color: var(--muted); font-size: 13px; line-height: 1.65; }
+.login-intro.telugu { margin-top: 6px; color: var(--green); }
+.login-card form { max-width: 420px; margin-top: 28px; display: grid; gap: 14px; }
+.login-card label { display: grid; gap: 7px; color: var(--ink); font-size: 10px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+.login-card input { height: 51px; padding: 0 15px; border: 2px solid #dce5e2; border-radius: 12px; color: var(--ink); background: #fbfdfc; font-size: 15px; outline: 0; }
+.login-card input:focus { border-color: #6db6d0; box-shadow: 0 0 0 4px rgba(109,182,208,.13); }
+.login-card form > button { min-height: 51px; border: 0; border-radius: 12px; color: white; background: var(--blue); font-size: 11px; font-weight: 900; cursor: pointer; }
+.auth-error { margin: 0; color: #a84938; font-size: 11px; }
+.local-profile-note { max-width: 420px; margin-top: 18px; padding: 12px; display: flex; gap: 10px; border-radius: 11px; color: #4f6b61; background: var(--green-pale); font-size: 9px; line-height: 1.5; }
+.local-profile-note svg { flex: 0 0 17px; width: 17px; height: 17px; color: var(--green); }
+.login-preview { padding: clamp(34px, 7vw, 80px); display: flex; justify-content: flex-end; flex-direction: column; overflow: hidden; position: relative; color: white; background: linear-gradient(145deg, #15384a, #27677d); }
+.login-preview::before { content: "ABC"; position: absolute; right: -30px; top: 30px; color: rgba(255,255,255,.05); font-family: Georgia, serif; font-size: clamp(120px, 20vw, 280px); font-weight: 900; letter-spacing: -.1em; }
+.login-preview > span { position: relative; color: var(--gold); font-size: 10px; font-weight: 900; letter-spacing: .16em; text-transform: uppercase; }
+.login-preview h2 { max-width: 620px; margin: 14px 0 28px; position: relative; font-family: Georgia, serif; font-size: clamp(35px, 5vw, 64px); line-height: 1.05; letter-spacing: -.03em; }
+.login-skill-list { display: flex; flex-wrap: wrap; gap: 8px; position: relative; }
+.login-skill-list b { padding: 9px 13px; border: 1px solid rgba(255,255,255,.14); border-radius: 99px; background: rgba(255,255,255,.07); font-size: 9px; }
+
 .site-shell { min-height: 100vh; }
 .topbar { height: 78px; padding: 0 30px; display: flex; align-items: center; gap: 22px; position: sticky; top: 0; z-index: 50; color: var(--white); background: var(--navy); box-shadow: 0 6px 28px rgba(16, 43, 56, 0.22); }
 .brand { padding: 0; display: flex; align-items: center; gap: 11px; border: 0; color: white; background: transparent; cursor: pointer; text-align: left; }
@@ -41,6 +68,11 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-lineca
 .top-progress-copy strong { color: white; }
 .progress-rail { height: 6px; overflow: hidden; border-radius: 99px; background: rgba(255,255,255,.14); }
 .progress-rail span { height: 100%; display: block; border-radius: inherit; background: var(--gold); transition: width .35s ease; }
+.account-button { min-width: 112px; padding: 5px 8px; display: grid; grid-template-columns: 29px 1fr; align-items: center; gap: 7px; border: 1px solid rgba(255,255,255,.12); border-radius: 11px; color: white; background: rgba(255,255,255,.06); text-align: left; cursor: pointer; }
+.account-button > span { width: 29px; height: 29px; display: grid; place-items: center; grid-row: 1 / 3; border-radius: 9px; color: var(--navy); background: var(--gold); font-family: Georgia, serif; font-weight: 900; }
+.account-button small, .account-button b { max-width: 64px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.account-button small { font-size: 9px; font-weight: 900; }
+.account-button b { color: rgba(255,255,255,.52); font-size: 7px; }
 
 .course-layout { display: grid; grid-template-columns: 310px minmax(0, 1fr); align-items: start; }
 .sidebar { height: calc(100vh - 78px); padding: 35px 23px 45px; position: sticky; top: 78px; overflow-y: auto; background: var(--paper-deep); border-right: 1px solid rgba(25,49,60,.08); }
@@ -62,6 +94,16 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-lineca
 .offline-card small { display: block; color: var(--green); font-size: 9px; font-weight: 800; }
 .offline-progress { height: 5px; margin-top: 9px; overflow: hidden; border-radius: 99px; background: rgba(43,120,149,.12); }
 .offline-progress span { height: 100%; display: block; border-radius: inherit; background: var(--blue); transition: width .2s ease; }
+.learning-path-card { margin-top: 12px; padding: 14px; border-radius: 14px; color: white; background: var(--navy); }
+.learning-path-card .kicker { color: #86cae0; font-size: 7px; }
+.learning-path-card > div:first-child > strong { font-family: Georgia, serif; font-size: 14px; }
+.path-stages { margin-top: 13px; display: grid; gap: 9px; }
+.path-stages > div { display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; align-items: center; }
+.path-stages span, .path-stages b { font-size: 8px; }
+.path-stages span { color: rgba(255,255,255,.68); }
+.path-stages i { height: 4px; display: block; grid-column: 1 / 3; overflow: hidden; border-radius: 99px; background: rgba(255,255,255,.1); }
+.path-stages em { height: 100%; display: block; border-radius: inherit; background: var(--gold); }
+.learning-path-card > small { margin-top: 12px; display: block; color: rgba(255,255,255,.52); font-size: 7px; line-height: 1.4; }
 .nav-group { margin-bottom: 19px; }
 .nav-group > h3 { margin: 0 10px 7px; color: #8a765e; font-size: 9px; font-weight: 900; letter-spacing: .16em; text-transform: uppercase; }
 .lesson-link { width: 100%; min-height: 53px; padding: 7px 9px; display: grid; grid-template-columns: 34px minmax(0,1fr); align-items: center; gap: 10px; border: 0; border-radius: 13px; background: transparent; text-align: left; cursor: pointer; transition: .18s ease; }
@@ -101,6 +143,57 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-lineca
 .section-heading h2 { margin: 0; font-family: Georgia, serif; font-size: 29px; letter-spacing: -.02em; }
 .section-heading.compact h2 { font-size: 26px; }
 .section-count { color: #a7b0af; font-family: Georgia, serif; font-size: 24px; }
+
+.skills-lab { padding: 30px; border: 1px solid #d9e6e2; border-radius: 24px; background: #f9fcfb; box-shadow: 0 15px 45px rgba(25,49,60,.06); }
+.skills-lab-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+.skills-lab-header h2 { margin: 3px 0 0; font-family: Georgia, serif; font-size: 29px; }
+.skills-lab-header p[lang="te"] { margin: 8px 0 0; color: var(--green); font-size: 11px; }
+.skills-score { display: flex; align-items: baseline; gap: 5px; color: var(--green); }
+.skills-score strong { font-family: Georgia, serif; font-size: 28px; }
+.skills-score span { color: var(--muted); font-size: 8px; font-weight: 900; text-transform: uppercase; white-space: nowrap; }
+.skill-tabs { margin-top: 21px; padding: 5px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; border-radius: 15px; background: rgba(25,49,60,.06); }
+.skill-tabs button { min-height: 54px; padding: 6px 10px; display: grid; grid-template-columns: 31px 1fr; align-items: center; gap: 1px 9px; border: 0; border-radius: 11px; color: #60736d; background: transparent; text-align: left; cursor: pointer; }
+.skill-tabs button > span { width: 31px; height: 31px; display: grid; place-items: center; grid-row: 1 / 3; border-radius: 9px; color: var(--green); background: white; font-size: 10px; font-weight: 900; }
+.skill-tabs button > span svg { width: 16px; height: 16px; }
+.skill-tabs button b { font-size: 10px; }
+.skill-tabs button small { color: #799087; font-size: 8px; }
+.skill-tabs button.active { color: white; background: var(--green); box-shadow: 0 7px 20px rgba(57,118,98,.2); }
+.skill-tabs button.active small { color: rgba(255,255,255,.68); }
+.skill-panel { margin-top: 15px; padding: 23px; display: grid; grid-template-columns: .82fr 1.18fr; gap: 22px; border: 1px solid #dce8e4; border-radius: 18px; background: white; }
+.skill-instruction { padding: 19px; border-radius: 14px; background: var(--blue-pale); }
+.skill-number { float: right; color: rgba(43,120,149,.27); font-family: Georgia, serif; font-size: 29px; }
+.skill-instruction h3, .skill-workspace h3, .reading-passage h3 { margin: 9px 0 0; font-family: Georgia, serif; font-size: 21px; line-height: 1.3; }
+.skill-instruction p[lang="te"], .skill-workspace > p[lang="te"] { margin: 8px 0 0; color: #55756a; font-size: 10px; line-height: 1.5; }
+.primary-skill-audio { min-height: 43px; margin-top: 17px; padding: 8px 15px; display: flex; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 11px; color: white; background: var(--blue); font-size: 10px; font-weight: 900; cursor: pointer; }
+.primary-skill-audio svg { width: 17px; height: 17px; }
+.primary-skill-audio.playing { background: var(--coral); }
+.skill-workspace { min-width: 0; display: flex; justify-content: center; flex-direction: column; }
+.skill-options { display: grid; gap: 8px; }
+.skill-options button { min-height: 45px; padding: 8px 11px; display: flex; align-items: center; gap: 10px; border: 1px solid #dce5e2; border-radius: 11px; color: var(--ink); background: #fbfdfc; font-size: 10px; text-align: left; cursor: pointer; }
+.skill-options button > span { width: 27px; height: 27px; display: grid; place-items: center; flex: 0 0 27px; border-radius: 8px; color: var(--blue); background: var(--blue-pale); font-size: 8px; font-weight: 900; }
+.skill-options button.correct { border-color: #7ac7a7; background: #e5f4ed; }
+.skill-options button.wrong { border-color: #df8a78; background: #fae8e2; }
+.skill-feedback { margin: 10px 0 0; padding: 9px 11px; border-radius: 9px; font-size: 9px; line-height: 1.45; }
+.skill-feedback.success { color: #28614e; background: #e1f2ea; }
+.skill-feedback.retry { color: #89503f; background: #fae8e2; }
+.text-action { margin-top: 10px; padding: 0; align-self: flex-start; border: 0; color: var(--blue); background: transparent; font-size: 9px; font-weight: 900; cursor: pointer; }
+.transcript-box, .model-translation { margin-top: 10px; padding: 13px; border-radius: 10px; background: var(--gold-pale); }
+.transcript-box > span, .model-translation > span { color: #8c671e; font-size: 7px; font-weight: 900; letter-spacing: .13em; text-transform: uppercase; }
+.transcript-box p, .model-translation p { margin: 7px 0 0; font-family: Georgia, serif; font-size: 12px; line-height: 1.5; }
+.transcript-box small, .model-translation small { margin-top: 6px; display: block; color: #746440; font-size: 9px; }
+.reading-passage { padding: 19px; border-radius: 14px; background: var(--gold-pale); }
+.reading-passage > p:not(.kicker) { margin: 10px 0 0; color: #5d4b26; font-family: Georgia, serif; font-size: 14px; line-height: 1.45; }
+.writing-tips { margin-top: 15px; display: flex; flex-wrap: wrap; gap: 5px; }
+.writing-tips span { padding: 5px 7px; border-radius: 99px; color: var(--blue); background: white; font-size: 7px; font-weight: 900; }
+.skill-workspace label { margin-bottom: 7px; color: var(--muted); font-size: 8px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+.skill-workspace textarea { width: 100%; min-height: 116px; padding: 13px; resize: vertical; border: 2px solid #dce5e2; border-radius: 11px; color: var(--ink); background: #fbfdfc; font: 13px/1.55 Arial, "Noto Sans Telugu", sans-serif; outline: 0; }
+.skill-workspace textarea:focus { border-color: #6db6d0; box-shadow: 0 0 0 3px rgba(109,182,208,.12); }
+.writing-footer { margin-top: 8px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.writing-footer > span { color: var(--muted); font-size: 8px; font-weight: 900; }
+.writing-footer > span.ready { color: var(--green); }
+.writing-footer button, .reveal-model { min-height: 37px; padding: 7px 13px; border: 0; border-radius: 10px; color: white; background: var(--green); font-size: 9px; font-weight: 900; cursor: pointer; }
+.writing-footer button:disabled, .reveal-model:disabled { opacity: .42; cursor: not-allowed; }
+.reveal-model { margin-top: 9px; align-self: flex-start; background: var(--blue); }
 .teacher-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .teacher-grid.single { grid-template-columns: 1fr; }
 .teacher-card { min-height: 244px; padding: 27px 29px; border: 1px solid var(--line); border-radius: 21px; background: white; box-shadow: 0 14px 40px rgba(25,49,60,.055); }
@@ -255,6 +348,8 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-lineca
 .page-overlay { display: none; }
 
 @media (max-width: 980px) {
+  .login-page { padding: 18px; grid-template-columns: 1fr; }
+  .login-preview { min-height: 380px; }
   .course-layout { display: block; }
   .menu-button { display: grid; }
   .sidebar { width: 310px; max-width: 88vw; height: calc(100vh - 78px); position: fixed; z-index: 45; left: 0; top: 78px; transform: translateX(-105%); transition: transform .25s ease; box-shadow: 24px 0 60px rgba(25,49,60,.2); }
@@ -264,6 +359,10 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-lineca
 }
 
 @media (max-width: 700px) {
+  .login-page { padding: 0; display: block; background: white; }
+  .login-card { min-height: 100vh; padding: 26px 21px 40px; border-radius: 0; box-shadow: none; }
+  .login-brand { margin-bottom: 48px; }
+  .login-preview { display: none; }
   .topbar { height: 68px; padding: 0 14px; gap: 7px; }
   .brand-mark { width: 37px; height: 37px; font-size: 22px; }
   .brand-copy strong { font-size: 15px; }
@@ -271,6 +370,9 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-lineca
   .top-progress { width: 110px; }
   .top-progress-copy span { display: none; }
   .top-progress-copy { justify-content: flex-end; font-size: 9px; }
+  .account-button { min-width: 37px; width: 37px; padding: 4px; display: block; border: 0; background: transparent; }
+  .account-button > span { width: 31px; height: 31px; }
+  .account-button small, .account-button b { display: none; }
   .sidebar { top: 68px; height: calc(100vh - 68px); }
   .page-overlay { inset: 68px 0 0; }
   .lesson-main { width: calc(100% - 22px); padding: 13px 0 42px; }
@@ -283,6 +385,11 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-lineca
   .language-switch button { flex: 1; }
   .control-note { display: none; }
   .teacher-grid, .rules-examples { grid-template-columns: 1fr; }
+  .skills-lab { padding: 22px 18px; }
+  .skills-lab-header h2 { font-size: 24px; }
+  .skills-score span { display: none; }
+  .skill-tabs { grid-template-columns: repeat(2, 1fr); }
+  .skill-panel { grid-template-columns: 1fr; padding: 17px; }
   .teacher-card { min-height: 0; padding: 22px 20px; }
   .teacher-card h3 { margin-top: 18px; }
   .rule-column, .example-column, .practice-section { padding: 21px 18px; }

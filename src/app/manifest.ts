@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Grammar Studio — English & Telugu",
     short_name: "Grammar Studio",
-    description: "A 30-day bilingual English grammar course with audio lessons and practice.",
+    description: "A 30-day bilingual course for grammar, listening, reading, writing, speaking, vocabulary, and translation.",
     start_url: "/",
     display: "standalone",
     background_color: "#f5f0e6",
