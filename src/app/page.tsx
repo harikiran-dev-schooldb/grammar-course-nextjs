@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { LanguageMode, lessons, units } from "@/data/lessons";
+import { conversations } from "@/data/conversations";
 
 type InstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -9,48 +10,6 @@ type InstallPromptEvent = Event & {
 };
 
 type OfflineStatus = "idle" | "downloading" | "ready" | "error";
-type SpeechCoachStatus = "idle" | "listening" | "result" | "error" | "unsupported";
-
-type SpeechRecognitionResultEvent = Event & {
-  results: { [index: number]: { [index: number]: { transcript: string } } };
-};
-
-type SpeechRecognitionInstance = {
-  lang: string;
-  interimResults: boolean;
-  continuous: boolean;
-  start: () => void;
-  stop: () => void;
-  onresult: ((event: SpeechRecognitionResultEvent) => void) | null;
-  onerror: (() => void) | null;
-  onend: (() => void) | null;
-};
-
-declare global {
-  interface Window {
-    SpeechRecognition?: new () => SpeechRecognitionInstance;
-    webkitSpeechRecognition?: new () => SpeechRecognitionInstance;
-  }
-}
-
-function pronunciationScore(expected: string, spoken: string) {
-  const normalize = (value: string) => value.toLowerCase().replace(/[^a-z0-9' ]/g, "").trim().split(/\s+/).filter(Boolean);
-  const expectedWords = normalize(expected);
-  const spokenWords = normalize(spoken);
-  const rows = expectedWords.length + 1;
-  const columns = spokenWords.length + 1;
-  const distance = Array.from({ length: rows }, () => Array(columns).fill(0));
-  for (let row = 0; row < rows; row += 1) distance[row][0] = row;
-  for (let column = 0; column < columns; column += 1) distance[0][column] = column;
-  for (let row = 1; row < rows; row += 1) {
-    for (let column = 1; column < columns; column += 1) {
-      const substitution = expectedWords[row - 1] === spokenWords[column - 1] ? 0 : 1;
-      distance[row][column] = Math.min(distance[row - 1][column] + 1, distance[row][column - 1] + 1, distance[row - 1][column - 1] + substitution);
-    }
-  }
-  const longest = Math.max(expectedWords.length, spokenWords.length, 1);
-  return Math.max(0, Math.round((1 - distance[rows - 1][columns - 1] / longest) * 100));
-}
 
 function SpeakerIcon() {
   return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4Zm12.5-1.5a6 6 0 0 1 0 9M18.8 5a9 9 0 0 1 0 14" /></svg>;
@@ -58,10 +17,6 @@ function SpeakerIcon() {
 
 function CheckIcon() {
   return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6" /></svg>;
-}
-
-function MicrophoneIcon() {
-  return <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7" /></svg>;
 }
 
 export default function Home() {
@@ -76,13 +31,10 @@ export default function Home() {
   const [isOnline, setIsOnline] = useState(true);
   const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
-  const [speechCoachStatus, setSpeechCoachStatus] = useState<SpeechCoachStatus>("idle");
-  const [spokenText, setSpokenText] = useState("");
-  const [speechScore, setSpeechScore] = useState<number | null>(null);
+  const [conversationChoice, setConversationChoice] = useState<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const lesson = lessons[current];
-  const speakingTarget = lesson.examples[0].en;
+  const conversation = conversations[current];
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -151,8 +103,6 @@ export default function Home() {
   useEffect(() => () => {
     audioRef.current?.pause();
     audioRef.current = null;
-    recognitionRef.current?.stop();
-    recognitionRef.current = null;
   }, []);
 
   const progress = Math.round((completed.length / lessons.length) * 100);
@@ -166,11 +116,7 @@ export default function Home() {
     audioRef.current = null;
     setSpeaking(null);
     setSelected(null);
-    recognitionRef.current?.stop();
-    recognitionRef.current = null;
-    setSpeechCoachStatus("idle");
-    setSpokenText("");
-    setSpeechScore(null);
+    setConversationChoice(null);
     setCurrent(Math.max(0, Math.min(lessons.length - 1, index)));
     setMenuOpen(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -219,36 +165,6 @@ export default function Home() {
     await installPrompt.prompt();
     await installPrompt.userChoice;
     setInstallPrompt(null);
-  };
-
-  const startSpeechCoach = () => {
-    const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!Recognition) {
-      setSpeechCoachStatus("unsupported");
-      return;
-    }
-
-    audioRef.current?.pause();
-    setSpeaking(null);
-    recognitionRef.current?.stop();
-    setSpokenText("");
-    setSpeechScore(null);
-
-    const recognition = new Recognition();
-    recognition.lang = "en-IN";
-    recognition.interimResults = false;
-    recognition.continuous = false;
-    recognition.onresult = (event) => {
-      const transcript = event.results[0][0].transcript.trim();
-      setSpokenText(transcript);
-      setSpeechScore(pronunciationScore(speakingTarget, transcript));
-      setSpeechCoachStatus("result");
-    };
-    recognition.onerror = () => setSpeechCoachStatus("error");
-    recognition.onend = () => { recognitionRef.current = null; };
-    recognitionRef.current = recognition;
-    setSpeechCoachStatus("listening");
-    recognition.start();
   };
 
   const isCorrect = selected === lesson.practice.answer;
@@ -387,32 +303,64 @@ export default function Home() {
             </div>
           </section>
 
-          <section className="speech-coach section-block">
-            <div className="speech-coach-copy">
-              <p className="kicker">English speaking coach</p>
-              <h2>Listen. Speak. Improve.</h2>
-              <p className="speech-coach-telugu" lang="te">ముందు వినండి. తర్వాత అదే వాక్యాన్ని స్పష్టంగా చెప్పండి.</p>
+          <section className="conversation-lab section-block">
+            <div className="conversation-header">
+              <div>
+                <p className="kicker">Conversation lab</p>
+                <h2>Choose what you would say</h2>
+                <p lang="te">ఈ సందర్భంలో మీరు ఏమి చెబుతారో ఎంచుకోండి.</p>
+              </div>
+              <span className="conversation-day">Day {lesson.day}</span>
             </div>
-            <div className="speech-target">
-              <span>Today’s sentence</span>
-              <blockquote>“{speakingTarget}”</blockquote>
-              <button type="button" className={`model-audio ${speaking === "coach-model" ? "playing" : ""}`} onClick={() => playAudio(audioPath("example-01", "en"), "coach-model")}><SpeakerIcon />{speaking === "coach-model" ? "Stop model" : "Hear the model"}</button>
+
+            <div className="scenario-meta">
+              <span>{conversation.setting}</span>
+              <span lang="te">{conversation.settingTe}</span>
             </div>
-            <div className="speech-action-panel">
-              <button type="button" className={`record-button ${speechCoachStatus === "listening" ? "listening" : ""}`} onClick={startSpeechCoach} disabled={speechCoachStatus === "listening"}><MicrophoneIcon />{speechCoachStatus === "listening" ? "Listening…" : speechCoachStatus === "result" ? "Try again" : "Start speaking"}</button>
-              {speechCoachStatus === "idle" && <p>Tap the microphone and say the sentence.</p>}
-              {speechCoachStatus === "listening" && <p>Speak now. We’re listening.</p>}
-              {speechCoachStatus === "unsupported" && <p className="speech-error">Speech recognition is not available here. Open the installed app in Chrome.</p>}
-              {speechCoachStatus === "error" && <p className="speech-error">We could not hear you. Check microphone permission and try again.</p>}
-              {speechCoachStatus === "result" && speechScore !== null && (
-                <div className="speech-result" aria-live="polite">
-                  <div className="score-line"><strong>{speechScore}%</strong><span>{speechScore >= 85 ? "Excellent speaking!" : speechScore >= 65 ? "Good—try once more." : "Say it slowly and try again."}</span></div>
-                  <div className="score-rail"><span style={{ width: `${speechScore}%` }} /></div>
-                  <p><b>We heard:</b> {spokenText}</p>
-                  <small lang="te">{speechScore >= 85 ? "చాలా బాగా చెప్పారు!" : speechScore >= 65 ? "బాగుంది—మరొక్కసారి ప్రయత్నించండి." : "నెమ్మదిగా స్పష్టంగా చెప్పండి."}</small>
+
+            <div className="conversation-stage">
+              <article className="partner-bubble">
+                <span className="speaker-label">Your partner says</span>
+                <h3>{conversation.title}</h3>
+                <p className="conversation-prompt">“{conversation.partner}”</p>
+                <p className="conversation-prompt-te" lang="te">{conversation.partnerTe}</p>
+              </article>
+
+              <div className="choice-list">
+                <span className="speaker-label">Your turn</span>
+                {conversation.options.map((option, index) => {
+                  const chosen = conversationChoice === index;
+                  const correct = conversationChoice !== null && index === conversation.best;
+                  const wrong = chosen && index !== conversation.best;
+                  return (
+                    <button
+                      type="button"
+                      key={option.text}
+                      className={`conversation-choice ${chosen ? "chosen" : ""} ${correct ? "correct" : ""} ${wrong ? "wrong" : ""}`}
+                      onClick={() => setConversationChoice(index)}
+                    >
+                      <span>{String.fromCharCode(65 + index)}</span>
+                      {option.text}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {conversationChoice !== null && (
+              <div className={`conversation-result ${conversationChoice === conversation.best ? "success" : "retry"}`} aria-live="polite">
+                <div className="conversation-reply">
+                  <span>Partner replies</span>
+                  <p>“{conversation.options[conversationChoice].reply}”</p>
                 </div>
-              )}
-            </div>
+                <div className="conversation-feedback">
+                  <strong>{conversationChoice === conversation.best ? "Natural and correct!" : "Good try—choose the most natural sentence."}</strong>
+                  <p>{conversation.tip}</p>
+                  <p lang="te">{conversation.tipTe}</p>
+                  <button type="button" onClick={() => setConversationChoice(null)}>Practice again</button>
+                </div>
+              </div>
+            )}
           </section>
 
           <footer className="lesson-footer">

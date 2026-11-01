@@ -11,7 +11,7 @@ A responsive 30-day English grammar course built with Next.js, TypeScript, and T
 - 30 structured grammar lessons
 - English, Telugu, and bilingual display modes
 - Neural Indian English and Telugu audio for every explanation, example, and speaking prompt
-- Daily English speaking coach with microphone transcription, match score, and bilingual feedback
+- 30 interactive English conversation role-plays with natural replies and bilingual teacher tips
 - Installable Progressive Web App with offline navigation and lesson progress
 - Optional one-tap download of all 300 audio clips for complete offline study
 - Interactive practice questions with instant feedback
