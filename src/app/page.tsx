@@ -9,6 +9,7 @@ import DailyTestHub from "@/components/daily-test-hub";
 import { authClient } from "@/lib/auth-client";
 import { claimUsername, getMyUsername, requestLegacyPasswordReset, requestUsernamePasswordReset, signInWithUsername } from "@/app/actions/username-auth";
 import { isValidUsername, normalizeUsername } from "@/lib/usernames";
+import AuthShell, { AuthField, AuthPasswordField, PasswordStrength } from "@/components/auth/auth-ui";
 import { CloudProgress, emptyProgress, mergeProgress, Mistake, parseCompletedDays, parseSavedDayIndex } from "@/lib/progress";
 
 type InstallPromptEvent = Event & {
@@ -564,54 +565,133 @@ export default function Home() {
   if (!authReady) return <div className="app-loading"><span className="brand-mark">G</span><p>Preparing your English course…</p></div>;
 
   if (!learnerName) {
+    const forgot = authMode === "forgot";
+    const signup = authMode === "signup";
+    const useEmail = emailFallback && !signup;
     return (
-      <main className="login-page">
-        <section className="login-card">
-          <div className="login-brand"><span className="brand-mark">G</span><div><strong>Grammar Studio</strong><small>Complete English · సంపూర్ణ ఇంగ్లీష్</small></div></div>
-          <p className="kicker">Secure cloud learning with Neon</p>
-          <h1>{authMode === "signin" ? "Welcome back to your course." : authMode === "signup" ? "Create your learner account." : "Reset your password."}</h1>
-          <p className="login-intro">{authMode === "forgot" ? emailFallback ? "Enter your existing account email. We'll send password reset instructions if an account exists." : "Enter your username. We’ll email a reset link to the recovery address on your account." : "Learn English with grammar, conversations, speaking, daily tests, and progress saved with Neon."}</p>
-          <p className="login-intro telugu" lang="te">Username తో sign in అవ్వండి. Password మర్చిపోతే మీ recovery email కి link వస్తుంది.</p>
-          <form onSubmit={submitAuth}>
-            {authMode === "signup" && <label>Learner name<input value={authName} onChange={(event) => setAuthName(event.target.value)} autoComplete="name" required placeholder="Enter learner name" /></label>}
-            {((authMode === "signin" && !emailFallback) || authMode === "signup" || (authMode === "forgot" && !emailFallback)) && <label>Username<input value={authUsername} onChange={(event) => setAuthUsername(event.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "").slice(0, 30))} autoComplete={authMode === "signin" ? "username" : "off"} minLength={3} maxLength={30} required placeholder="e.g. harikiran_123" /></label>}
-            {(authMode === "signup" || (authMode === "signin" && emailFallback) || (authMode === "forgot" && emailFallback)) &&
-              <label>{authMode === "signup" ? "Recovery email (for password reset)" : "Existing account email"}<input value={learnerEmail} onChange={(event) => setLearnerEmail(event.target.value)} autoComplete="email" inputMode="email" type="email" required placeholder="name@example.com" /></label>}
-            {authMode !== "forgot" && <label>Password<input value={authPassword} onChange={(event) => setAuthPassword(event.target.value)} autoComplete={authMode === "signin" ? "current-password" : "new-password"} type="password" required minLength={8} placeholder="At least 8 characters" /></label>}
-            {authError && <p className="auth-error" role="alert">{authError}</p>}
-            {authNotice && <p className="auth-notice" role="status">{authNotice}</p>}
-            <button type="submit" disabled={authBusy}>{authBusy ? "Please wait…" : authMode === "forgot" ? "Send reset link" : authMode === "signin" ? "Sign in & continue" : "Create account & start"}</button>
+      <AuthShell>
+        <div className="auth-content">
+          <div className="auth-header">
+            <span className="auth-eyebrow">{forgot ? "ACCOUNT RECOVERY" : signup ? "YOUR LEARNING STARTS HERE" : "WELCOME BACK"}</span>
+            <h1>{forgot ? "Forgot your password?" : signup ? "Start learning today." : "Ready to keep growing?"}</h1>
+            <p>{forgot
+              ? "Enter your username to receive a secure reset link at your recovery email."
+              : signup
+                ? "Create your learner profile and follow a new English lesson every day."
+                : "Sign in to your lessons, practice and progress."}</p>
+            <p className="auth-telugu" lang="te">{forgot
+              ? "మీ username ఇవ్వండి. Password మార్చుకునే link మీ recovery email కు వస్తుంది."
+              : signup
+                ? "రోజూ కొంచెం కొంచెంగా English నేర్చుకోండి."
+                : "మీ English ప్రయాణాన్ని కొనసాగించండి."}</p>
+          </div>
+
+          <form className="auth-form" onSubmit={submitAuth}>
+            {signup && (
+              <AuthField id="auth-name" icon="user" label="Learner name" type="text"
+                autoComplete="name" required minLength={2} maxLength={80} placeholder="Your name"
+                value={authName} onChange={(event) => setAuthName(event.target.value)} />
+            )}
+            {!useEmail && (
+              <AuthField id="auth-username" icon="user" label="Username" type="text"
+                autoComplete={authMode === "signin" ? "username" : "off"}
+                autoCapitalize="none" spellCheck={false} required minLength={3} maxLength={30}
+                placeholder="e.g. harikiran_123"
+                value={authUsername}
+                hint={signup ? "3–30 letters, numbers or underscores. This is how you'll sign in." : undefined}
+                onChange={(event) => setAuthUsername(event.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "").slice(0, 30))} />
+            )}
+            {(signup || useEmail) && (
+              <AuthField id="auth-email" icon="mail"
+                label={signup ? "Recovery email" : "Existing account email"}
+                type="email" autoComplete="email" inputMode="email"
+                autoCapitalize="none" spellCheck={false} required placeholder="name@example.com"
+                hint={signup ? "Only needed for registration and password recovery—not daily login." : undefined}
+                value={learnerEmail} onChange={(event) => setLearnerEmail(event.target.value)} />
+            )}
+            {!forgot && (
+              <>
+                <AuthPasswordField id="auth-password" label="Password"
+                  autoComplete={signup ? "new-password" : "current-password"}
+                  required minLength={8} maxLength={128}
+                  placeholder={signup ? "Create a strong password" : "Enter your password"}
+                  value={authPassword} onChange={(event) => setAuthPassword(event.target.value)} />
+                {signup && <PasswordStrength password={authPassword} />}
+              </>
+            )}
+            {authError && <p className="auth-alert auth-alert-error" role="alert">{authError}</p>}
+            {authNotice && <p className="auth-alert auth-alert-success" role="status">{authNotice}</p>}
+            <button type="submit" className="auth-primary" disabled={authBusy}>
+              <span>{authBusy ? "Please wait…" : forgot ? "Send reset link" : signup ? "Create my account" : "Sign in & continue"}</span>
+              <span aria-hidden="true">{authBusy ? "· · ·" : "→"}</span>
+            </button>
           </form>
-          {authMode === "forgot" && <button type="button" className="auth-mode-switch" onClick={() => { setEmailFallback((current) => !current); setAuthError(""); setAuthNotice(""); }}>{emailFallback ? "Recover using username" : "Old account? Recover using email"}</button>}
-          {authMode === "signin" && <div className="auth-assist-row">
-            <button type="button" className="auth-mode-switch" onClick={() => { setAuthMode("forgot"); setAuthError(""); setAuthNotice(""); }}>Forgot password?</button>
-            <button type="button" className="auth-mode-switch" onClick={() => { setEmailFallback((current) => !current); setAuthError(""); setAuthNotice(""); }}>{emailFallback ? "Sign in using username" : "Existing account? Use email once"}</button>
-          </div>}
-          <button type="button" className="auth-mode-switch" onClick={() => { setAuthMode((mode) => mode === "signin" ? "signup" : "signin"); setEmailFallback(false); setAuthError(""); setAuthNotice(""); }}>{authMode === "signin" ? "New learner? Create an account" : "Back to username sign in"}</button>
-          <div className="local-profile-note"><CheckIcon /><span><strong>Secure sync + offline learning.</strong> Username for login; recovery email is used for password resets. Neon manages passwords and account sessions.</span></div>
-        </section>
-        <aside className="login-preview" aria-hidden="true"><span>30 days</span><h2>From beginner basics to confident everyday English.</h2><div className="login-skill-list"><b>Listen</b><b>Read</b><b>Write</b><b>Speak</b></div></aside>
-      </main>
+
+          {forgot ? (
+            <div className="auth-links">
+              <button type="button" className="auth-link" onClick={() => {
+                setEmailFallback((value) => !value); setAuthError(""); setAuthNotice("");
+              }}>{useEmail ? "Recover using username instead" : "Have an older account? Recover by email"}</button>
+              <button type="button" className="auth-link auth-link-muted" onClick={() => {
+                setAuthMode("signin"); setEmailFallback(false); setAuthError(""); setAuthNotice("");
+              }}>← Back to sign in</button>
+            </div>
+          ) : (
+            <>
+              {!signup && (
+                <div className="auth-links">
+                  <button type="button" className="auth-link" onClick={() => {
+                    setAuthMode("forgot"); setAuthError(""); setAuthNotice("");
+                  }}>Forgot password?</button>
+                  <button type="button" className="auth-link auth-link-muted" onClick={() => {
+                    setEmailFallback((value) => !value); setAuthError(""); setAuthNotice("");
+                  }}>{useEmail ? "Use username instead" : "Existing email-only account?"}</button>
+                </div>
+              )}
+              <div className="auth-account-switch">
+                <span>{signup ? "Already have an account?" : "New to Grammar Studio?"}</span>
+                <button type="button" className="auth-link" onClick={() => {
+                  setAuthMode(signup ? "signin" : "signup"); setEmailFallback(false);
+                  setAuthError(""); setAuthNotice("");
+                }}>{signup ? "Sign in" : "Create an account"}</button>
+              </div>
+            </>
+          )}
+        </div>
+      </AuthShell>
     );
   }
 
   if (needsUsername && !skipUsernameSetup) {
     return (
-      <main className="login-page">
-        <section className="login-card">
-          <div className="login-brand"><span className="brand-mark">G</span><div><strong>Grammar Studio</strong><small>English · తెలుగు</small></div></div>
-          <p className="kicker">One-time account setup</p>
-          <h1>Choose your login username.</h1>
-          <p className="login-intro">Your existing Neon account and learning progress stay the same. Use this username instead of email next time you sign in.</p>
-          <form onSubmit={submitUsername}>
-            <label>Username<input value={authUsername} onChange={(event) => setAuthUsername(event.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "").slice(0, 30))} minLength={3} maxLength={30} required autoComplete="username" placeholder="e.g. harikiran_123" /></label>
-            {authError && <p className="auth-error" role="alert">{authError}</p>}
-            <button type="submit" disabled={authBusy}>{authBusy ? "Saving…" : "Save username & continue"}</button>
+      <AuthShell>
+        <div className="auth-content">
+          <div className="auth-header">
+            <span className="auth-eyebrow">ONE-TIME ACCOUNT SETUP</span>
+            <h1>Your username, your journey.</h1>
+            <p>Choose a username for quick sign-in next time. Your existing Neon account and lesson progress will be preserved.</p>
+            <p className="auth-telugu" lang="te">మీ progress పోదు. తర్వాత username తో login అవ్వండి.</p>
+          </div>
+          <form className="auth-form" onSubmit={submitUsername}>
+            <AuthField id="claim-username" icon="user" label="Choose username" type="text"
+              autoCapitalize="none" spellCheck={false} autoComplete="username"
+              required minLength={3} maxLength={30} placeholder="e.g. harikiran_123"
+              hint="Unique, 3–30 letters, numbers or underscores."
+              value={authUsername} onChange={(event) => setAuthUsername(event.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "").slice(0, 30))} />
+            {authError && <p className="auth-alert auth-alert-error" role="alert">{authError}</p>}
+            <button type="submit" className="auth-primary" disabled={authBusy}>
+              <span>{authBusy ? "Saving username…" : "Save username & continue"}</span>
+              <span aria-hidden="true">{authBusy ? "· · ·" : "→"}</span>
+            </button>
           </form>
-          <button type="button" className="auth-mode-switch" onClick={() => { setSkipUsernameSetup(true); setAuthError(""); }}>Continue with existing account for now</button>
-          <button type="button" className="auth-mode-switch" onClick={() => { void logout(); }}>Sign out</button>
-        </section>
-      </main>
+          <div className="auth-links">
+            <button type="button" className="auth-link" onClick={() => { setSkipUsernameSetup(true); setAuthError(""); }}>
+              Continue without username for now
+            </button>
+            <button type="button" className="auth-link auth-link-muted" onClick={() => { void logout(); }}>Sign out</button>
+          </div>
+        </div>
+      </AuthShell>
     );
   }
 
