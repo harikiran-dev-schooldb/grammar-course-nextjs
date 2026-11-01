@@ -10,6 +10,8 @@
     "audio": "node --experimental-strip-types scripts/generate-audio.mjs"
   },
   "dependencies": {
+    "@neon/auth": "^0.8.2",
+    "@neondatabase/serverless": "^1.2.0",
     "next": "16.4.3",
     "react": "19.3.0",
     "react-dom": "19.3.0"
