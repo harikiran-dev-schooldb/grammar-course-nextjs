@@ -1,16 +1,16 @@
-const VERSION = "grammar-studio-v2";
+const VERSION = "grammar-studio-v3-neural-audio";
 const CORE_CACHE = `${VERSION}-core`;
 const AUDIO_CACHE = `${VERSION}-audio`;
-const OFFLINE_MARKER = "/__grammar_studio_offline_ready__";
+const OFFLINE_MARKER = "/__grammar_studio_neural_audio_ready_v3__";
 
 const audioFiles = [];
 for (let day = 1; day <= 30; day += 1) {
   const number = String(day).padStart(2, "0");
   for (const language of ["en", "te"]) {
-    audioFiles.push(`/audio/day-${number}-teacher-${language}.wav`);
-    audioFiles.push(`/audio/day-${number}-speak-${language}.wav`);
+    audioFiles.push(`/audio/day-${number}-teacher-${language}.mp3`);
+    audioFiles.push(`/audio/day-${number}-speak-${language}.mp3`);
     for (let example = 1; example <= 3; example += 1) {
-      audioFiles.push(`/audio/day-${number}-example-${String(example).padStart(2, "0")}-${language}.wav`);
+      audioFiles.push(`/audio/day-${number}-example-${String(example).padStart(2, "0")}-${language}.mp3`);
     }
   }
 }

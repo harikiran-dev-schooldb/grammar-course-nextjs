@@ -27,9 +27,9 @@ export default function Home() {
   const [speaking, setSpeaking] = useState<string | null>(null);
   const [offlineStatus, setOfflineStatus] = useState<OfflineStatus>("idle");
   const [offlineProgress, setOfflineProgress] = useState({ completed: 0, total: 300 });
-  const [isOnline, setIsOnline] = useState(() => typeof navigator === "undefined" ? true : navigator.onLine);
+  const [isOnline, setIsOnline] = useState(true);
   const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(null);
-  const [isInstalled, setIsInstalled] = useState(() => typeof window === "undefined" ? false : window.matchMedia("(display-mode: standalone)").matches);
+  const [isInstalled, setIsInstalled] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const lesson = lessons[current];
 
@@ -51,6 +51,10 @@ export default function Home() {
   }, [completed, current]);
 
   useEffect(() => {
+    const environmentFrame = window.requestAnimationFrame(() => {
+      setIsOnline(window.navigator.onLine);
+      setIsInstalled(window.matchMedia("(display-mode: standalone)").matches);
+    });
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
     const handleInstallPrompt = (event: Event) => {
@@ -78,12 +82,13 @@ export default function Home() {
 
     if ("serviceWorker" in navigator) {
       void navigator.serviceWorker.register("/sw.js").then(async () => {
-        const ready = await caches.match("/__grammar_studio_offline_ready__");
+        const ready = await caches.match("/__grammar_studio_neural_audio_ready_v3__");
         if (ready) setOfflineStatus("ready");
       });
     }
 
     return () => {
+      window.cancelAnimationFrame(environmentFrame);
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
       window.removeEventListener("beforeinstallprompt", handleInstallPrompt);
@@ -141,7 +146,7 @@ export default function Home() {
   };
 
   const audioPath = (part: string, lang: "en" | "te") =>
-    `/audio/day-${String(lesson.day).padStart(2, "0")}-${part}-${lang}.wav`;
+    `/audio/day-${String(lesson.day).padStart(2, "0")}-${part}-${lang}.mp3`;
 
   const downloadForOffline = async () => {
     if (!("serviceWorker" in navigator) || !isOnline) return;
@@ -180,7 +185,7 @@ export default function Home() {
             <p className="kicker">30-day course</p><h2>Small lessons.<br />Real progress.</h2><p>One focused grammar idea each day, explained in the language that helps you most.</p>
             <section className={`offline-card ${offlineStatus}`} aria-live="polite">
               <div className="offline-card-heading"><strong>Offline course</strong><span className={isOnline ? "online" : "offline"}>{isOnline ? "Online" : "Offline"}</span></div>
-              <p>{offlineStatus === "ready" ? "All 30 lessons and audio are ready offline. అన్ని పాఠాలు సిద్ధం." : offlineStatus === "downloading" ? `Downloading audio ${offlineProgress.completed} / ${offlineProgress.total}…` : offlineStatus === "error" ? "Download paused. Connect to the internet and try again." : "Save all lessons and audio to this device (about 45 MB)."}</p>
+              <p>{offlineStatus === "ready" ? "All 30 lessons and neural audio are ready offline. అన్ని పాఠాలు సిద్ధం." : offlineStatus === "downloading" ? `Downloading neural audio ${offlineProgress.completed} / ${offlineProgress.total}…` : offlineStatus === "error" ? "Download paused. Connect to the internet and try again." : "Save all lessons and the new neural audio to this device (about 9 MB)."}</p>
               {offlineStatus !== "ready" && <button type="button" onClick={downloadForOffline} disabled={!isOnline || offlineStatus === "downloading"}>{offlineStatus === "downloading" ? "Downloading…" : offlineStatus === "error" ? "Try again" : "Download offline"}</button>}
               {offlineStatus === "downloading" && <div className="offline-progress"><span style={{ width: `${Math.round((offlineProgress.completed / offlineProgress.total) * 100)}%` }} /></div>}
               {!isInstalled && installPrompt && <button type="button" className="install-button" onClick={installApp}>Install app</button>}
