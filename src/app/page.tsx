@@ -1,7 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { LanguageMode, lessons, units } from "@/data/lessons";
+
+type InstallPromptEvent = Event & {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+};
+
+type OfflineStatus = "idle" | "downloading" | "ready" | "error";
 
 function SpeakerIcon() {
   return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4Zm12.5-1.5a6 6 0 0 1 0 9M18.8 5a9 9 0 0 1 0 14" /></svg>;
@@ -17,7 +24,13 @@ export default function Home() {
   const [completed, setCompleted] = useState<number[]>([]);
   const [selected, setSelected] = useState<number | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [speaking, setSpeaking] = useState<"en" | "te" | null>(null);
+  const [speaking, setSpeaking] = useState<string | null>(null);
+  const [offlineStatus, setOfflineStatus] = useState<OfflineStatus>("idle");
+  const [offlineProgress, setOfflineProgress] = useState({ completed: 0, total: 300 });
+  const [isOnline, setIsOnline] = useState(() => typeof navigator === "undefined" ? true : navigator.onLine);
+  const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(null);
+  const [isInstalled, setIsInstalled] = useState(() => typeof window === "undefined" ? false : window.matchMedia("(display-mode: standalone)").matches);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const lesson = lessons[current];
 
   useEffect(() => {
@@ -37,7 +50,52 @@ export default function Home() {
     window.localStorage.setItem("grammar-studio-day", String(current + 1));
   }, [completed, current]);
 
-  useEffect(() => () => window.speechSynthesis?.cancel(), []);
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    const handleInstallPrompt = (event: Event) => {
+      event.preventDefault();
+      setInstallPrompt(event as InstallPromptEvent);
+    };
+    const handleInstalled = () => {
+      setIsInstalled(true);
+      setInstallPrompt(null);
+    };
+    const handleServiceWorkerMessage = (event: MessageEvent) => {
+      if (event.data?.type === "OFFLINE_PROGRESS") {
+        setOfflineStatus("downloading");
+        setOfflineProgress({ completed: event.data.completed, total: event.data.total });
+      }
+      if (event.data?.type === "OFFLINE_READY") setOfflineStatus("ready");
+      if (event.data?.type === "OFFLINE_ERROR") setOfflineStatus("error");
+    };
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    window.addEventListener("beforeinstallprompt", handleInstallPrompt);
+    window.addEventListener("appinstalled", handleInstalled);
+    navigator.serviceWorker?.addEventListener("message", handleServiceWorkerMessage);
+
+    if ("serviceWorker" in navigator) {
+      void navigator.serviceWorker.register("/sw.js").then(async () => {
+        const ready = await caches.match("/__grammar_studio_offline_ready__");
+        if (ready) setOfflineStatus("ready");
+      });
+    }
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+      window.removeEventListener("beforeinstallprompt", handleInstallPrompt);
+      window.removeEventListener("appinstalled", handleInstalled);
+      navigator.serviceWorker?.removeEventListener("message", handleServiceWorkerMessage);
+    };
+  }, []);
+
+  useEffect(() => () => {
+    audioRef.current?.pause();
+    audioRef.current = null;
+  }, []);
 
   const progress = Math.round((completed.length / lessons.length) * 100);
   const groupedLessons = useMemo(
@@ -46,7 +104,8 @@ export default function Home() {
   );
 
   const goToLesson = (index: number) => {
-    window.speechSynthesis?.cancel();
+    audioRef.current?.pause();
+    audioRef.current = null;
     setSpeaking(null);
     setSelected(null);
     setCurrent(Math.max(0, Math.min(lessons.length - 1, index)));
@@ -58,24 +117,45 @@ export default function Home() {
     setCompleted((items) => items.includes(lesson.day) ? items.filter((day) => day !== lesson.day) : [...items, lesson.day]);
   };
 
-  const speak = (text: string, lang: "en" | "te") => {
-    if (!("speechSynthesis" in window)) return;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = lang === "te" ? "te-IN" : "en-IN";
-    utterance.rate = lang === "te" ? 0.82 : 0.9;
-    const voices = window.speechSynthesis.getVoices();
-    const voice = voices.find((item) => item.lang.toLowerCase().startsWith(lang === "te" ? "te" : "en"));
-    if (voice) utterance.voice = voice;
-    utterance.onend = () => setSpeaking(null);
-    utterance.onerror = () => setSpeaking(null);
-    setSpeaking(lang);
-    window.speechSynthesis.speak(utterance);
+  const playAudio = (src: string, key: string) => {
+    audioRef.current?.pause();
+    if (speaking === key) {
+      audioRef.current = null;
+      setSpeaking(null);
+      return;
+    }
+
+    const audio = new Audio(src);
+    audio.preload = "auto";
+    audio.onended = () => setSpeaking(null);
+    audio.onerror = () => setSpeaking(null);
+    audioRef.current = audio;
+    setSpeaking(key);
+    void audio.play().catch(() => setSpeaking(null));
   };
 
   const stopSpeaking = () => {
-    window.speechSynthesis?.cancel();
+    audioRef.current?.pause();
+    audioRef.current = null;
     setSpeaking(null);
+  };
+
+  const audioPath = (part: string, lang: "en" | "te") =>
+    `/audio/day-${String(lesson.day).padStart(2, "0")}-${part}-${lang}.wav`;
+
+  const downloadForOffline = async () => {
+    if (!("serviceWorker" in navigator) || !isOnline) return;
+    setOfflineStatus("downloading");
+    setOfflineProgress({ completed: 0, total: 300 });
+    const registration = await navigator.serviceWorker.ready;
+    registration.active?.postMessage({ type: "CACHE_ALL_AUDIO" });
+  };
+
+  const installApp = async () => {
+    if (!installPrompt) return;
+    await installPrompt.prompt();
+    await installPrompt.userChoice;
+    setInstallPrompt(null);
   };
 
   const isCorrect = selected === lesson.practice.answer;
@@ -96,7 +176,17 @@ export default function Home() {
 
       <div className="course-layout">
         <aside className={`sidebar ${menuOpen ? "is-open" : ""}`}>
-          <div className="sidebar-intro"><p className="kicker">30-day course</p><h2>Small lessons.<br />Real progress.</h2><p>One focused grammar idea each day, explained in the language that helps you most.</p></div>
+          <div className="sidebar-intro">
+            <p className="kicker">30-day course</p><h2>Small lessons.<br />Real progress.</h2><p>One focused grammar idea each day, explained in the language that helps you most.</p>
+            <section className={`offline-card ${offlineStatus}`} aria-live="polite">
+              <div className="offline-card-heading"><strong>Offline course</strong><span className={isOnline ? "online" : "offline"}>{isOnline ? "Online" : "Offline"}</span></div>
+              <p>{offlineStatus === "ready" ? "All 30 lessons and audio are ready offline. అన్ని పాఠాలు సిద్ధం." : offlineStatus === "downloading" ? `Downloading audio ${offlineProgress.completed} / ${offlineProgress.total}…` : offlineStatus === "error" ? "Download paused. Connect to the internet and try again." : "Save all lessons and audio to this device (about 45 MB)."}</p>
+              {offlineStatus !== "ready" && <button type="button" onClick={downloadForOffline} disabled={!isOnline || offlineStatus === "downloading"}>{offlineStatus === "downloading" ? "Downloading…" : offlineStatus === "error" ? "Try again" : "Download offline"}</button>}
+              {offlineStatus === "downloading" && <div className="offline-progress"><span style={{ width: `${Math.round((offlineProgress.completed / offlineProgress.total) * 100)}%` }} /></div>}
+              {!isInstalled && installPrompt && <button type="button" className="install-button" onClick={installApp}>Install app</button>}
+              {isInstalled && <small>Installed as an app ✓</small>}
+            </section>
+          </div>
           <nav aria-label="Lessons" className="lesson-nav">
             {groupedLessons.map((group) => (
               <section key={group.unit} className="nav-group">
@@ -144,13 +234,13 @@ export default function Home() {
             <div className={`teacher-grid ${language !== "both" ? "single" : ""}`}>
               {(language === "en" || language === "both") && (
                 <article className="teacher-card english-card">
-                  <div className="card-top"><span className="language-badge">EN</span><button type="button" className={`audio-button ${speaking === "en" ? "playing" : ""}`} onClick={() => speaking === "en" ? stopSpeaking() : speak(lesson.teacherEn, "en")}><SpeakerIcon />{speaking === "en" ? "Stop" : "Listen"}</button></div>
+                  <div className="card-top"><span className="language-badge">EN</span><button type="button" className={`audio-button ${speaking === "teacher-en" ? "playing" : ""}`} onClick={() => speaking === "teacher-en" ? stopSpeaking() : playAudio(audioPath("teacher", "en"), "teacher-en")}><SpeakerIcon />{speaking === "teacher-en" ? "Stop" : "Listen"}</button></div>
                   <h3>Teacher explains</h3><p>{lesson.teacherEn}</p>
                 </article>
               )}
               {(language === "te" || language === "both") && (
                 <article className="teacher-card telugu-card" lang="te">
-                  <div className="card-top"><span className="language-badge">తె</span><button type="button" className={`audio-button ${speaking === "te" ? "playing" : ""}`} onClick={() => speaking === "te" ? stopSpeaking() : speak(lesson.teacherTe, "te")}><SpeakerIcon />{speaking === "te" ? "ఆపు" : "వినండి"}</button></div>
+                  <div className="card-top"><span className="language-badge">తె</span><button type="button" className={`audio-button ${speaking === "teacher-te" ? "playing" : ""}`} onClick={() => speaking === "teacher-te" ? stopSpeaking() : playAudio(audioPath("teacher", "te"), "teacher-te")}><SpeakerIcon />{speaking === "teacher-te" ? "ఆపు" : "వినండి"}</button></div>
                   <h3>తెలుగులో సులభంగా</h3><p>{lesson.teacherTe}</p>
                 </article>
               )}
@@ -169,7 +259,10 @@ export default function Home() {
                   <article className="example-row" key={example.en}>
                     <span className="example-index">{index + 1}</span>
                     <div><p>{example.en}</p>{language !== "en" && <small lang="te">{example.te}</small>}</div>
-                    <button type="button" aria-label={`Listen to example ${index + 1}`} onClick={() => speak(example.en, "en")}><SpeakerIcon /></button>
+                    <div className="example-audio-group">
+                      {language !== "te" && <button type="button" className={speaking === `example-${index + 1}-en` ? "playing" : ""} aria-label={`Listen to example ${index + 1} in English`} onClick={() => playAudio(audioPath(`example-${String(index + 1).padStart(2, "0")}`, "en"), `example-${index + 1}-en`)}><SpeakerIcon /><span>EN</span></button>}
+                      {language !== "en" && <button type="button" className={speaking === `example-${index + 1}-te` ? "playing" : ""} aria-label={`Listen to example ${index + 1} in Telugu`} onClick={() => playAudio(audioPath(`example-${String(index + 1).padStart(2, "0")}`, "te"), `example-${index + 1}-te`)}><SpeakerIcon /><span>తె</span></button>}
+                    </div>
                   </article>
                 ))}
               </div>
@@ -195,7 +288,10 @@ export default function Home() {
           <section className="speak-card section-block">
             <div className="speak-mark">“</div>
             <div><p className="kicker">Speak out loud</p><h2>{lesson.speak}</h2>{language !== "en" && <p lang="te">{lesson.speakTe}</p>}</div>
-            <button type="button" className="round-audio" onClick={() => speak(lesson.speak, "en")} aria-label="Listen to speaking activity"><SpeakerIcon /></button>
+            <div className="speak-audio-group">
+              {language !== "te" && <button type="button" className={`round-audio ${speaking === "speak-en" ? "playing" : ""}`} onClick={() => playAudio(audioPath("speak", "en"), "speak-en")} aria-label="Listen to speaking activity in English"><SpeakerIcon /><span>EN</span></button>}
+              {language !== "en" && <button type="button" className={`round-audio ${speaking === "speak-te" ? "playing" : ""}`} onClick={() => playAudio(audioPath("speak", "te"), "speak-te")} aria-label="Listen to speaking activity in Telugu"><SpeakerIcon /><span>తె</span></button>}
+            </div>
           </section>
 
           <footer className="lesson-footer">
