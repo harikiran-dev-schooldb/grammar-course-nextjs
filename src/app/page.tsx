@@ -697,8 +697,9 @@ export default function Home() {
 
   return (
     <div className="site-shell">
+      <a className="skip-to-lesson" href="#lesson-content">Skip to today’s lesson</a>
       <header className="topbar">
-        <button className="menu-button" type="button" aria-label="Open course navigation" aria-expanded={menuOpen} onClick={() => setMenuOpen((open) => !open)}><span /><span /><span /></button>
+        <button className="menu-button" type="button" aria-label={menuOpen ? "Close course navigation" : "Open course navigation"} aria-controls="course-sidebar" aria-expanded={menuOpen} onClick={() => setMenuOpen((open) => !open)}><span /><span /><span /></button>
         <button className="brand" type="button" onClick={() => goToLesson(0)} aria-label="Grammar Studio home">
           <span className="brand-mark">G</span>
           <span className="brand-copy"><strong>Grammar Studio</strong><small>English · తెలుగు</small></span>
@@ -735,9 +736,12 @@ export default function Home() {
       )}
 
       <div className="course-layout">
-        <aside className={`sidebar ${menuOpen ? "is-open" : ""}`}>
+        <aside id="course-sidebar" className={`sidebar ${menuOpen ? "is-open" : ""}`}>
+          <button type="button" className="sidebar-close" aria-label="Close course navigation" onClick={() => setMenuOpen(false)}>
+            <span>Course lessons</span><span aria-hidden="true">×</span>
+          </button>
           <div className="sidebar-intro">
-            <p className="kicker">30-day complete English course</p><h2>Every skill.<br />Real progress.</h2><p>Grammar, listening, reading, writing, speaking, vocabulary, and translation—together each day.</p>
+            <p className="kicker">Your English learning path</p><h2>Every skill.<br />Real progress.</h2><p>30 guided days of grammar, listening, reading, writing, and speaking. One lesson at a time.</p>
             <section className={`offline-card ${offlineStatus}`} aria-live="polite">
               <div className="offline-card-heading"><strong>Offline course</strong><span className={isOnline ? "online" : "offline"}>{isOnline ? "Online" : "Offline"}</span></div>
               <p>{offlineStatus === "ready" ? "The complete course and all neural audio are ready offline. అన్ని పాఠాలు సిద్ధం." : offlineStatus === "downloading" ? `Downloading neural audio ${offlineProgress.completed} / ${offlineProgress.total}…` : offlineStatus === "error" ? "Download paused. Connect to the internet and try again." : "Save every activity and all 420 audio clips to this device (about 12 MB)."}</p>
@@ -765,7 +769,7 @@ export default function Home() {
                   const index = item.day - 1;
                   const done = completed.includes(item.day);
                   return (
-                    <button type="button" key={item.day} className={`lesson-link ${index === current ? "active" : ""}`} aria-current={index === current ? "page" : undefined} onClick={() => goToLesson(index)}>
+                    <button type="button" key={item.day} className={`lesson-link ${index === current ? "active" : ""} ${done ? "completed" : ""}`} aria-label={`Day ${item.day}: ${item.title}${done ? " — completed" : ""}`} aria-current={index === current ? "page" : undefined} onClick={() => goToLesson(index)}>
                       <span className="lesson-number">{done ? <CheckIcon /> : item.day}</span>
                       <span className="lesson-link-copy"><strong>{item.title}</strong><small>{item.titleTe}</small></span>
                     </button>
@@ -778,7 +782,7 @@ export default function Home() {
 
         {menuOpen && <button className="page-overlay" aria-label="Close navigation" onClick={() => setMenuOpen(false)} />}
 
-        <main className="lesson-main">
+        <main id="lesson-content" className="lesson-main" tabIndex={-1}>
           <section className="lesson-hero">
             <div className="hero-topline"><span>{lesson.unit}</span><span className="day-chip">Day {lesson.day} of 30</span></div>
             <div className="hero-grid">
@@ -789,11 +793,16 @@ export default function Home() {
                 {(language === "en" || language === "both") && <p className="hero-objective">{lesson.objectiveEn}</p>}
                 {(language === "te" || language === "both") && <p className="hero-objective telugu" lang="te">{lesson.objectiveTe}</p>}
               </div>
-              <div className="day-medallion" aria-hidden="true"><span>DAY</span><strong>{lesson.day}</strong></div>
+              <div className="hero-progress-panel" aria-label={`${completed.length} of ${lessons.length} lessons completed`}>
+                <span className="hero-progress-kicker">Your progress</span>
+                <strong>{progress}<span>%</span></strong>
+                <div className="hero-progress-track" aria-hidden="true"><span style={{ width: `${progress}%` }} /></div>
+                <small>{completed.length} of {lessons.length} lessons completed</small>
+              </div>
             </div>
             <div className="hero-controls">
-              <div className="language-switch" aria-label="Explanation language">
-                {(["en", "te", "both"] as LanguageMode[]).map((mode) => <button key={mode} type="button" className={language === mode ? "active" : ""} onClick={() => setLanguage(mode)}>{mode === "en" ? "English" : mode === "te" ? "తెలుగు" : "Both"}</button>)}
+              <div className="language-switch" role="group" aria-label="Explanation language">
+                {(["en", "te", "both"] as LanguageMode[]).map((mode) => <button key={mode} type="button" className={language === mode ? "active" : ""} aria-pressed={language === mode} onClick={() => setLanguage(mode)}>{mode === "en" ? "English" : mode === "te" ? "తెలుగు" : "Both"}</button>)}
               </div>
               <span className="control-note">Choose how you want the lesson explained.</span>
             </div>
@@ -826,10 +835,10 @@ export default function Home() {
                 </div>
                 <div className="skill-workspace">
                   <div className="skill-options">
-                    {activity.listeningOptions.map((option, index) => <button type="button" key={option} className={listeningAnswer === null ? "" : index === activity.listeningAnswer ? "correct" : listeningAnswer === index ? "wrong" : ""} onClick={() => { setListeningAnswer(index); if (index === activity.listeningAnswer) markSkill("listen"); else rememberMistake("listening", "Where does this conversation happen?", activity.listeningOptions[activity.listeningAnswer]); }}><span>{String.fromCharCode(65 + index)}</span>{option}</button>)}
+                    {activity.listeningOptions.map((option, index) => <button type="button" key={option} className={listeningAnswer === null ? "" : index === activity.listeningAnswer ? "correct" : listeningAnswer === index ? "wrong" : ""} aria-pressed={listeningAnswer === index} onClick={() => { setListeningAnswer(index); if (index === activity.listeningAnswer) markSkill("listen"); else rememberMistake("listening", "Where does this conversation happen?", activity.listeningOptions[activity.listeningAnswer]); }}><span>{String.fromCharCode(65 + index)}</span>{option}</button>)}
                   </div>
                   {listeningAnswer !== null && <p className={`skill-feedback ${listeningAnswer === activity.listeningAnswer ? "success" : "retry"}`}>{listeningAnswer === activity.listeningAnswer ? "Correct—listen once more and notice every word. చాలా బాగుంది!" : "Listen again and focus on the setting. మరొక్కసారి వినండి."}</p>}
-                  <button type="button" className="text-action" onClick={() => setShowTranscript((shown) => !shown)}>{showTranscript ? "Hide transcript" : "Show transcript after listening"}</button>
+                  <button type="button" className="text-action" aria-expanded={showTranscript} onClick={() => setShowTranscript((shown) => !shown)}>{showTranscript ? "Hide transcript" : "Show transcript after listening"}</button>
                   {showTranscript && <div className="transcript-box"><span>Transcript</span><p>{activity.transcript}</p><small lang="te">ఈ dialogue యొక్క situation: {conversation.settingTe}</small></div>}
                 </div>
               </div>
@@ -838,7 +847,7 @@ export default function Home() {
             {skillTab === "read" && (
               <div className="skill-panel reading-panel">
                 <article className="reading-passage"><span className="skill-number">02</span><p className="kicker">Read slowly</p><h3>{conversation.title}</h3>{activity.readingPassage.split("\n").map((line) => <p key={line}>{line}</p>)}</article>
-                <div className="skill-workspace"><h3>Which reply makes the conversation natural?</h3><p lang="te">Conversation natural గా ఉండే reply ఎంచుకోండి.</p><div className="skill-options">{conversation.options.map((option, index) => <button type="button" key={option.text} className={readingAnswer === null ? "" : index === conversation.best ? "correct" : readingAnswer === index ? "wrong" : ""} onClick={() => { setReadingAnswer(index); if (index === conversation.best) markSkill("read"); else rememberMistake("reading", "Choose the natural reply", conversation.options[conversation.best].text); }}><span>{String.fromCharCode(65 + index)}</span>{option.text}</button>)}</div>{readingAnswer !== null && <p className={`skill-feedback ${readingAnswer === conversation.best ? "success" : "retry"}`}>{readingAnswer === conversation.best ? `Correct. ${conversation.tip}` : `Try again. ${conversation.tip}`}</p>}</div>
+                <div className="skill-workspace"><h3>Which reply makes the conversation natural?</h3><p lang="te">Conversation natural గా ఉండే reply ఎంచుకోండి.</p><div className="skill-options">{conversation.options.map((option, index) => <button type="button" key={option.text} className={readingAnswer === null ? "" : index === conversation.best ? "correct" : readingAnswer === index ? "wrong" : ""} aria-pressed={readingAnswer === index} onClick={() => { setReadingAnswer(index); if (index === conversation.best) markSkill("read"); else rememberMistake("reading", "Choose the natural reply", conversation.options[conversation.best].text); }}><span>{String.fromCharCode(65 + index)}</span>{option.text}</button>)}</div>{readingAnswer !== null && <p className={`skill-feedback ${readingAnswer === conversation.best ? "success" : "retry"}`}>{readingAnswer === conversation.best ? `Correct. ${conversation.tip}` : `Try again. ${conversation.tip}`}</p>}</div>
               </div>
             )}
 
@@ -906,7 +915,7 @@ export default function Home() {
                   const chosen = selected === index;
                   const revealCorrect = selected !== null && index === lesson.practice.answer;
                   const wrong = chosen && !revealCorrect;
-                  return <button type="button" key={option} className={`answer-option ${chosen ? "chosen" : ""} ${revealCorrect ? "correct" : ""} ${wrong ? "wrong" : ""}`} onClick={() => { setSelected(index); if (index !== lesson.practice.answer) rememberMistake("grammar", lesson.practice.prompt, lesson.practice.options[lesson.practice.answer]); }}><span>{String.fromCharCode(65 + index)}</span>{option}</button>;
+                  return <button type="button" key={option} className={`answer-option ${chosen ? "chosen" : ""} ${revealCorrect ? "correct" : ""} ${wrong ? "wrong" : ""}`} aria-pressed={chosen} onClick={() => { setSelected(index); if (index !== lesson.practice.answer) rememberMistake("grammar", lesson.practice.prompt, lesson.practice.options[lesson.practice.answer]); }}><span>{String.fromCharCode(65 + index)}</span>{option}</button>;
                 })}
               </div>
               <div className={`answer-feedback ${selected === null ? "waiting" : isCorrect ? "success" : "retry"}`} aria-live="polite">{selected === null ? "Choose an answer to see feedback." : isCorrect ? `Correct. ${lesson.practice.explanation}` : `Not quite. ${lesson.practice.explanation}`}</div>
@@ -962,6 +971,7 @@ export default function Home() {
                       type="button"
                       key={option.text}
                       className={`conversation-choice ${chosen ? "chosen" : ""} ${correct ? "correct" : ""} ${wrong ? "wrong" : ""}`}
+                      aria-pressed={chosen}
                       onClick={() => { setConversationChoice(index); if (index !== conversation.best) rememberMistake("conversation", conversation.partner, conversation.options[conversation.best].text); }}
                     >
                       <span>{String.fromCharCode(65 + index)}</span>

@@ -768,3 +768,330 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-lineca
   .auth-primary, .auth-input-wrap { transition: none; }
   .auth-primary:hover:not(:disabled) { transform: none; }
 }
+
+
+/* Premium course polish — learning interface only. Auth screens retain their own design. */
+.site-shell {
+  --course-surface: #fffefd;
+  --course-border: #dde7e4;
+  --course-shadow: 0 12px 35px rgba(19, 49, 57, .065);
+}
+.skip-to-lesson {
+  position: fixed;
+  top: 8px;
+  left: 14px;
+  z-index: 90;
+  padding: 12px 18px;
+  border-radius: 10px;
+  background: #fff;
+  color: var(--navy);
+  font-size: 14px;
+  font-weight: 800;
+  transform: translateY(-150%);
+}
+.skip-to-lesson:focus { transform: translateY(0); }
+.site-shell .topbar { box-shadow: 0 8px 26px rgba(15, 44, 58, .13); }
+.site-shell .brand-copy strong { font-size: 20px; }
+.site-shell .brand-copy small { font-size: 10px; letter-spacing: .12em; }
+.site-shell .top-progress-copy { font-size: 12px; }
+.site-shell .account-button small { font-size: 12px; }
+.site-shell .account-button b { font-size: 10px; }
+.site-shell .course-layout { grid-template-columns: 330px minmax(0, 1fr); }
+.site-shell .sidebar {
+  padding: 29px 21px 42px;
+  background: #f0eadd;
+  scrollbar-color: #d5cbba transparent;
+}
+.site-shell .sidebar-intro { padding: 0 4px 22px; }
+.site-shell .sidebar-intro .kicker { color: #337f91; font-size: 11px; }
+.site-shell .sidebar-intro h2 { font-size: 29px; line-height: 1.1; }
+.site-shell .sidebar-intro > p:not(.kicker) {
+  margin-top: 12px;
+  color: #526670;
+  font-size: 13.5px;
+  line-height: 1.65;
+}
+.sidebar-close { display: none; }
+.site-shell .offline-card {
+  margin-top: 20px;
+  padding: 14px 15px;
+  background: rgba(255, 255, 255, .66);
+  border: 1px solid #d6e3dc;
+  border-radius: 14px;
+}
+.site-shell .offline-card.ready {
+  background: #e8f1eb;
+  border-color: #c5dccc;
+}
+.site-shell .offline-card-heading strong { font-size: 13px; }
+.site-shell .offline-card-heading span { padding: 5px 8px; font-size: 10px; }
+.site-shell .offline-card p { margin: 9px 0 11px; font-size: 12.5px; line-height: 1.65; }
+.site-shell .offline-card button { min-height: 44px; font-size: 13px; }
+.site-shell .offline-card small { font-size: 12px; }
+.site-shell .learning-path-card {
+  margin-top: 12px;
+  padding: 16px;
+  border-radius: 14px;
+  background: linear-gradient(145deg, #15384a, #1d4b59);
+  box-shadow: 0 12px 23px rgba(18, 55, 67, .09);
+}
+.site-shell .learning-path-card .kicker { font-size: 10px; color: #94cddb; }
+.site-shell .learning-path-card > div:first-child > strong { font-size: 18px; }
+.site-shell .path-stages { gap: 12px; margin-top: 15px; }
+.site-shell .path-stages span,
+.site-shell .path-stages b { font-size: 11px; }
+.site-shell .path-stages i { height: 5px; }
+.site-shell .learning-path-card > small { font-size: 11px; line-height: 1.55; }
+.site-shell .nav-group { margin-bottom: 21px; }
+.site-shell .nav-group > h3 {
+  margin: 0 10px 9px;
+  color: #776b5b;
+  font-size: 10px;
+  letter-spacing: .15em;
+}
+.site-shell .lesson-link {
+  min-height: 64px;
+  padding: 10px 10px;
+  gap: 11px;
+  grid-template-columns: 36px minmax(0, 1fr);
+  position: relative;
+  border: 1px solid transparent;
+  border-radius: 13px;
+  transition: background .16s ease, border-color .16s ease, box-shadow .16s ease;
+}
+.site-shell .lesson-link:hover { background: rgba(255, 255, 255, .72); }
+.site-shell .lesson-link.active {
+  background: #fff;
+  border-color: #d8e5e4;
+  box-shadow: 0 6px 18px rgba(34, 69, 72, .09);
+}
+.site-shell .lesson-link.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 15px;
+  bottom: 15px;
+  width: 3px;
+  border-radius: 0 4px 4px 0;
+  background: var(--gold);
+}
+.site-shell .lesson-number {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+.site-shell .lesson-link.completed:not(.active) .lesson-number {
+  background: #dceee3;
+  color: #276d4b;
+}
+.site-shell .lesson-link.completed:not(.active) .lesson-link-copy strong { color: #406b58; }
+.site-shell .lesson-link-copy strong {
+  color: #213d49;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.site-shell .lesson-link-copy small {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #607277;
+}
+.site-shell .lesson-main { width: min(1110px, calc(100% - 68px)); padding-top: 36px; }
+.site-shell .section-block { margin-top: 32px; }
+.site-shell .lesson-hero {
+  min-height: 0;
+  padding: 30px 39px 0;
+  border-radius: 25px;
+  box-shadow: 0 16px 42px rgba(18, 52, 68, .13);
+}
+.site-shell .hero-topline { font-size: 11px; letter-spacing: .13em; }
+.site-shell .day-chip { padding: 8px 12px; font-size: 11px; letter-spacing: .06em; }
+.site-shell .hero-grid { min-height: 229px; gap: 27px; }
+.site-shell .hero-grid > div:first-child { flex: 1 1 auto; min-width: 0; max-width: 680px; }
+.site-shell .hero-grid h1 { font-size: clamp(37px, 4.6vw, 59px); line-height: 1.07; }
+.site-shell .hero-telugu { margin-top: 9px; font-size: 17px; line-height: 1.55; }
+.site-shell .hero-objective { margin-top: 16px; font-size: 15px; line-height: 1.7; }
+.site-shell .hero-objective.telugu { font-size: 14px; line-height: 1.75; }
+.site-shell .hero-progress-panel {
+  flex: 0 0 206px;
+  min-width: 0;
+  padding: 18px;
+  display: grid;
+  gap: 8px;
+  align-self: center;
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 17px;
+  background: rgba(255,255,255,.075);
+}
+.site-shell .hero-progress-kicker {
+  color: #b9dce3;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.site-shell .hero-progress-panel > strong { color: #ffd486; font: 700 43px/1 Georgia, serif; }
+.site-shell .hero-progress-panel > strong > span { margin-left: 2px; font-size: 20px; }
+.site-shell .hero-progress-track { width: 100%; height: 6px; overflow: hidden; border-radius: 20px; background: rgba(255,255,255,.18); }
+.site-shell .hero-progress-track > span { display: block; height: 100%; border-radius: inherit; background: var(--gold); transition: width .2s ease; }
+.site-shell .hero-progress-panel > small { color: #c7dae1; font-size: 11px; line-height: 1.5; }
+.site-shell .hero-controls { margin: 0 -39px; padding: 14px 39px; }
+.site-shell .language-switch button { min-height: 42px; padding: 8px 17px; font-size: 13px; }
+.site-shell .control-note { color: #d5e2e5; font-size: 12px; }
+.site-shell .skills-lab {
+  padding: 31px;
+  border-radius: 21px;
+  background: #fbfdfc;
+  box-shadow: var(--course-shadow);
+}
+.site-shell .skills-lab-header p[lang="te"] { font-size: 14px; line-height: 1.7; }
+.site-shell .skills-score { gap: 8px; }
+.site-shell .skills-score span { font-size: 11px; }
+.site-shell .skill-tabs { margin-top: 24px; padding: 6px; background: #eaf0ed; }
+.site-shell .skill-tabs button { min-height: 66px; gap: 2px 10px; padding: 9px 11px; }
+.site-shell .skill-tabs button > span { width: 34px; height: 34px; font-size: 12px; }
+.site-shell .skill-tabs button b { font-size: 14px; }
+.site-shell .skill-tabs button small { color: #58736c; font-size: 12px; line-height: 1.3; }
+.site-shell .skill-tabs button.active small { color: #f2fbf7; }
+.site-shell .skill-panel {
+  margin-top: 17px;
+  padding: 24px;
+  gap: 22px;
+  border-radius: 17px;
+  background: var(--course-surface);
+  border-color: var(--course-border);
+}
+.site-shell .skill-instruction { padding: 22px; }
+.site-shell .skill-instruction h3,
+.site-shell .skill-workspace h3 { font-size: 23px; line-height: 1.3; }
+.site-shell .skill-instruction p[lang="te"],
+.site-shell .skill-workspace > p[lang="te"] {
+  font-size: 14px;
+  line-height: 1.8;
+}
+.site-shell .primary-skill-audio { min-height: 48px; padding: 10px 17px; font-size: 14px; }
+.site-shell .skill-options { gap: 10px; }
+.site-shell .skill-options button {
+  min-height: 59px;
+  padding: 11px 13px;
+  gap: 13px;
+  border: 1px solid #d7e4e0;
+  font-size: 15px;
+  line-height: 1.5;
+  transition: border-color .16s ease, background .16s ease, box-shadow .16s ease;
+}
+.site-shell .skill-options button:hover { border-color: #75abc0; background: #f2f9fb; }
+.site-shell .skill-options button[aria-pressed="true"] { box-shadow: inset 0 0 0 1px rgba(43,120,149,.2); }
+.site-shell .skill-options button.correct { border-color: #71b58b; background: #e5f5eb; }
+.site-shell .skill-options button.wrong { border-color: #d4917d; background: #fcedea; }
+.site-shell .skill-options button > span {
+  flex-basis: 34px;
+  width: 34px;
+  height: 34px;
+  font-size: 12px;
+}
+.site-shell .skill-feedback { padding: 12px 14px; font-size: 13px; line-height: 1.65; }
+.site-shell .text-action { margin-top: 14px; padding: 7px 0; font-size: 13px; }
+.site-shell .transcript-box > span,
+.site-shell .model-translation > span { font-size: 10px; }
+.site-shell .transcript-box p,
+.site-shell .model-translation p { font-size: 15px; line-height: 1.7; }
+.site-shell .transcript-box small,
+.site-shell .model-translation small { font-size: 12px; line-height: 1.6; }
+.site-shell .skill-workspace label { font-size: 12px; }
+.site-shell .skill-workspace textarea { padding: 15px; font-size: 15px; }
+.site-shell .writing-tips span { padding: 7px 10px; font-size: 11px; }
+.site-shell .writing-footer > span { font-size: 13px; }
+.site-shell .writing-footer button,
+.site-shell .reveal-model { min-height: 46px; font-size: 13px; }
+.site-shell .reading-passage > p:not(.kicker) { font-size: 15px; line-height: 1.7; }
+.site-shell .teacher-card p { font-size: 15px; line-height: 1.8; }
+.site-shell .question-copy p { font-size: 14px; line-height: 1.75; }
+.site-shell .answer-option {
+  min-height: 59px;
+  padding: 12px 14px;
+  font-size: 15px;
+  line-height: 1.5;
+  transition: border-color .16s ease, background .16s ease;
+}
+.site-shell .answer-option > span { width: 34px; height: 34px; flex: 0 0 34px; font-size: 12px; }
+.site-shell .answer-option:hover { border-color: #8bc9dd; background: rgba(139,201,221,.14); }
+.site-shell .answer-option:focus-visible { outline-color: var(--gold); }
+.site-shell .answer-feedback { padding: 13px 15px; font-size: 13px; line-height: 1.7; }
+.site-shell .conversation-choice { min-height: 57px; padding: 12px 14px; font-size: 15px; line-height: 1.5; }
+.site-shell .conversation-choice > span { flex-basis: 34px; width: 34px; height: 34px; font-size: 12px; }
+.site-shell .word-tabs button { min-height: 48px; font-size: 13px; }
+.site-shell .word-tabs button > span { width: 29px; height: 29px; font-size: 11px; }
+.site-shell .lesson-pagination button { min-height: 46px; font-size: 13px; }
+.site-shell .lesson-link:focus-visible,
+.site-shell .skill-tabs button:focus-visible,
+.site-shell .skill-options button:focus-visible,
+.site-shell .language-switch button:focus-visible {
+  outline: 3px solid #4399b3;
+  outline-offset: 2px;
+}
+@media (max-width: 1160px) {
+  .site-shell .course-layout { grid-template-columns: 305px minmax(0, 1fr); }
+  .site-shell .lesson-main { width: min(1000px, calc(100% - 42px)); }
+  .site-shell .hero-progress-panel { flex-basis: 177px; padding: 15px; }
+}
+@media (max-width: 980px) {
+  .site-shell .course-layout { display: block; }
+  .site-shell .sidebar {
+    width: 330px;
+    max-width: 88vw;
+    height: calc(100vh - 78px);
+    position: fixed;
+    z-index: 45;
+    top: 78px;
+    left: 0;
+    transform: translateX(-105%);
+  }
+  .site-shell .sidebar.is-open { transform: translateX(0); }
+  .site-shell .sidebar-close {
+    width: 100%;
+    min-height: 44px;
+    margin-bottom: 20px;
+    padding: 8px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #d5e0db;
+    border-radius: 11px;
+    background: #fff;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+  .site-shell .sidebar-close span:last-child { font-size: 24px; line-height: 1; }
+  .site-shell .lesson-main { width: min(920px, calc(100% - 34px)); }
+}
+@media (max-width: 700px) {
+  .site-shell .brand-copy strong { font-size: 15px; }
+  .site-shell .sidebar { top: 68px; height: calc(100vh - 68px); }
+  .site-shell .lesson-main { width: calc(100% - 24px); padding: 16px 0 48px; }
+  .site-shell .lesson-hero { padding: 25px 22px 0; border-radius: 20px; }
+  .site-shell .hero-grid { min-height: 0; padding: 24px 0 29px; }
+  .site-shell .hero-grid h1 { font-size: clamp(31px, 9vw, 40px); }
+  .site-shell .hero-progress-panel { display: none; }
+  .site-shell .hero-controls { margin: 0 -22px; padding: 13px 22px; }
+  .site-shell .language-switch { width: 100%; }
+  .site-shell .language-switch button { flex: 1; padding: 9px 11px; }
+  .site-shell .section-block { margin-top: 20px; }
+  .site-shell .skills-lab { padding: 22px 16px; }
+  .site-shell .skill-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .site-shell .skill-tabs button { min-height: 62px; }
+  .site-shell .skill-panel { grid-template-columns: 1fr; padding: 16px; }
+  .site-shell .skill-instruction { padding: 18px; }
+  .site-shell .skill-options button { font-size: 14px; }
+  .site-shell .question-card { grid-template-columns: 1fr; }
+  .site-shell .answer-feedback { grid-column: 1; }
+}
+@media (max-width: 380px) {
+  .site-shell .top-progress { width: 84px; }
+  .site-shell .lesson-main { width: calc(100% - 16px); }
+  .site-shell .skill-tabs button b { font-size: 12px; }
+  .site-shell .skill-tabs button small { font-size: 11px; }
+  .site-shell .hero-grid h1 { font-size: 30px; }
+}
