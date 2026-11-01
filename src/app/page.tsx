@@ -5,6 +5,7 @@ import { LanguageMode, lessons, units } from "@/data/lessons";
 import { conversations } from "@/data/conversations";
 import { wordPower } from "@/data/word-power";
 import SpeakingRecorder from "@/components/speaking-recorder";
+import DailyTestHub from "@/components/daily-test-hub";
 import { parseCompletedDays, parseSavedDayIndex } from "@/lib/progress";
 
 type InstallPromptEvent = Event & {
@@ -583,6 +584,10 @@ export default function Home() {
           </section>
 
           <SpeakingRecorder key={lesson.day} />
+          <DailyTestHub key={learnerName} learnerName={learnerName} lesson={lesson} onGoToDay={(day) => {
+            const index = lessons.findIndex((item) => item.day === day);
+            if (index >= 0) goToLesson(index);
+          }} />
 
           <section className="conversation-lab section-block">
             <div className="conversation-header">
