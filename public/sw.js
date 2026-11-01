@@ -1,6 +1,7 @@
-const VERSION = "grammar-studio-v5-complete-english";
+const VERSION = "grammar-studio-v6-daily-tests";
 const CORE_CACHE = `${VERSION}-core`;
-const AUDIO_CACHE = `${VERSION}-audio`;
+// Preserve previously downloaded audio: the audio library itself has not changed.
+const AUDIO_CACHE = "grammar-studio-v5-complete-english-audio";
 const OFFLINE_MARKER = "/__grammar_studio_complete_english_ready_v5__";
 
 const audioFiles = [];
