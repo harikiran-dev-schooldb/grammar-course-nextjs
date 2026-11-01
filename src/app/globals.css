@@ -629,3 +629,7 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-lineca
   .daily-score-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .daily-test-primary { width: 100%; }
 }
+
+.auth-notice { margin: 0; padding: 11px 12px; border-radius: 10px; color: #275c47; background: #e9f4ef; font-size: 13px; line-height: 1.6; }
+.auth-assist-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.auth-assist-row .auth-mode-switch { margin-top: 12px; font-size: 13px; }
