@@ -416,3 +416,23 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-lineca
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
 }
+
+/* Keep essential instructions and controls readable, particularly on phones. */
+.login-card label, .login-card form > button, .local-profile-note,
+.lesson-link-copy small, .offline-card p, .offline-card button,
+.skill-tabs button small, .skill-workspace label, .skill-feedback,
+.conversation-feedback p, .writing-footer > span {
+  font-size: 12px;
+}
+.skills-lab-header p[lang="te"], .skill-instruction p[lang="te"],
+.skill-workspace > p[lang="te"], .conversation-prompt-te,
+.hero-objective.telugu {
+  font-size: 14px;
+  line-height: 1.65;
+}
+@media (max-width: 700px) {
+  .offline-card button, .primary-skill-audio, .reveal-model,
+  .writing-footer button, .spelling-input-row button {
+    min-height: 44px;
+  }
+}

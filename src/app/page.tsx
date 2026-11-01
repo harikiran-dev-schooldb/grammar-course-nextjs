@@ -4,6 +4,7 @@ import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { LanguageMode, lessons, units } from "@/data/lessons";
 import { conversations } from "@/data/conversations";
 import { wordPower } from "@/data/word-power";
+import { parseCompletedDays, parseSavedDayIndex } from "@/lib/progress";
 
 type InstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -38,6 +39,7 @@ export default function Home() {
   const [current, setCurrent] = useState(0);
   const [language, setLanguage] = useState<LanguageMode>("both");
   const [completed, setCompleted] = useState<number[]>([]);
+  const [progressReady, setProgressReady] = useState(false);
   const [selected, setSelected] = useState<number | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [speaking, setSpeaking] = useState<string | null>(null);
@@ -85,14 +87,26 @@ export default function Home() {
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
-      const stored = window.localStorage.getItem("grammar-studio-learner-profile");
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored) as LearnerProfile;
-          setProfile(parsed);
-          setAuthName(parsed.name);
-          if (window.sessionStorage.getItem("grammar-studio-authenticated") === "yes") setLearnerName(parsed.name);
-        } catch { window.localStorage.removeItem("grammar-studio-learner-profile"); }
+      try {
+        const stored = window.localStorage.getItem("grammar-studio-learner-profile");
+        if (stored) {
+          try {
+            const parsed = JSON.parse(stored) as Partial<LearnerProfile> | null;
+            if (typeof parsed?.name !== "string" || parsed.name.trim().length < 2 ||
+                typeof parsed.pinHash !== "string" || !/^[a-f0-9]{64}$/.test(parsed.pinHash)) {
+              throw new Error("Invalid learner profile");
+            }
+            const validProfile = { name: parsed.name.trim(), pinHash: parsed.pinHash };
+            setProfile(validProfile);
+            setAuthName(validProfile.name);
+            if (window.sessionStorage.getItem("grammar-studio-authenticated") === "yes") setLearnerName(validProfile.name);
+          } catch {
+            window.localStorage.removeItem("grammar-studio-learner-profile");
+            window.sessionStorage.removeItem("grammar-studio-authenticated");
+          }
+        }
+      } catch {
+        // Storage access can be denied in private browsing modes.
       }
       setAuthReady(true);
     });
@@ -101,20 +115,29 @@ export default function Home() {
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
-      const stored = window.localStorage.getItem("grammar-studio-progress");
-      const storedDay = Number(window.localStorage.getItem("grammar-studio-day"));
-      if (stored) {
-        try { setCompleted(JSON.parse(stored)); } catch { setCompleted([]); }
+      // Read existing progress before enabling writes, otherwise the first render
+      // replaces the learner's saved progress with the default empty array.
+      try {
+        const validDays = lessons.map((item) => item.day);
+        setCompleted(parseCompletedDays(window.localStorage.getItem("grammar-studio-progress"), validDays));
+        setCurrent(parseSavedDayIndex(window.localStorage.getItem("grammar-studio-day"), validDays));
+      } catch {
+        // Browsers can block localStorage; keep the course usable without it.
       }
-      if (storedDay >= 1 && storedDay <= lessons.length) setCurrent(storedDay - 1);
+      setProgressReady(true);
     });
     return () => window.cancelAnimationFrame(frame);
   }, []);
 
   useEffect(() => {
-    window.localStorage.setItem("grammar-studio-progress", JSON.stringify(completed));
-    window.localStorage.setItem("grammar-studio-day", String(current + 1));
-  }, [completed, current]);
+    if (!progressReady) return;
+    try {
+      window.localStorage.setItem("grammar-studio-progress", JSON.stringify(completed));
+      window.localStorage.setItem("grammar-studio-day", String(current + 1));
+    } catch {
+      // Storage may be disabled or full; do not crash the learning interface.
+    }
+  }, [completed, current, progressReady]);
 
   useEffect(() => {
     if (!learnerName) return;
@@ -172,7 +195,7 @@ export default function Home() {
       void navigator.serviceWorker.register("/sw.js").then(async () => {
         const ready = await caches.match("/__grammar_studio_complete_english_ready_v5__");
         if (ready) setOfflineStatus("ready");
-      });
+      }).catch(() => setOfflineStatus("error"));
     }
 
     return () => {
@@ -251,8 +274,14 @@ export default function Home() {
     if (!("serviceWorker" in navigator) || !isOnline) return;
     setOfflineStatus("downloading");
     setOfflineProgress({ completed: 0, total: 420 });
-    const registration = await navigator.serviceWorker.ready;
-    registration.active?.postMessage({ type: "CACHE_ALL_AUDIO" });
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      const worker = registration.active ?? navigator.serviceWorker.controller;
+      if (!worker) throw new Error("No active service worker");
+      worker.postMessage({ type: "CACHE_ALL_AUDIO" });
+    } catch {
+      setOfflineStatus("error");
+    }
   };
 
   const installApp = async () => {
@@ -342,7 +371,7 @@ export default function Home() {
             {authError && <p className="auth-error" role="alert">{authError}</p>}
             <button type="submit">{profile ? "Open my course" : "Create profile & start"}</button>
           </form>
-          <div className="local-profile-note"><CheckIcon /><span><strong>Works offline.</strong> Your profile and progress stay on this device; nothing is uploaded.</span></div>
+          <div className="local-profile-note"><CheckIcon /><span><strong>Works offline.</strong> Your progress is stored in this browser and may be lost if its data is cleared. The 4-digit PIN is a convenience lock, not secure account protection.</span></div>
         </section>
         <aside className="login-preview" aria-hidden="true"><span>30 days</span><h2>From beginner basics to confident everyday English.</h2><div className="login-skill-list"><b>Listen</b><b>Read</b><b>Write</b><b>Speak</b></div></aside>
       </main>

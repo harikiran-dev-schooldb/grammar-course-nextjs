@@ -22,7 +22,9 @@ for (let day = 1; day <= 30; day += 1) {
 async function cacheAppShell() {
   const cache = await caches.open(CORE_CACHE);
   const response = await fetch("/", { cache: "reload" });
-  if (!response.ok) throw new Error("Could not download the app shell");
+  if (!response.ok || !response.headers.get("content-type")?.includes("text/html")) {
+    throw new Error("Could not download the HTML app shell");
+  }
   await cache.put("/", response.clone());
 
   const html = await response.text();
@@ -89,10 +91,22 @@ self.addEventListener("fetch", (event) => {
 
   if (request.mode === "navigate") {
     event.respondWith(fetch(request).then(async (response) => {
-      const cache = await caches.open(CORE_CACHE);
-      await cache.put("/", response.clone());
+      if (url.pathname === "/" && response.ok && response.headers.get("content-type")?.includes("text/html")) {
+        try {
+          const cache = await caches.open(CORE_CACHE);
+          await cache.put("/", response.clone());
+        } catch {
+          // A full cache must never prevent a successful online navigation.
+        }
+      }
       return response;
-    }).catch(async () => (await caches.open(CORE_CACHE)).match("/")));
+    }).catch(async () => {
+      const cached = await (await caches.open(CORE_CACHE)).match("/");
+      return cached ?? new Response("You are offline and this page has not been saved yet.", {
+        status: 503,
+        headers: { "Content-Type": "text/plain; charset=utf-8" },
+      });
+    }));
     return;
   }
 
