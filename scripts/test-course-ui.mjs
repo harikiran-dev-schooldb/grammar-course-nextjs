@@ -11,6 +11,8 @@ const routeNavigator = readFileSync(new URL("../src/components/lesson-route-navi
 const todayHome = readFileSync(new URL("../src/components/today-home.tsx", import.meta.url), "utf8");
 const speakingMission = readFileSync(new URL("../src/components/speaking-mission-coach.tsx", import.meta.url), "utf8");
 const curriculumPath = readFileSync(new URL("../src/components/curriculum-path.tsx", import.meta.url), "utf8");
+const courseLibrary = readFileSync(new URL("../src/components/course-library.tsx", import.meta.url), "utf8");
+const expandedCurriculum = readFileSync(new URL("../src/data/expanded-curriculum.ts", import.meta.url), "utf8");
 const worker = readFileSync(new URL("../public/sw.js", import.meta.url), "utf8");
 
 test("lesson overview displays completion based on the existing course progress", () => {
@@ -58,7 +60,7 @@ test("Starter Zone teaches pre-readers before grammar", () => {
   assert.doesNotMatch(foundation, /activeLetter\[0\].*activeLetter\[0\].*is for/);
 });
 test("offline shell updates without discarding downloaded audio", () => {
-  assert.match(worker, /grammar-studio-v19-level-curriculum/);
+  assert.match(worker, /grammar-studio-v20-120-lessons/);
   assert.match(worker, /grammar-studio-v5-complete-english-audio/);
 });
 
@@ -107,4 +109,15 @@ test("level curriculum organizes content from pre-reader through B2", () => {
   assert.match(curriculumPath, /Choose the learner experience/);
   assert.match(curriculumPath, /Mastery gate passed/);
   assert.match(page, /appView === "curriculum"/);
+});
+
+test("expanded course provides 120 interactive lesson activities", () => {
+  assert.match(expandedCurriculum, /expandedLessonCount/);
+  assert.equal((expandedCurriculum.match(/id:"/g) || []).length, 30);
+  assert.match(courseLibrary, /120-lesson content library/);
+  assert.match(courseLibrary, /Explore words/);
+  assert.match(courseLibrary, /Read & listen/);
+  assert.match(courseLibrary, /Speak & write/);
+  assert.match(courseLibrary, /Checkpoint/);
+  assert.match(page, /appView === "library"/);
 });

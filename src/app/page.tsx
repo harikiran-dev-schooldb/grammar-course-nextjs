@@ -13,6 +13,8 @@ import LessonRouteNavigator from "@/components/lesson-route-navigator";
 import TodayHome from "@/components/today-home";
 import SpeakingMissionCoach from "@/components/speaking-mission-coach";
 import CurriculumPath from "@/components/curriculum-path";
+import CourseLibrary from "@/components/course-library";
+import type { CourseLevel } from "@/data/expanded-curriculum";
 import { authClient } from "@/lib/auth-client";
 import { claimUsername, getMyUsername, requestLegacyPasswordReset, requestUsernamePasswordReset, signInWithUsername } from "@/app/actions/username-auth";
 import { isValidUsername, normalizeUsername } from "@/lib/usernames";
@@ -115,7 +117,8 @@ export default function Home() {
   const [hubView, setHubView] = useState<HubView | null>(null);
   const [testAnswers, setTestAnswers] = useState<Record<number, number>>({});
   const [testScore, setTestScore] = useState<number | null>(null);
-  const [appView, setAppView] = useState<"home" | "learn" | "curriculum">("home");
+  const [appView, setAppView] = useState<"home" | "learn" | "curriculum" | "library">("home");
+  const [libraryLevel, setLibraryLevel] = useState<CourseLevel>("START");
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const latestSnapshotRef = useRef<CloudProgress | null>(null);
   const lesson = lessons[current];
@@ -997,7 +1000,7 @@ export default function Home() {
             onSpeaking={() => openLearningTarget("#speaking-missions")}
             onProgress={() => setHubView("dashboard")}
             onLessons={() => setAppView("curriculum")}
-          /> : appView === "curriculum" ? <CurriculumPath
+          /> : appView === "library" ? <CourseLibrary initialLevel={libraryLevel} ageMode={preferences.ageMode} completedSkills={skillsDone} onComplete={completeFoundationSkill} onBack={()=>setAppView("curriculum")} /> : appView === "curriculum" ? <CurriculumPath
             ageMode={preferences.ageMode}
             readingLevel={preferences.readingLevel}
             placementLevel={preferences.placementLevel}
@@ -1011,6 +1014,7 @@ export default function Home() {
             onPlacement={() => setHubView("placement")}
             onDownload={downloadForOffline}
             onHome={() => setAppView("home")}
+            onOpenLibrary={(level) => {setLibraryLevel(level);setAppView("library");window.scrollTo({top:0,behavior:"smooth"})}}
           /> : <>
           <section className="lesson-hero" id="lesson-overview">
             <div className="hero-topline"><span>{lesson.unit}</span><span className="day-chip">Day {lesson.day} of 30</span></div>

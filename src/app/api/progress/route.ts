@@ -43,7 +43,9 @@ async function ensureTable() {
 
 function cleanProgress(value: Partial<CloudProgress>, fallbackName: string): CloudProgress {
   const cleanNumbers = (input: unknown) => Array.isArray(input) ? input.filter((item): item is number => Number.isInteger(item) && item >= 1 && item <= 30) : [];
-  const cleanStrings = (input: unknown, limit = 150) => Array.isArray(input) ? input.filter((item): item is string => typeof item === "string").slice(-limit) : [];
+  // The complete course now contains 120 library lessons in addition to the
+  // guided activities, so keep enough completion IDs to preserve full mastery.
+  const cleanStrings = (input: unknown, limit = 500) => Array.isArray(input) ? input.filter((item): item is string => typeof item === "string").slice(-limit) : [];
   const writings = value.writings && typeof value.writings === "object" ? Object.fromEntries(Object.entries(value.writings).filter(([, text]) => typeof text === "string").map(([day, text]) => [day.slice(0, 8), text.slice(0, 3000)]).slice(-30)) : {};
   const mistakes = Array.isArray(value.mistakes) ? value.mistakes.filter((item) => item && typeof item.id === "string" && typeof item.prompt === "string").slice(-100) : [];
   const rawPreferences = value.preferences && typeof value.preferences === "object" ? value.preferences : defaultPreferences;
