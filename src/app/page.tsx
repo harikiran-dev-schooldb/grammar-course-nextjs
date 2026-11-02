@@ -8,6 +8,7 @@ import SpeakingRecorder from "@/components/speaking-recorder";
 import DailyTestHub from "@/components/daily-test-hub";
 import LearningJourney from "@/components/learning-journey";
 import FoundationPlayground from "@/components/foundation-playground";
+import CompleteLearningHub from "@/components/complete-learning-hub";
 import { authClient } from "@/lib/auth-client";
 import { claimUsername, getMyUsername, requestLegacyPasswordReset, requestUsernamePasswordReset, signInWithUsername } from "@/app/actions/username-auth";
 import { isValidUsername, normalizeUsername } from "@/lib/usernames";
@@ -435,6 +436,21 @@ export default function Home() {
   ];
   const skillPercent = (prefix: string) => Math.min(100, Math.round((skillsDone.filter((key) => key.startsWith(`${prefix}-`)).length / lessons.length) * 100));
   const stageProgress = (start: number, end: number) => Math.round((completed.filter((day) => day >= start && day <= end).length / 10) * 100);
+  const dateNumber = (value: string) => {
+    const [year, month, day] = value.split("-").map(Number);
+    return year && month && day ? Math.floor(Date.UTC(year, month - 1, day) / 86_400_000) : 0;
+  };
+  const todayNumber = dateNumber(today);
+  const weeklyMinutes = Object.entries(studyMinutes).reduce((total, [date, minutes]) => total + (todayNumber && dateNumber(date) >= todayNumber - 6 ? minutes : 0), 0);
+  const pronunciationAverage = pronunciationResults.length ? Math.round(pronunciationResults.reduce((total, result) => total + result.score, 0) / pronunciationResults.length) : 0;
+  const masterySkills = [
+    { key: "grammar" as const, label: "Grammar", value: progress, target: "#lesson-learning", icon: "📘" },
+    { key: "listening" as const, label: "Listening", value: skillPercent("listen"), target: "#skills-lab", icon: "🎧" },
+    { key: "reading" as const, label: "Reading", value: skillPercent("read"), target: "#skills-lab", icon: "📖" },
+    { key: "writing" as const, label: "Writing", value: Math.round((Object.keys(writings).length / lessons.length) * 100), target: "#skills-lab", icon: "✍️" },
+    { key: "speaking" as const, label: "Speaking", value: Math.round((pronunciationResults.length / lessons.length) * 100), target: "#speaking-practice", icon: "🎙️" },
+    { key: "vocabulary" as const, label: "Vocabulary", value: Math.round((wordDays.length / lessons.length) * 100), target: "#word-power", icon: "🔤" },
+  ];
 
   const navigateToSection = (target: string) => {
     document.querySelector(target)?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -1012,6 +1028,30 @@ export default function Home() {
             onOpenGoals={() => setHubView("goals")}
             onNavigate={navigateToSection}
             onNextLesson={() => goToLesson(current === lessons.length - 1 ? 0 : current + 1)}
+          />
+
+          <CompleteLearningHub
+            learnerName={learnerName}
+            day={lesson.day}
+            level={preferences.placementLevel}
+            streak={streak}
+            weeklyMinutes={weeklyMinutes}
+            dailyMinutes={studyMinutes[today] || 0}
+            dailyGoal={preferences.dailyGoalMinutes}
+            reviewCount={reviewItems.length}
+            completedLessons={completed.length}
+            badgesCount={allBadges.length}
+            pronunciationAverage={pronunciationAverage}
+            skills={masterySkills}
+            onNavigate={navigateToSection}
+            onOpenWorld={(world) => {
+              if (world === "listening" || world === "writing") setSkillTab(world === "listening" ? "listen" : "write");
+              navigateToSection(world === "conversation" ? "#conversation-lab" : world === "speaking" ? "#speaking-practice" : "#skills-lab");
+            }}
+            onOpenPlacement={() => setHubView("placement")}
+            onOpenReview={() => setHubView("revision")}
+            onOpenCertificate={() => setHubView("certificate")}
+            onExportReport={exportLearnerData}
           />
 
           <section className="skills-lab section-block" id="skills-lab">

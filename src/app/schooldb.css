@@ -514,6 +514,92 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .site-shell .foundation-footer span { margin-top: 3px; color: #7a8498; font-size: 10px; }
 .site-shell .foundation-footer button { min-height: 42px; padding: 8px 14px; border: 0; border-radius: 11px; color: #fff; background: #3155c6; font-size: 11px; font-weight: 850; cursor: pointer; }
 
+/* Adaptive complete-learning command centre */
+.site-shell .complete-learning-hub { padding: 30px; border: 1px solid var(--schooldb-border); border-radius: 25px; background: rgba(255,255,255,.96); box-shadow: var(--schooldb-shadow); }
+.site-shell .complete-hub-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 28px; }
+.site-shell .complete-hub-header > div:first-child { max-width: 720px; }
+.site-shell .complete-hub-header h2 { margin: 3px 0 7px; color: #091540; font-size: clamp(25px,3.3vw,39px); letter-spacing: -.045em; }
+.site-shell .complete-hub-header p:not(.kicker) { margin: 3px 0 0; color: #67738b; font-size: 12px; line-height: 1.55; }
+.site-shell .coach-score { min-width: 175px; padding: 15px; border: 1px solid #dbe3f4; border-radius: 17px; background: #f4f7ff; }
+.site-shell .coach-score span, .site-shell .coach-score strong { display: block; }
+.site-shell .coach-score span { color: #68748d; font-size: 9px; font-weight: 850; text-transform: uppercase; letter-spacing: .08em; }
+.site-shell .coach-score strong { margin-top: 4px; color: #1e3b97; font-size: 27px; }
+.site-shell .coach-score i, .site-shell .parent-footer i { height: 6px; margin-top: 8px; display: block; overflow: hidden; border-radius: 20px; background: #dce3f2; }
+.site-shell .coach-score em, .site-shell .parent-footer em { height: 100%; display: block; border-radius: inherit; background: linear-gradient(90deg,#3155c6,#7da2ef); }
+.site-shell .complete-hub-tabs { margin-top: 23px; padding: 6px; display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; border-radius: 17px; background: #eef1f7; }
+.site-shell .complete-hub-tabs button { min-height: 62px; padding: 8px 13px; display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; column-gap: 9px; align-items: center; border: 0; border-radius: 12px; color: #657087; background: transparent; text-align: left; cursor: pointer; }
+.site-shell .complete-hub-tabs button > span { grid-row: 1 / 3; font-size: 23px; }
+.site-shell .complete-hub-tabs b { font-size: 11px; }
+.site-shell .complete-hub-tabs small { font-size: 8px; }
+.site-shell .complete-hub-tabs button.active { color: #fff; background: linear-gradient(135deg,#3155c6,#1d3789); box-shadow: 0 8px 20px rgba(49,85,198,.19); }
+.site-shell .adaptive-coach, .site-shell .practice-worlds, .site-shell .parent-dashboard { margin-top: 14px; }
+.site-shell .coach-greeting { padding: 19px 21px; display: flex; align-items: center; justify-content: space-between; gap: 20px; border-radius: 17px; color: #fff; background: linear-gradient(120deg,#091540,#18357e); }
+.site-shell .coach-greeting > div > span { color: #ffda78; font-size: 9px; font-weight: 850; text-transform: uppercase; letter-spacing: .09em; }
+.site-shell .coach-greeting h3 { margin: 4px 0 3px; color: #fff; font-size: 20px; }
+.site-shell .coach-greeting p { margin: 0; color: #cbd8f6; font-size: 10px; }
+.site-shell .coach-greeting > strong { min-width: 83px; color: #ffda78; font-size: 28px; text-align: center; }
+.site-shell .coach-greeting > strong small { display: block; color: #cbd8f6; font-size: 8px; }
+.site-shell .adaptive-actions { margin-top: 11px; display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 10px; }
+.site-shell .adaptive-actions article { min-height: 177px; padding: 17px; display: flex; flex-direction: column; border: 1px solid #e0e5ef; border-radius: 16px; background: #fafbfe; }
+.site-shell .adaptive-actions article > span { font-size: 25px; }
+.site-shell .adaptive-actions small { display: block; margin-top: 8px; color: #3155c6; font-size: 8px; font-weight: 900; text-transform: uppercase; letter-spacing: .09em; }
+.site-shell .adaptive-actions h4 { margin: 4px 0; color: #1c2949; font-size: 13px; }
+.site-shell .adaptive-actions p { margin: 0; color: #768096; font-size: 9px; line-height: 1.55; }
+.site-shell .adaptive-actions button { width: 100%; min-height: 37px; margin-top: auto; border: 0; border-radius: 10px; color: #fff; background: #3155c6; font-size: 9px; font-weight: 850; cursor: pointer; }
+.site-shell .level-ladder { margin-top: 11px; padding: 18px; border: 1px solid #e0e5ef; border-radius: 17px; background: #fff; }
+.site-shell .level-ladder > div:first-child { display: flex; align-items: flex-end; justify-content: space-between; }
+.site-shell .level-ladder h3 { margin: 2px 0 0; color: #152143; font-size: 17px; }
+.site-shell .level-ladder > div:last-child { margin-top: 13px; display: grid; grid-template-columns: repeat(3,1fr); gap: 9px; }
+.site-shell .level-ladder article { min-height: 73px; padding: 12px; display: grid; grid-template-columns: auto 1fr; align-content: center; column-gap: 9px; border: 1px solid #e2e6ee; border-radius: 13px; background: #f8f9fc; }
+.site-shell .level-ladder article > span { grid-row: 1 / 3; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 9px; color: #798398; background: #e4e7ed; font-size: 9px; font-weight: 900; }
+.site-shell .level-ladder strong { color: #28334e; font-size: 10px; }
+.site-shell .level-ladder small { margin-top: 3px; color: #7d8698; font-size: 8px; line-height: 1.35; }
+.site-shell .level-ladder article.current { border-color: #91aae8; background: #edf2ff; }
+.site-shell .level-ladder article.current > span { color: #fff; background: #3155c6; }
+.site-shell .level-ladder article.complete > span { color: #17684d; background: #dff2ea; }
+.site-shell .level-ladder article.locked { opacity: .58; }
+.site-shell .practice-worlds > header { padding: 18px 20px; border-radius: 16px; background: #f4f7ff; }
+.site-shell .practice-worlds h3, .site-shell .parent-dashboard h3 { margin: 3px 0; color: #152143; font-size: 19px; }
+.site-shell .practice-worlds header p:not(.kicker) { margin: 2px 0 0; color: #6f7a92; font-size: 10px; }
+.site-shell .practice-worlds > div { margin-top: 11px; display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; }
+.site-shell .practice-worlds > div > button { min-height: 180px; padding: 19px; display: flex; flex-direction: column; align-items: flex-start; overflow: hidden; position: relative; border: 0; border-radius: 18px; color: #fff; text-align: left; cursor: pointer; transition: transform .18s ease; }
+.site-shell .practice-worlds > div > button:hover { transform: translateY(-2px); }
+.site-shell .practice-worlds button > span { font-size: 34px; }
+.site-shell .practice-worlds button > small { margin-top: 10px; color: rgba(255,255,255,.72); font-size: 8px; font-weight: 850; text-transform: uppercase; letter-spacing: .09em; }
+.site-shell .practice-worlds button > strong { margin-top: 3px; font-size: 17px; }
+.site-shell .practice-worlds button > p { max-width: 290px; margin: 5px 0 0; color: rgba(255,255,255,.78); font-size: 9px; line-height: 1.5; }
+.site-shell .practice-worlds button > b { margin-top: auto; font-size: 9px; }
+.site-shell .conversation-world { background: linear-gradient(135deg,#5b2ca0,#8b52d2); }
+.site-shell .listening-world { background: linear-gradient(135deg,#105b86,#238fb0); }
+.site-shell .writing-world { background: linear-gradient(135deg,#9b4e21,#d37b38); }
+.site-shell .speaking-world { background: linear-gradient(135deg,#16634e,#269477); }
+.site-shell .parent-dashboard > header { padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; gap: 20px; border: 1px solid #e0e5ef; border-radius: 16px; background: #fafbfe; }
+.site-shell .parent-dashboard header p:not(.kicker) { margin: 3px 0 0; color: #727d93; font-size: 10px; }
+.site-shell .parent-dashboard header button, .site-shell .parent-footer > button { min-height: 39px; padding: 8px 13px; border: 0; border-radius: 10px; color: #fff; background: #3155c6; font-size: 9px; font-weight: 850; cursor: pointer; }
+.site-shell .parent-metrics { margin-top: 11px; display: grid; grid-template-columns: repeat(4,1fr); gap: 9px; }
+.site-shell .parent-metrics article { padding: 15px; display: grid; grid-template-columns: auto 1fr; column-gap: 9px; border: 1px solid #e0e5ef; border-radius: 14px; background: #fff; }
+.site-shell .parent-metrics article > span { grid-row: 1 / 3; font-size: 21px; }
+.site-shell .parent-metrics strong { color: #1d2a49; font-size: 17px; }
+.site-shell .parent-metrics small { color: #7c8698; font-size: 8px; }
+.site-shell .parent-insights { margin-top: 11px; display: grid; grid-template-columns: 1.25fr .75fr; gap: 10px; }
+.site-shell .parent-insights > section, .site-shell .parent-insights > aside { padding: 18px; border: 1px solid #e0e5ef; border-radius: 16px; background: #fff; }
+.site-shell .parent-section-heading { display: flex; justify-content: space-between; align-items: center; }
+.site-shell .parent-section-heading h4, .site-shell .parent-insights aside h4 { margin: 0; color: #23304e; font-size: 12px; }
+.site-shell .parent-section-heading span { color: #3155c6; font-size: 9px; font-weight: 850; }
+.site-shell .parent-skill { margin-top: 11px; display: grid; grid-template-columns: 75px 1fr 31px; align-items: center; gap: 9px; }
+.site-shell .parent-skill > span, .site-shell .parent-skill > b { color: #59647b; font-size: 9px; }
+.site-shell .parent-skill > b { text-align: right; }
+.site-shell .parent-skill i { height: 5px; overflow: hidden; border-radius: 10px; background: #e5e8ef; }
+.site-shell .parent-skill em { height: 100%; display: block; border-radius: inherit; background: #3155c6; }
+.site-shell .insight-icon { font-size: 26px; }
+.site-shell .parent-insights aside h4 { margin-top: 7px; }
+.site-shell .parent-insights aside p { margin: 8px 0 0; color: #68738a; font-size: 9px; line-height: 1.55; }
+.site-shell .parent-insights aside button { min-height: 35px; margin-top: 12px; padding: 7px 11px; border: 1px solid #cfd9ef; border-radius: 9px; color: #3155c6; background: #edf2ff; font-size: 8px; font-weight: 850; cursor: pointer; }
+.site-shell .parent-footer { margin-top: 11px; padding: 15px 18px; display: flex; justify-content: space-between; align-items: center; gap: 20px; border-radius: 14px; background: #f4f7ff; }
+.site-shell .parent-footer > div { min-width: 240px; }
+.site-shell .parent-footer strong, .site-shell .parent-footer span { display: block; color: #26324e; font-size: 9px; }
+.site-shell .parent-footer span { margin-top: 2px; color: #737e93; }
+
 /* Guided end-to-end learning journey */
 .site-shell .journey-board {
   padding: 30px;
@@ -974,6 +1060,15 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .site-shell .word-power { border-radius: 20px; }
   .site-shell .lesson-hero { padding-inline: 20px; }
   .site-shell .foundation-entry, .site-shell .foundation-zone { padding: 21px 15px; }
+  .site-shell .complete-learning-hub { padding: 21px 15px; border-radius: 20px; }
+  .site-shell .complete-hub-header { display: grid; }
+  .site-shell .coach-score { min-width: 0; }
+  .site-shell .complete-hub-tabs { grid-template-columns: 1fr; }
+  .site-shell .adaptive-actions, .site-shell .level-ladder > div:last-child, .site-shell .practice-worlds > div, .site-shell .parent-metrics { grid-template-columns: 1fr; }
+  .site-shell .parent-dashboard > header, .site-shell .parent-footer { align-items: stretch; flex-direction: column; }
+  .site-shell .parent-dashboard header button, .site-shell .parent-footer > button { width: 100%; }
+  .site-shell .parent-insights { grid-template-columns: 1fr; }
+  .site-shell .parent-footer > div { min-width: 0; }
   .site-shell .reading-level-grid { grid-template-columns: 1fr; }
   .site-shell .reading-level-grid button { min-height: 125px; }
   .site-shell .foundation-header { display: grid; }
