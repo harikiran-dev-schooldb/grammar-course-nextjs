@@ -115,8 +115,8 @@ export default function FoundationPlayground({ readingLevel, completedSkills, on
           </div>
           <article className="phonics-card">
             <span className="phonics-emoji" aria-hidden="true">{activeLetter[2]}</span>
-            <div><span className="phonics-letter">{activeLetter[0]} <small>{activeLetter[0].toLowerCase()}</small></span><h3>{activeLetter[0]} is for {activeLetter[1]}</h3><p lang="te">వినండి. తర్వాత మీరే నెమ్మదిగా పలకండి.</p></div>
-            <div className="phonics-actions"><button type="button" onClick={() => speak(`${activeLetter[0]}. ${activeLetter[0]} is for ${activeLetter[1]}.`)}>🔊 Hear it</button><button type="button" onClick={() => onComplete(`foundation-letter-${activeLetter[0].toLowerCase()}`)}>★ I practised</button></div>
+            <div><span className="phonics-letter">{activeLetter[0]} <small>{activeLetter[0].toLowerCase()}</small></span><h3>{activeLetter[0]} for {activeLetter[1]}</h3><p lang="te">వినండి. తర్వాత మీరే నెమ్మదిగా పలకండి.</p></div>
+            <div className="phonics-actions"><button type="button" onClick={() => speak(`${activeLetter[0]} for ${activeLetter[1]}`)}>🔊 Hear it</button><button type="button" onClick={() => onComplete(`foundation-letter-${activeLetter[0].toLowerCase()}`)}>★ I practised</button></div>
           </article>
         </div>
       )}
