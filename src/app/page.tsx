@@ -10,6 +10,8 @@ import LearningJourney from "@/components/learning-journey";
 import FoundationPlayground from "@/components/foundation-playground";
 import CompleteLearningHub from "@/components/complete-learning-hub";
 import LessonRouteNavigator from "@/components/lesson-route-navigator";
+import TodayHome from "@/components/today-home";
+import SpeakingMissionCoach from "@/components/speaking-mission-coach";
 import { authClient } from "@/lib/auth-client";
 import { claimUsername, getMyUsername, requestLegacyPasswordReset, requestUsernamePasswordReset, signInWithUsername } from "@/app/actions/username-auth";
 import { isValidUsername, normalizeUsername } from "@/lib/usernames";
@@ -112,6 +114,7 @@ export default function Home() {
   const [hubView, setHubView] = useState<HubView | null>(null);
   const [testAnswers, setTestAnswers] = useState<Record<number, number>>({});
   const [testScore, setTestScore] = useState<number | null>(null);
+  const [appView, setAppView] = useState<"home" | "learn">("home");
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const latestSnapshotRef = useRef<CloudProgress | null>(null);
   const lesson = lessons[current];
@@ -474,8 +477,14 @@ export default function Home() {
     setTranslationText("");
     setShowTranslation(false);
     setCurrent(Math.max(0, Math.min(lessons.length - 1, index)));
+    setAppView("learn");
     setMenuOpen(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const openLearningTarget = (target: string) => {
+    setAppView("learn");
+    window.requestAnimationFrame(() => window.requestAnimationFrame(() => navigateToSection(target)));
   };
 
   const toggleComplete = () => {
@@ -882,7 +891,7 @@ export default function Home() {
       <a className="skip-to-lesson" href="#lesson-content">Skip to today’s lesson</a>
       <header className="topbar">
         <button className="menu-button" type="button" aria-label={menuOpen ? "Close course navigation" : "Open course navigation"} aria-controls="course-sidebar" aria-expanded={menuOpen} onClick={() => setMenuOpen((open) => !open)}><span /><span /><span /></button>
-        <button className="brand" type="button" onClick={() => goToLesson(0)} aria-label="Grammar Studio home">
+        <button className="brand" type="button" onClick={() => { setAppView("home"); setMenuOpen(false); }} aria-label="Grammar Studio home">
           <span className="brand-mark">G</span>
           <span className="brand-copy"><strong>Grammar Studio</strong><small>English · తెలుగు</small></span>
         </button>
@@ -969,6 +978,25 @@ export default function Home() {
         {menuOpen && <button className="page-overlay" aria-label="Close navigation" onClick={() => setMenuOpen(false)} />}
 
         <main id="lesson-content" className="lesson-main" tabIndex={-1}>
+          {appView === "home" ? <TodayHome
+            learnerName={learnerName}
+            day={lesson.day}
+            lessonTitle={lesson.title}
+            lessonTitleTe={lesson.titleTe}
+            nextLabel={journeySteps.find((step) => !step.done)?.label || "Next lesson"}
+            nextDetail={journeySteps.find((step) => !step.done)?.detail || "Today’s lesson is complete. Continue to the next day."}
+            progress={progress}
+            streak={streak}
+            minutes={studyMinutes[today] || 0}
+            goal={preferences.dailyGoalMinutes}
+            reviewCount={reviewItems.length}
+            speakingDone={skillsDone.includes(`speaking-mission-${lesson.day}`)}
+            onContinue={() => openLearningTarget(journeySteps.find((step) => !step.done)?.target || "#lesson-finish")}
+            onReview={() => setHubView("revision")}
+            onSpeaking={() => openLearningTarget("#speaking-missions")}
+            onProgress={() => setHubView("dashboard")}
+            onLessons={() => setMenuOpen(true)}
+          /> : <>
           <section className="lesson-hero" id="lesson-overview">
             <div className="hero-topline"><span>{lesson.unit}</span><span className="day-chip">Day {lesson.day} of 30</span></div>
             <div className="hero-grid">
@@ -1182,6 +1210,15 @@ export default function Home() {
 
           <SpeakingRecorder key={lesson.day} target={lesson.examples[0].en} onScore={(score, transcript) => setPronunciationResults((results) => [...results.filter((item) => item.day !== lesson.day), { day: lesson.day, score, transcript, updatedAt: new Date().toISOString() }].sort((a, b) => a.day - b.day))} />
 
+          <SpeakingMissionCoach day={lesson.day} completed={skillsDone.includes(`speaking-mission-${lesson.day}`)} onComplete={(score, transcript) => {
+            completeFoundationSkill(`speaking-mission-${lesson.day}`);
+            setPronunciationResults((results) => {
+              const existing = results.find((item) => item.day === lesson.day);
+              if (existing && existing.score >= score) return results;
+              return [...results.filter((item) => item.day !== lesson.day), { day: lesson.day, score, transcript, updatedAt: new Date().toISOString() }].sort((a, b) => a.day - b.day);
+            });
+          }} />
+
           <section className="conversation-lab section-block" id="conversation-lab">
             <div className="conversation-header">
               <div>
@@ -1337,10 +1374,11 @@ export default function Home() {
             <button type="button" className={`complete-button ${completed.includes(lesson.day) ? "done" : ""}`} onClick={toggleComplete}><span>{completed.includes(lesson.day) && <CheckIcon />}</span>{completed.includes(lesson.day) ? "Lesson completed" : "Mark lesson complete"}</button>
             <div className="lesson-pagination"><button type="button" onClick={() => goToLesson(current - 1)} disabled={current === 0}>← Previous</button><button type="button" className="next-button" onClick={() => goToLesson(current === lessons.length - 1 ? 0 : current + 1)}>{current === lessons.length - 1 ? "Start again ↻" : "Next lesson →"}</button></div>
           </footer>
+          </>}
         </main>
       </div>
       <nav className="mobile-dock" aria-label="Quick navigation">
-        <button type="button" onClick={() => { setHubView(null); goToLesson(current); }} className={!hubView && !menuOpen ? "active" : ""}><span aria-hidden="true">⌂</span><b>Today</b></button>
+        <button type="button" onClick={() => { setHubView(null); setMenuOpen(false); setAppView("home"); window.scrollTo({top:0,behavior:"smooth"}); }} className={appView === "home" && !hubView && !menuOpen ? "active" : ""}><span aria-hidden="true">⌂</span><b>Today</b></button>
         <button type="button" onClick={() => setMenuOpen(true)} className={menuOpen ? "active" : ""}><span aria-hidden="true">☷</span><b>Lessons</b></button>
         <button type="button" onClick={() => setHubView("revision")} className={hubView === "revision" ? "active" : ""}><span aria-hidden="true">↻</span><b>Review</b>{reviewItems.length > 0 && <i>{reviewItems.length}</i>}</button>
         <button type="button" onClick={() => setHubView("dashboard")} className={hubView === "dashboard" ? "active" : ""}><span aria-hidden="true">◔</span><b>Progress</b></button>
