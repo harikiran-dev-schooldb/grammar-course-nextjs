@@ -7,6 +7,7 @@ const styles = readFileSync(new URL("../src/app/globals.css", import.meta.url), 
 const journey = readFileSync(new URL("../src/components/learning-journey.tsx", import.meta.url), "utf8");
 const foundation = readFileSync(new URL("../src/components/foundation-playground.tsx", import.meta.url), "utf8");
 const completeHub = readFileSync(new URL("../src/components/complete-learning-hub.tsx", import.meta.url), "utf8");
+const routeNavigator = readFileSync(new URL("../src/components/lesson-route-navigator.tsx", import.meta.url), "utf8");
 const worker = readFileSync(new URL("../public/sw.js", import.meta.url), "utf8");
 
 test("lesson overview displays completion based on the existing course progress", () => {
@@ -54,7 +55,7 @@ test("Starter Zone teaches pre-readers before grammar", () => {
   assert.doesNotMatch(foundation, /activeLetter\[0\].*activeLetter\[0\].*is for/);
 });
 test("offline shell updates without discarding downloaded audio", () => {
-  assert.match(worker, /grammar-studio-v16-adaptive-learning/);
+  assert.match(worker, /grammar-studio-v17-guided-navigation/);
   assert.match(worker, /grammar-studio-v5-complete-english-audio/);
 });
 
@@ -68,4 +69,13 @@ test("adaptive command centre connects every English learning mode", () => {
   assert.match(completeHub, /Speaking Stage/);
   assert.match(completeHub, /Basics to advanced/);
   assert.match(completeHub, /Download full report/);
+});
+
+test("guided route makes the lesson order and next action explicit", () => {
+  assert.match(routeNavigator, /Follow in this order/);
+  assert.match(routeNavigator, /Step \{activeIndex \+ 1\} of \{steps.length\}/);
+  assert.match(routeNavigator, /Previous/);
+  assert.match(routeNavigator, /Next:/);
+  assert.match(routeNavigator, /IntersectionObserver/);
+  assert.match(page, /LessonRouteNavigator key=\{lesson.day\} day=\{lesson.day\} steps=\{journeySteps\}/);
 });

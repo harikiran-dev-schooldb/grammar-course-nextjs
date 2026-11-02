@@ -9,6 +9,7 @@ import DailyTestHub from "@/components/daily-test-hub";
 import LearningJourney from "@/components/learning-journey";
 import FoundationPlayground from "@/components/foundation-playground";
 import CompleteLearningHub from "@/components/complete-learning-hub";
+import LessonRouteNavigator from "@/components/lesson-route-navigator";
 import { authClient } from "@/lib/auth-client";
 import { claimUsername, getMyUsername, requestLegacyPasswordReset, requestUsernamePasswordReset, signInWithUsername } from "@/app/actions/username-auth";
 import { isValidUsername, normalizeUsername } from "@/lib/usernames";
@@ -1053,6 +1054,8 @@ export default function Home() {
             onOpenCertificate={() => setHubView("certificate")}
             onExportReport={exportLearnerData}
           />
+
+          <LessonRouteNavigator key={lesson.day} day={lesson.day} steps={journeySteps} onNavigate={navigateToSection} />
 
           <section className="skills-lab section-block" id="skills-lab">
             <div className="skills-lab-header">

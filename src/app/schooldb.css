@@ -233,6 +233,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .site-shell .lesson-main { width: min(1160px, calc(100% - 62px)); padding: 34px 0 96px; display: flex; flex-direction: column; }
 .site-shell .lesson-main > .lesson-hero { order: 1; }
 .site-shell .lesson-main > .journey-board { order: 2; }
+.site-shell .lesson-main > .lesson-route-navigator { order: 2; }
 .site-shell .lesson-main > .teacher-section { order: 3; }
 .site-shell .lesson-main > .rules-examples { order: 4; }
 .site-shell .lesson-main > .practice-section { order: 5; }
@@ -599,6 +600,33 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .site-shell .parent-footer > div { min-width: 240px; }
 .site-shell .parent-footer strong, .site-shell .parent-footer span { display: block; color: #26324e; font-size: 9px; }
 .site-shell .parent-footer span { margin-top: 2px; color: #737e93; }
+
+/* Persistent step-by-step lesson navigation */
+.site-shell .lesson-route-navigator { margin: 15px 0; padding: 9px; position: sticky; top: 79px; z-index: 35; border: 1px solid rgba(208,217,235,.92); border-radius: 18px; background: rgba(255,255,255,.94); box-shadow: 0 13px 34px rgba(9,21,64,.13); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); }
+.site-shell .route-summary { padding: 3px 7px 8px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.site-shell .route-summary > span b, .site-shell .route-summary > span small { display: block; }
+.site-shell .route-summary > span b { color: #1d2947; font-size: 10px; }
+.site-shell .route-summary > span small { margin-top: 1px; color: #818a9c; font-size: 8px; }
+.site-shell .route-summary > strong { padding: 5px 8px; border-radius: 8px; color: #3155c6; background: #edf2ff; font-size: 8px; }
+.site-shell .route-track { display: grid; grid-template-columns: repeat(7,1fr); overflow: hidden; border-radius: 12px; background: #f0f2f7; }
+.site-shell .route-track button { min-width: 0; min-height: 54px; padding: 7px 5px; display: grid; grid-template-columns: auto 1fr auto; grid-template-rows: auto auto; align-items: center; column-gap: 5px; position: relative; border: 0; color: #657087; background: transparent; text-align: left; cursor: pointer; }
+.site-shell .route-track button > span { grid-row: 1 / 3; width: 23px; height: 23px; display: grid; place-items: center; border-radius: 7px; color: #68748a; background: #dde1e9; font-size: 7px; font-weight: 900; }
+.site-shell .route-track button > b { overflow: hidden; font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+.site-shell .route-track button > small { overflow: hidden; color: #8891a2; font-size: 7px; text-overflow: ellipsis; white-space: nowrap; }
+.site-shell .route-track button > i { grid-column: 3; grid-row: 1 / 3; color: #aab1bf; font-size: 9px; font-style: normal; }
+.site-shell .route-track button.done > span { color: #17684d; background: #dff2ea; }
+.site-shell .route-track button.done { color: #41675c; }
+.site-shell .route-track button.active { color: #fff; background: linear-gradient(135deg,#3155c6,#1d3789); box-shadow: 0 7px 18px rgba(49,85,198,.22); }
+.site-shell .route-track button.active > span { color: #3155c6; background: #fff; }
+.site-shell .route-track button.active > small, .site-shell .route-track button.active > i { color: #dce6ff; }
+.site-shell .route-controls { padding: 8px 2px 0; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; }
+.site-shell .route-controls > span { min-width: 0; text-align: center; }
+.site-shell .route-controls > span b, .site-shell .route-controls > span small { display: block; }
+.site-shell .route-controls > span b { color: #25314e; font-size: 9px; }
+.site-shell .route-controls > span small { margin-top: 2px; overflow: hidden; color: #7b8496; font-size: 7px; text-overflow: ellipsis; white-space: nowrap; }
+.site-shell .route-controls > button { min-height: 31px; padding: 6px 10px; border: 1px solid #d9e0ed; border-radius: 9px; color: #5e6980; background: #fff; font-size: 8px; font-weight: 850; cursor: pointer; }
+.site-shell .route-controls > button:last-child { border-color: #3155c6; color: #fff; background: #3155c6; }
+.site-shell .route-controls > button:disabled { opacity: .35; cursor: not-allowed; }
 
 /* Guided end-to-end learning journey */
 .site-shell .journey-board {
@@ -1069,6 +1097,12 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .site-shell .parent-dashboard header button, .site-shell .parent-footer > button { width: 100%; }
   .site-shell .parent-insights { grid-template-columns: 1fr; }
   .site-shell .parent-footer > div { min-width: 0; }
+  .site-shell .lesson-route-navigator { top: 69px; margin-inline: -5px; border-radius: 15px; }
+  .site-shell .route-track { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; }
+  .site-shell .route-track button { min-width: 112px; flex: 0 0 112px; scroll-snap-align: center; }
+  .site-shell .route-controls { grid-template-columns: 1fr 1fr; }
+  .site-shell .route-controls > span { grid-column: 1 / -1; grid-row: 1; }
+  .site-shell .route-controls > button { grid-row: 2; }
   .site-shell .reading-level-grid { grid-template-columns: 1fr; }
   .site-shell .reading-level-grid button { min-height: 125px; }
   .site-shell .foundation-header { display: grid; }
