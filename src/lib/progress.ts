@@ -39,12 +39,14 @@ export type Mistake = {
 };
 
 export type PlacementLevel = "beginner" | "everyday" | "confident";
+export type ReadingLevel = "pre-reader" | "word-reader" | "sentence-reader";
 
 export type LearningPreferences = {
   placementLevel: PlacementLevel | null;
   dailyGoalMinutes: number;
   reminderTime: string;
   remindersEnabled: boolean;
+  readingLevel: ReadingLevel | null;
 };
 
 export type PronunciationResult = {
@@ -98,6 +100,8 @@ export type CloudProgress = {
   pronunciationResults: PronunciationResult[];
   studyMinutes: Record<string, number>;
   dailyTests: CloudDailyTestRecords;
+  conversationDays: number[];
+  wordDays: number[];
 };
 
 export const defaultPreferences: LearningPreferences = {
@@ -105,6 +109,7 @@ export const defaultPreferences: LearningPreferences = {
   dailyGoalMinutes: 15,
   reminderTime: "19:00",
   remindersEnabled: false,
+  readingLevel: null,
 };
 
 export const emptyProgress = (displayName = "Learner"): CloudProgress => ({
@@ -120,6 +125,8 @@ export const emptyProgress = (displayName = "Learner"): CloudProgress => ({
   pronunciationResults: [],
   studyMinutes: {},
   dailyTests: {},
+  conversationDays: [],
+  wordDays: [],
 });
 
 export function mergeProgress(local: CloudProgress, remote: CloudProgress): CloudProgress {
@@ -145,5 +152,7 @@ export function mergeProgress(local: CloudProgress, remote: CloudProgress): Clou
     studyMinutes: Object.fromEntries([...new Set([...Object.keys(local.studyMinutes), ...Object.keys(remote.studyMinutes)])]
       .map((date) => [date, Math.max(local.studyMinutes[date] || 0, remote.studyMinutes[date] || 0)])),
     dailyTests: mergeCloudDailyTests(local.dailyTests || {}, remote.dailyTests || {}),
+    conversationDays: [...new Set([...(local.conversationDays || []), ...(remote.conversationDays || [])])].sort((a, b) => a - b),
+    wordDays: [...new Set([...(local.wordDays || []), ...(remote.wordDays || [])])].sort((a, b) => a - b),
   };
 }

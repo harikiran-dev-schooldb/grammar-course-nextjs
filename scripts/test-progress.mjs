@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { parseCompletedDays, parseSavedDayIndex } from "../src/lib/progress.ts";
+import { emptyProgress, mergeProgress, parseCompletedDays, parseSavedDayIndex } from "../src/lib/progress.ts";
 
 const days = Array.from({ length: 30 }, (_, index) => index + 1);
 
@@ -36,4 +36,12 @@ test("uses day one for missing or unsafe saved day", () => {
 test("respects the actual lesson IDs", () => {
   assert.deepEqual(parseCompletedDays("[1,2,3,5]", [1,3,5]), [1,3,5]);
   assert.equal(parseSavedDayIndex("3", [1,3,5]), 1);
+});
+
+test("conversation and vocabulary mastery merge across devices", () => {
+  const local = { ...emptyProgress("Learner"), conversationDays: [1, 3], wordDays: [1, 2] };
+  const remote = { ...emptyProgress("Learner"), conversationDays: [2, 3], wordDays: [2, 4] };
+  const merged = mergeProgress(local, remote);
+  assert.deepEqual(merged.conversationDays, [1, 2, 3]);
+  assert.deepEqual(merged.wordDays, [1, 2, 4]);
 });

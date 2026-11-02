@@ -6,6 +6,8 @@ import { conversations } from "@/data/conversations";
 import { wordPower } from "@/data/word-power";
 import SpeakingRecorder from "@/components/speaking-recorder";
 import DailyTestHub from "@/components/daily-test-hub";
+import LearningJourney from "@/components/learning-journey";
+import FoundationPlayground from "@/components/foundation-playground";
 import { authClient } from "@/lib/auth-client";
 import { claimUsername, getMyUsername, requestLegacyPasswordReset, requestUsernamePasswordReset, signInWithUsername } from "@/app/actions/username-auth";
 import { isValidUsername, normalizeUsername } from "@/lib/usernames";
@@ -99,6 +101,8 @@ export default function Home() {
   const [pronunciationResults, setPronunciationResults] = useState<PronunciationResult[]>([]);
   const [studyMinutes, setStudyMinutes] = useState<Record<string, number>>({});
   const [dailyTests, setDailyTests] = useState<DailyTestRecords>({});
+  const [conversationDays, setConversationDays] = useState<number[]>([]);
+  const [wordDays, setWordDays] = useState<number[]>([]);
   const [pendingChanges, setPendingChanges] = useState(0);
   const [placementAnswers, setPlacementAnswers] = useState<Record<number, number>>({});
   const [placementScore, setPlacementScore] = useState<number | null>(null);
@@ -183,6 +187,8 @@ export default function Home() {
           setPronunciationResults(saved.pronunciationResults || []);
           setStudyMinutes(saved.studyMinutes || {});
           setDailyTests(saved.dailyTests || {});
+          setConversationDays(saved.conversationDays || []);
+          setWordDays(saved.wordDays || []);
         } else {
           setCompleted(parseCompletedDays(window.localStorage.getItem("grammar-studio-progress"), validDays));
           setCurrent(parseSavedDayIndex(window.localStorage.getItem("grammar-studio-day"), validDays));
@@ -254,6 +260,8 @@ export default function Home() {
       setPronunciationResults(merged.pronunciationResults);
       setStudyMinutes(merged.studyMinutes);
       setDailyTests(merged.dailyTests);
+      setConversationDays(merged.conversationDays);
+      setWordDays(merged.wordDays);
       setSyncStatus("synced");
       setPendingChanges(0);
     }).catch(() => {
@@ -283,14 +291,14 @@ export default function Home() {
 
   useEffect(() => {
     if (!learnerName || !cloudLoaded) return;
-    const snapshot: CloudProgress = { displayName: learnerName, completed, currentDay: current + 1, skillsDone, writings, mistakes, activityDates, badges, preferences, pronunciationResults, studyMinutes, dailyTests };
+    const snapshot: CloudProgress = { displayName: learnerName, completed, currentDay: current + 1, skillsDone, writings, mistakes, activityDates, badges, preferences, pronunciationResults, studyMinutes, dailyTests, conversationDays, wordDays };
     latestSnapshotRef.current = snapshot;
     window.localStorage.setItem("grammar-studio-cloud-progress", JSON.stringify(snapshot));
     const timer = window.setTimeout(() => {
       void syncProgress(snapshot);
     }, 700);
     return () => window.clearTimeout(timer);
-  }, [activityDates, badges, cloudLoaded, completed, current, dailyTests, learnerName, mistakes, preferences, pronunciationResults, skillsDone, studyMinutes, syncProgress, writings]);
+  }, [activityDates, badges, cloudLoaded, completed, conversationDays, current, dailyTests, learnerName, mistakes, preferences, pronunciationResults, skillsDone, studyMinutes, syncProgress, wordDays, writings]);
 
   useEffect(() => {
     const environmentFrame = window.requestAnimationFrame(() => {
@@ -378,6 +386,8 @@ export default function Home() {
   const progress = Math.round((completed.length / lessons.length) * 100);
   const writingWordCount = writingText.trim() ? writingText.trim().split(/\s+/).length : 0;
   const streak = calculateStreak(activityDates, today);
+  const courseSkillsDone = skillsDone.filter((key) => /^(listen|read|write|translate)-/.test(key));
+  const foundationSkillsDone = skillsDone.filter((key) => key.startsWith("foundation-"));
   const reviewCutoff = today ? new Date(`${today}T23:59:59`).getTime() : 0;
   const reviewItems = mistakes.filter((item) => !item.reviewed || !item.nextReviewAt || (reviewCutoff > 0 && new Date(item.nextReviewAt).getTime() <= reviewCutoff)).sort((a, b) => b.attempts - a.attempts);
   const achievementBadges = [
@@ -385,8 +395,9 @@ export default function Home() {
     ...(completed.length >= 10 ? ["10-day explorer"] : []),
     ...(completed.length >= 20 ? ["20-day builder"] : []),
     ...(completed.length === 30 ? ["Course champion"] : []),
-    ...(skillsDone.length >= 40 ? ["Skills starter"] : []),
-    ...(skillsDone.length >= 100 ? ["Skills master"] : []),
+    ...(courseSkillsDone.length >= 40 ? ["Skills starter"] : []),
+    ...(courseSkillsDone.length >= 100 ? ["Skills master"] : []),
+    ...(foundationSkillsDone.length >= 5 ? ["First-word explorer"] : []),
     ...(streak >= 3 ? ["3-day streak"] : []),
     ...(streak >= 7 ? ["7-day streak"] : []),
   ];
@@ -408,6 +419,26 @@ export default function Home() {
     () => units.map((unit) => ({ unit, lessons: lessons.filter((item) => item.unit === unit) })),
     [],
   );
+  const lessonSkillCount = (["listen", "read", "write", "translate"] as SkillTab[])
+    .filter((skill) => skillsDone.includes(`${skill}-${lesson.day}`)).length;
+  const pronunciationDone = pronunciationResults.some((item) => item.day === lesson.day);
+  const conversationDone = conversationDays.includes(lesson.day) || conversationChoice === conversation.best;
+  const dailyTestDone = Boolean(dailyTests[lesson.day]);
+  const journeySteps = [
+    { key: "learn", number: "01", label: "Learn", labelTe: "నేర్చుకోండి", detail: "Understand the teacher explanation, rules and examples.", done: selected === lesson.practice.answer, target: "#lesson-learning" },
+    { key: "skills", number: "02", label: "Practise", labelTe: "Practice చేయండి", detail: `Complete listening, reading, writing and translation (${lessonSkillCount}/4).`, done: lessonSkillCount === 4, target: "#skills-lab" },
+    { key: "speak", number: "03", label: "Speak", labelTe: "మాట్లాడండి", detail: "Record your voice and check pronunciation.", done: pronunciationDone, target: "#speaking-practice" },
+    { key: "conversation", number: "04", label: "Real talk", labelTe: "సంభాషణ", detail: "Choose a natural reply in a real-life conversation.", done: conversationDone, target: "#conversation-lab" },
+    { key: "words", number: "05", label: "Words", labelTe: "పదాలు", detail: "Listen, repeat and practise today's spellings.", done: wordDays.includes(lesson.day) || (spellingChecked && spellingInput.trim().toLocaleLowerCase("en") === activeWord.word.toLocaleLowerCase("en")), target: "#word-power" },
+    { key: "test", number: "06", label: "Test", labelTe: "Test రాయండి", detail: "Take the daily test and revise any mistakes.", done: dailyTestDone, target: "#daily-tests" },
+    { key: "finish", number: "07", label: "Finish", labelTe: "పూర్తి చేయండి", detail: "Mark the lesson complete and continue your journey.", done: completed.includes(lesson.day), target: "#lesson-finish" },
+  ];
+  const skillPercent = (prefix: string) => Math.min(100, Math.round((skillsDone.filter((key) => key.startsWith(`${prefix}-`)).length / lessons.length) * 100));
+  const stageProgress = (start: number, end: number) => Math.round((completed.filter((day) => day >= start && day <= end).length / 10) * 100);
+
+  const navigateToSection = (target: string) => {
+    document.querySelector(target)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   const goToLesson = (index: number) => {
     audioRef.current?.pause();
@@ -478,7 +509,7 @@ export default function Home() {
 
   const exportLearnerData = () => {
     const safeName = learnerName || "learner";
-    const report = { learnerName, learnerEmail, exportedAt: new Date().toISOString(), progress, completed, skillsDone, writings, mistakes, activityDates, badges: allBadges, preferences, pronunciationResults, studyMinutes, dailyTests };
+    const report = { learnerName, learnerEmail, exportedAt: new Date().toISOString(), progress, completed, skillsDone, writings, mistakes, activityDates, badges: allBadges, preferences, pronunciationResults, studyMinutes, dailyTests, conversationDays, wordDays };
     const url = URL.createObjectURL(new Blob([JSON.stringify(report, null, 2)], { type: "application/json" }));
     const link = document.createElement("a");
     link.href = url;
@@ -553,7 +584,8 @@ export default function Home() {
 
   const checkSpelling = () => {
     setSpellingChecked(true);
-    if (!spellingIsCorrect) rememberMistake("spelling", `Spell the word you heard: ${activeWord.meaningTe}`, activeWord.word);
+    if (spellingIsCorrect) setWordDays((days) => [...new Set([...days, lesson.day])].sort((a, b) => a - b));
+    else rememberMistake("spelling", `Spell the word you heard: ${activeWord.meaningTe}`, activeWord.word);
   };
 
   const markSkill = (skill: SkillTab) => {
@@ -563,6 +595,16 @@ export default function Home() {
     setSkillsDone(updated);
     const learnerKey = learnerName.trim().toLocaleLowerCase("en");
     window.localStorage.setItem(`grammar-studio-skills-${learnerKey}`, JSON.stringify(updated));
+  };
+
+  const completeFoundationSkill = (key: string) => {
+    if (!learnerName) return;
+    setSkillsDone((items) => {
+      const updated = items.includes(key) ? items : [...items, key];
+      const learnerKey = learnerName.trim().toLocaleLowerCase("en");
+      window.localStorage.setItem(`grammar-studio-skills-${learnerKey}`, JSON.stringify(updated));
+      return updated;
+    });
   };
 
   const saveWriting = () => {
@@ -845,7 +887,7 @@ export default function Home() {
             {hubView === "dashboard" && <div className="hub-body dashboard-body">
               <div className="metric-grid"><article><span>Course</span><strong>{progress}%</strong><small>{completed.length} of 30 lessons</small></article><article><span>Today&apos;s goal</span><strong>{Math.min(100, Math.round(((studyMinutes[today] || 0) / preferences.dailyGoalMinutes) * 100))}%</strong><small>{studyMinutes[today] || 0} of {preferences.dailyGoalMinutes} minutes</small></article><article><span>Current streak</span><strong>{streak} 🔥</strong><small>days learning</small></article><article><span>To review</span><strong>{reviewItems.length}</strong><small>spaced practice items</small></article></div>
               <section className="badge-section"><h3>Achievements</h3><div className="badge-list">{allBadges.length ? allBadges.map((badge) => <span key={badge}>★ {badge}</span>) : <p>Complete your first lesson to earn a badge.</p>}</div></section>
-              <section className="teacher-report"><div><h3>Teacher / parent report</h3><p>Grammar {completed.length}/30 · Skill practice {skillsDone.length}/120 · Writing samples {Object.keys(writings).length} · Pronunciation checks {pronunciationResults.length} · Revision queue {reviewItems.length}</p><p lang="te">పాఠాలు, practice, writing, pronunciation, mistakes అన్నీ ఒకే చోట చూడవచ్చు.</p></div><div className="report-actions"><button type="button" onClick={() => window.print()}>Print / Save PDF</button><button type="button" onClick={exportLearnerData}>Download backup</button></div></section>
+              <section className="teacher-report"><div><h3>Teacher / parent report</h3><p>Starter activities {foundationSkillsDone.length} · Grammar {completed.length}/30 · Skill practice {courseSkillsDone.length}/120 · Real conversations {conversationDays.length}/30 · Word sets {wordDays.length}/30 · Pronunciation checks {pronunciationResults.length} · Revision queue {reviewItems.length}</p><p lang="te">పాఠాలు, practice, writing, pronunciation, mistakes అన్నీ ఒకే చోట చూడవచ్చు.</p></div><div className="report-actions"><button type="button" onClick={() => window.print()}>Print / Save PDF</button><button type="button" onClick={exportLearnerData}>Download backup</button></div></section>
               <button type="button" className="hub-logout" onClick={() => void logout()}>Sign out of this account</button>
             </div>}
 
@@ -885,7 +927,7 @@ export default function Home() {
                   return <div key={stage.name}><span>{stage.name}</span><b>{count}/10</b><i><em style={{width:`${count * 10}%`}} /></i></div>;
                 })}
               </div>
-              <small>{skillsDone.length} of 120 language activities completed</small>
+              <small>{courseSkillsDone.length} of 120 language activities completed</small>
             </section>
           </div>
           <nav aria-label="Lessons" className="lesson-nav">
@@ -910,7 +952,7 @@ export default function Home() {
         {menuOpen && <button className="page-overlay" aria-label="Close navigation" onClick={() => setMenuOpen(false)} />}
 
         <main id="lesson-content" className="lesson-main" tabIndex={-1}>
-          <section className="lesson-hero">
+          <section className="lesson-hero" id="lesson-overview">
             <div className="hero-topline"><span>{lesson.unit}</span><span className="day-chip">Day {lesson.day} of 30</span></div>
             <div className="hero-grid">
               <div>
@@ -935,10 +977,47 @@ export default function Home() {
             </div>
           </section>
 
-          <section className="skills-lab section-block">
+          <FoundationPlayground
+            readingLevel={preferences.readingLevel}
+            completedSkills={skillsDone}
+            onChooseLevel={(readingLevel) => setPreferences((value) => ({ ...value, readingLevel }))}
+            onComplete={completeFoundationSkill}
+            onContinueCourse={() => navigateToSection("#lesson-overview")}
+          />
+
+          <LearningJourney
+            learnerName={learnerName}
+            day={lesson.day}
+            level={preferences.placementLevel}
+            studyMinutes={studyMinutes[today] || 0}
+            dailyGoalMinutes={preferences.dailyGoalMinutes}
+            reviewCount={reviewItems.length}
+            steps={journeySteps}
+            skills={[
+              { label: "Grammar", value: progress, detail: `${completed.length}/30 lessons` },
+              { label: "Listening", value: skillPercent("listen"), detail: `${skillsDone.filter((key) => key.startsWith("listen-")).length}/30 activities` },
+              { label: "Reading", value: skillPercent("read"), detail: `${skillsDone.filter((key) => key.startsWith("read-")).length}/30 activities` },
+              { label: "Writing", value: skillPercent("write"), detail: `${Object.keys(writings).length}/30 samples` },
+              { label: "Speaking", value: Math.round((pronunciationResults.length / lessons.length) * 100), detail: `${pronunciationResults.length}/30 checks` },
+              { label: "Vocabulary", value: Math.round((wordDays.length / lessons.length) * 100), detail: `${wordDays.length}/30 word sets` },
+            ]}
+            stages={[
+              { label: "ABC & first words", days: "Starter Zone", value: Math.min(100, Math.round((foundationSkillsDone.length / 12) * 100)), active: preferences.readingLevel !== "sentence-reader" },
+              { label: "Beginner foundations", days: "Days 1–10", value: stageProgress(1, 10), active: preferences.readingLevel === "sentence-reader" && lesson.day <= 10 },
+              { label: "Everyday English", days: "Days 11–20", value: stageProgress(11, 20), active: lesson.day > 10 && lesson.day <= 20 },
+              { label: "Confident English", days: "Days 21–30", value: stageProgress(21, 30), active: lesson.day > 20 },
+            ]}
+            onOpenPlacement={() => setHubView("placement")}
+            onOpenReview={() => setHubView("revision")}
+            onOpenGoals={() => setHubView("goals")}
+            onNavigate={navigateToSection}
+            onNextLesson={() => goToLesson(current === lessons.length - 1 ? 0 : current + 1)}
+          />
+
+          <section className="skills-lab section-block" id="skills-lab">
             <div className="skills-lab-header">
               <div><p className="kicker">Complete English practice</p><h2>Build every language skill</h2><p lang="te">వినడం, చదవడం, రాయడం, అనువాదం—ప్రతి lesson లో practice చేయండి.</p></div>
-              <div className="skills-score"><strong>{skillsDone.length}</strong><span>/ 120 activities</span></div>
+              <div className="skills-score"><strong>{courseSkillsDone.length}</strong><span>/ 120 activities</span></div>
             </div>
 
             <div className="skill-tabs" role="tablist" aria-label="English skill activities">
@@ -993,7 +1072,7 @@ export default function Home() {
             )}
           </section>
 
-          <section className="teacher-section section-block">
+          <section className="teacher-section section-block" id="lesson-learning">
             <div className="section-heading"><div><p className="kicker">Teacher’s desk</p><h2>Let’s understand it</h2></div><span className="section-count">01</span></div>
             <div className={`teacher-grid ${language !== "both" ? "single" : ""}`}>
               {(language === "en" || language === "both") && (
@@ -1059,12 +1138,8 @@ export default function Home() {
           </section>
 
           <SpeakingRecorder key={lesson.day} target={lesson.examples[0].en} onScore={(score, transcript) => setPronunciationResults((results) => [...results.filter((item) => item.day !== lesson.day), { day: lesson.day, score, transcript, updatedAt: new Date().toISOString() }].sort((a, b) => a.day - b.day))} />
-          <DailyTestHub key={learnerName} learnerName={learnerName} lesson={lesson} savedRecords={dailyTests} onRecordsChange={setDailyTests} onGoToDay={(day) => {
-            const index = lessons.findIndex((item) => item.day === day);
-            if (index >= 0) goToLesson(index);
-          }} />
 
-          <section className="conversation-lab section-block">
+          <section className="conversation-lab section-block" id="conversation-lab">
             <div className="conversation-header">
               <div>
                 <p className="kicker">Conversation lab</p>
@@ -1099,7 +1174,7 @@ export default function Home() {
                       key={option.text}
                       className={`conversation-choice ${chosen ? "chosen" : ""} ${correct ? "correct" : ""} ${wrong ? "wrong" : ""}`}
                       aria-pressed={chosen}
-                      onClick={() => { setConversationChoice(index); if (index !== conversation.best) rememberMistake("conversation", conversation.partner, conversation.options[conversation.best].text); }}
+                      onClick={() => { setConversationChoice(index); if (index === conversation.best) setConversationDays((days) => [...new Set([...days, lesson.day])].sort((a, b) => a - b)); else rememberMistake("conversation", conversation.partner, conversation.options[conversation.best].text); }}
                     >
                       <span>{String.fromCharCode(65 + index)}</span>
                       {option.text}
@@ -1125,7 +1200,7 @@ export default function Home() {
             )}
           </section>
 
-          <section className="word-power section-block">
+          <section className="word-power section-block" id="word-power">
             <div className="word-power-header">
               <div>
                 <p className="kicker">Word power · పదాల సాధన</p>
@@ -1210,7 +1285,12 @@ export default function Home() {
             )}
           </section>
 
-          <footer className="lesson-footer">
+          <DailyTestHub key={learnerName} learnerName={learnerName} lesson={lesson} savedRecords={dailyTests} onRecordsChange={setDailyTests} onGoToDay={(day) => {
+            const index = lessons.findIndex((item) => item.day === day);
+            if (index >= 0) goToLesson(index);
+          }} />
+
+          <footer className="lesson-footer" id="lesson-finish">
             <button type="button" className={`complete-button ${completed.includes(lesson.day) ? "done" : ""}`} onClick={toggleComplete}><span>{completed.includes(lesson.day) && <CheckIcon />}</span>{completed.includes(lesson.day) ? "Lesson completed" : "Mark lesson complete"}</button>
             <div className="lesson-pagination"><button type="button" onClick={() => goToLesson(current - 1)} disabled={current === 0}>← Previous</button><button type="button" className="next-button" onClick={() => goToLesson(current === lessons.length - 1 ? 0 : current + 1)}>{current === lessons.length - 1 ? "Start again ↻" : "Next lesson →"}</button></div>
           </footer>

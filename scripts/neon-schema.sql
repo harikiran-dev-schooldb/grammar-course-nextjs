@@ -12,5 +12,7 @@ CREATE TABLE IF NOT EXISTS learner_progress (
   pronunciation_results JSONB NOT NULL DEFAULT '[]'::jsonb,
   study_minutes JSONB NOT NULL DEFAULT '{}'::jsonb,
   daily_tests JSONB NOT NULL DEFAULT '{}'::jsonb,
+  conversation_days JSONB NOT NULL DEFAULT '[]'::jsonb,
+  word_days JSONB NOT NULL DEFAULT '[]'::jsonb,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

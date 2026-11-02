@@ -236,7 +236,7 @@ export default function SpeakingRecorder({ target, onScore }: { target: string; 
   };
 
   return (
-    <section className="speaking-recorder section-block" aria-labelledby="speaking-recorder-heading">
+    <section className="speaking-recorder section-block" id="speaking-practice" aria-labelledby="speaking-recorder-heading">
       <div className="speaking-recorder-header">
         <div>
           <p className="kicker">Your speaking practice</p>

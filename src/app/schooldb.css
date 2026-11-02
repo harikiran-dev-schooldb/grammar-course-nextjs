@@ -230,7 +230,19 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .site-shell .lesson-link-copy small { color: #758096; }
 
 /* Shared premium surfaces */
-.site-shell .lesson-main { width: min(1160px, calc(100% - 62px)); padding: 34px 0 96px; }
+.site-shell .lesson-main { width: min(1160px, calc(100% - 62px)); padding: 34px 0 96px; display: flex; flex-direction: column; }
+.site-shell .lesson-main > .lesson-hero { order: 1; }
+.site-shell .lesson-main > .journey-board { order: 2; }
+.site-shell .lesson-main > .teacher-section { order: 3; }
+.site-shell .lesson-main > .rules-examples { order: 4; }
+.site-shell .lesson-main > .practice-section { order: 5; }
+.site-shell .lesson-main > .skills-lab { order: 6; }
+.site-shell .lesson-main > .speak-card { order: 7; }
+.site-shell .lesson-main > .speaking-recorder { order: 8; }
+.site-shell .lesson-main > .conversation-lab { order: 9; }
+.site-shell .lesson-main > .word-power { order: 10; }
+.site-shell .lesson-main > .daily-test-hub { order: 11; }
+.site-shell .lesson-main > .lesson-footer { order: 12; }
 .site-shell .section-block { margin-top: 26px; }
 .site-shell .skills-lab,
 .site-shell .teacher-card,
@@ -313,6 +325,359 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .site-shell .hero-controls { border-color: rgba(255,255,255,.1); background: rgba(2,8,31,.2); }
 .site-shell .language-switch { border-color: rgba(255,255,255,.15); background: rgba(255,255,255,.06); }
 .site-shell .language-switch button.active { color: #091540; background: #fff; box-shadow: 0 6px 17px rgba(0,0,0,.18); }
+
+/* Starter Zone for children and true beginners */
+.site-shell .foundation-entry,
+.site-shell .foundation-zone,
+.site-shell .foundation-ready {
+  border: 1px solid rgba(49,85,198,.12);
+  border-radius: 25px;
+  background: #fff;
+  box-shadow: var(--schooldb-shadow);
+}
+.site-shell .foundation-entry {
+  padding: 30px;
+  display: grid;
+  grid-template-columns: minmax(260px,.8fr) minmax(0,1.4fr);
+  gap: 28px;
+  align-items: center;
+  background:
+    radial-gradient(circle at 9% 20%, rgba(255,197,84,.16), transparent 15rem),
+    radial-gradient(circle at 96% 90%, rgba(91,141,239,.13), transparent 20rem),
+    #fff;
+}
+.site-shell .foundation-mascot { width: 54px; height: 54px; margin-bottom: 14px; display: grid; place-items: center; border-radius: 17px; background: #fff5d8; box-shadow: inset 0 1px #fff; font-size: 27px; }
+.site-shell .foundation-entry h2, .site-shell .foundation-header h2 {
+  margin: 5px 0 10px;
+  color: #091540;
+  font-size: clamp(28px,3vw,40px);
+  line-height: 1.08;
+  letter-spacing: -.045em;
+}
+.site-shell .foundation-entry-copy > p:not(.kicker), .site-shell .foundation-header > div > p:not(.kicker) { margin: 5px 0 0; color: #657087; font-size: 14px; line-height: 1.65; }
+.site-shell .foundation-entry-copy > p[lang="te"], .site-shell .foundation-header > div > p[lang="te"] { color: #476186; }
+.site-shell .reading-level-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; }
+.site-shell .reading-level-grid button {
+  min-height: 190px;
+  padding: 20px 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  border: 1px solid #e0e5f0;
+  border-radius: 19px;
+  color: #1e2947;
+  background: #f8f9fd;
+  text-align: left;
+  cursor: pointer;
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+.site-shell .reading-level-grid button:nth-child(1) { background: linear-gradient(145deg,#fff9e7,#fff4cb); }
+.site-shell .reading-level-grid button:nth-child(2) { background: linear-gradient(145deg,#edf7ff,#e4f0ff); }
+.site-shell .reading-level-grid button:nth-child(3) { background: linear-gradient(145deg,#f1edff,#e9e4ff); }
+.site-shell .reading-level-grid button:hover { transform: translateY(-3px); border-color: #9eb6ef; box-shadow: 0 14px 28px rgba(9,21,64,.1); }
+.site-shell .reading-level-grid button > span { margin-bottom: auto; color: #3155c6; font-size: 30px; font-weight: 900; letter-spacing: -.04em; }
+.site-shell .reading-level-grid strong { font-size: 14px; line-height: 1.35; }
+.site-shell .reading-level-grid small { margin-top: 7px; color: #67728a; font-size: 11px; line-height: 1.45; }
+.site-shell .foundation-ready { padding: 17px 20px; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.site-shell .foundation-ready > div { display: flex; align-items: center; gap: 12px; }
+.site-shell .foundation-ready > div > span { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 12px; color: #197a5b; background: #e2f4ec; font-weight: 900; }
+.site-shell .foundation-ready strong, .site-shell .foundation-ready small { display: block; }
+.site-shell .foundation-ready strong { color: #1d2946; font-size: 13px; }
+.site-shell .foundation-ready small { margin-top: 3px; color: #758096; font-size: 11px; }
+.site-shell .foundation-ready > button { padding: 9px 12px; border: 1px solid #d8e0f3; border-radius: 11px; color: #3155c6; background: #f3f6ff; font-size: 11px; font-weight: 800; cursor: pointer; }
+.site-shell .foundation-zone { padding: 30px; overflow: hidden; position: relative; background: linear-gradient(145deg,#fff,#fbfcff); }
+.site-shell .foundation-zone::after { content: "A B C"; position: absolute; right: -8px; top: -25px; color: rgba(49,85,198,.035); font-size: 105px; font-weight: 950; letter-spacing: -.09em; pointer-events: none; }
+.site-shell .foundation-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 25px; position: relative; z-index: 1; }
+.site-shell .foundation-header > div:first-child { max-width: 730px; }
+.site-shell .foundation-stars { min-width: 115px; padding: 14px; display: grid; justify-items: center; border: 1px solid #f2deb2; border-radius: 17px; background: #fff8e5; }
+.site-shell .foundation-stars > span { color: #e5a525; font-size: 27px; line-height: 1; }
+.site-shell .foundation-stars strong { margin-top: 3px; color: #8a651f; font-size: 25px; }
+.site-shell .foundation-stars small { color: #8a7651; font-size: 9px; font-weight: 800; }
+.site-shell .foundation-tabs { margin-top: 24px; padding: 6px; display: grid; grid-template-columns: repeat(3,1fr); gap: 5px; position: relative; z-index: 1; border-radius: 16px; background: #eef1f7; }
+.site-shell .foundation-tabs button { min-height: 52px; padding: 9px 12px; display: flex; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 12px; color: #647087; background: transparent; font-size: 12px; cursor: pointer; }
+.site-shell .foundation-tabs button > span { font-size: 16px; font-weight: 900; }
+.site-shell .foundation-tabs button.active { color: #fff; background: linear-gradient(135deg,#3155c6,#1d3789); box-shadow: 0 9px 20px rgba(49,85,198,.22); }
+.site-shell .letter-game, .site-shell .first-word-game, .site-shell .sentence-game { margin-top: 16px; position: relative; z-index: 1; }
+.site-shell .letter-game { display: grid; grid-template-columns: minmax(0,1.2fr) minmax(300px,.8fr); gap: 15px; }
+.site-shell .alphabet-grid { padding: 14px; display: grid; grid-template-columns: repeat(7,1fr); gap: 7px; border: 1px solid #e2e6ef; border-radius: 18px; background: #f8f9fc; }
+.site-shell .alphabet-grid button { min-width: 0; aspect-ratio: 1; position: relative; border: 1px solid #dfe4ee; border-radius: 12px; color: #24304e; background: #fff; font-size: 17px; font-weight: 900; cursor: pointer; }
+.site-shell .alphabet-grid button.active { border-color: #3155c6; color: #fff; background: #3155c6; box-shadow: 0 8px 17px rgba(49,85,198,.2); }
+.site-shell .alphabet-grid button i { width: 14px; height: 14px; display: grid; place-items: center; position: absolute; top: 3px; right: 3px; border-radius: 50%; color: #fff; background: #1e9a6f; font-size: 8px; font-style: normal; }
+.site-shell .phonics-card { padding: 20px; display: grid; grid-template-columns: auto 1fr; gap: 13px; border: 1px solid #dfe5f1; border-radius: 18px; background: linear-gradient(145deg,#f1f5ff,#e8efff); }
+.site-shell .phonics-emoji { width: 66px; height: 66px; display: grid; place-items: center; border-radius: 19px; background: #fff; box-shadow: 0 8px 20px rgba(9,21,64,.08); font-size: 38px; }
+.site-shell .phonics-letter { color: #3155c6; font-size: 33px; font-weight: 950; line-height: 1; }
+.site-shell .phonics-letter small { color: #7187c5; font-size: 22px; }
+.site-shell .phonics-card h3 { margin: 7px 0 0; color: #172348; font-size: 17px; }
+.site-shell .phonics-card p { margin: 5px 0 0; color: #63708d; font-size: 11px; }
+.site-shell .phonics-actions { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.site-shell .phonics-actions button, .site-shell .hear-word, .site-shell .next-foundation-game { min-height: 42px; border: 0; border-radius: 11px; font-size: 11px; font-weight: 850; cursor: pointer; }
+.site-shell .phonics-actions button:first-child, .site-shell .hear-word { color: #3155c6; background: #fff; }
+.site-shell .phonics-actions button:last-child, .site-shell .next-foundation-game { color: #fff; background: #3155c6; }
+.site-shell .first-word-game { padding: 21px; display: grid; grid-template-columns: minmax(230px,.75fr) minmax(0,1.25fr); gap: 14px; border: 1px solid #e1e6ef; border-radius: 19px; background: #f8f9fc; }
+.site-shell .game-progress { grid-column: 1 / -1; display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 14px; }
+.site-shell .game-progress > span { color: #637089; font-size: 10px; font-weight: 850; }
+.site-shell .game-progress i { height: 6px; overflow: hidden; border-radius: 20px; background: #e1e5ed; }
+.site-shell .game-progress em { height: 100%; display: block; border-radius: inherit; background: linear-gradient(90deg,#3155c6,#84a7f1); }
+.site-shell .picture-word-card { padding: 20px; display: grid; justify-items: center; align-content: center; border: 1px solid #dfe5f1; border-radius: 17px; background: #fff; text-align: center; }
+.site-shell .picture-word-card > span { font-size: 72px; line-height: 1; }
+.site-shell .picture-word-card h3 { margin: 13px 0 0; color: #152143; font-size: 17px; }
+.site-shell .picture-word-card p { margin: 6px 0 13px; color: #6a7690; font-size: 11px; }
+.site-shell .hear-word { padding: 8px 13px; background: #edf2ff; }
+.site-shell .word-choice-grid { display: grid; align-content: center; gap: 9px; }
+.site-shell .word-choice-grid button { min-height: 57px; border: 1px solid #dce2ed; border-radius: 13px; color: #27324e; background: #fff; font-size: 18px; font-weight: 850; cursor: pointer; }
+.site-shell .word-choice-grid button:hover { border-color: #8fa9e6; background: #f4f7ff; }
+.site-shell .word-choice-grid button.correct { border-color: #77c3a5; color: #17684d; background: #e8f7f0; }
+.site-shell .foundation-feedback { grid-column: 1 / -1; padding: 12px 14px; display: flex; justify-content: space-between; gap: 12px; border-radius: 12px; }
+.site-shell .foundation-feedback.right { color: #17684d; background: #e8f7f0; }
+.site-shell .foundation-feedback.wrong { color: #914c3f; background: #fcece8; }
+.site-shell .foundation-feedback strong, .site-shell .foundation-feedback span { font-size: 11px; }
+.site-shell .next-foundation-game { grid-column: 2; justify-self: end; padding: 8px 15px; }
+.site-shell .sentence-game { padding: 21px; border: 1px solid #e1e6ef; border-radius: 19px; background: #f8f9fc; }
+.site-shell .sentence-example { padding: 17px; display: flex; align-items: center; gap: 17px; border-radius: 16px; color: #fff; background: linear-gradient(135deg,#091540,#1c3a8a); }
+.site-shell .sentence-example > span { font-size: 45px; }
+.site-shell .sentence-example h3 { margin: 3px 0 0; color: #fff; font-size: 20px; }
+.site-shell .sentence-example .kicker { color: #adc4fb; }
+.site-shell .sentence-example button { margin-top: 9px; padding: 7px 10px; border: 1px solid rgba(255,255,255,.15); border-radius: 9px; color: #fff; background: rgba(255,255,255,.08); font-size: 10px; cursor: pointer; }
+.site-shell .sentence-builder { min-height: 76px; margin-top: 13px; padding: 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; border: 2px dashed #cfd6e5; border-radius: 15px; background: #fff; }
+.site-shell .sentence-builder > span { color: #8a93a6; font-size: 12px; }
+.site-shell .sentence-builder button, .site-shell .sentence-word-bank button { padding: 9px 12px; border: 1px solid #dbe2ef; border-radius: 10px; color: #21305b; background: #edf2ff; font-size: 13px; font-weight: 800; cursor: pointer; }
+.site-shell .sentence-word-bank { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
+.site-shell .sentence-word-bank button { color: #fff; background: #3155c6; }
+.site-shell .sentence-word-bank button:disabled { opacity: .3; }
+.site-shell .sentence-actions { margin-top: 15px; display: flex; justify-content: flex-end; gap: 8px; }
+.site-shell .sentence-actions button { min-height: 42px; padding: 8px 14px; border: 1px solid #dbe1ed; border-radius: 11px; color: #5f6b83; background: #fff; font-size: 11px; font-weight: 800; cursor: pointer; }
+.site-shell .sentence-actions button:last-child { border-color: #3155c6; color: #fff; background: #3155c6; }
+.site-shell .sentence-actions button:disabled { opacity: .4; }
+.site-shell .foundation-footer { margin-top: 17px; padding-top: 17px; display: flex; justify-content: space-between; align-items: center; gap: 15px; border-top: 1px solid #e4e7ef; }
+.site-shell .foundation-footer strong, .site-shell .foundation-footer span { display: block; }
+.site-shell .foundation-footer strong { color: #202c49; font-size: 12px; }
+.site-shell .foundation-footer span { margin-top: 3px; color: #7a8498; font-size: 10px; }
+.site-shell .foundation-footer button { min-height: 42px; padding: 8px 14px; border: 0; border-radius: 11px; color: #fff; background: #3155c6; font-size: 11px; font-weight: 850; cursor: pointer; }
+
+/* Guided end-to-end learning journey */
+.site-shell .journey-board {
+  padding: 30px;
+  border: 1px solid var(--schooldb-border);
+  border-radius: 25px;
+  background: rgba(255,255,255,.94);
+  box-shadow: var(--schooldb-shadow);
+}
+.site-shell .journey-board-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 30px;
+}
+.site-shell .journey-board-header > div { max-width: 690px; }
+.site-shell .journey-board-header h2 {
+  margin: 5px 0 10px;
+  color: var(--schooldb-navy);
+  font-size: clamp(28px, 3vw, 39px);
+  line-height: 1.08;
+  letter-spacing: -.045em;
+}
+.site-shell .journey-board-header > div > p:not(.kicker) {
+  margin: 4px 0 0;
+  color: #657087;
+  font-size: 14px;
+  line-height: 1.65;
+}
+.site-shell .journey-board-header > div > p[lang="te"] { color: #476186; }
+.site-shell .journey-level {
+  min-width: 215px;
+  padding: 15px 17px;
+  display: grid;
+  gap: 4px;
+  border: 1px solid #dce4f6;
+  border-radius: 17px;
+  color: #14214a;
+  background: linear-gradient(145deg, #f5f8ff, #edf2ff);
+  box-shadow: inset 0 1px #fff;
+  text-align: left;
+  cursor: pointer;
+}
+.site-shell .journey-level span { color: #62708e; font-size: 10px; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
+.site-shell .journey-level strong { font-size: 15px; }
+.site-shell .journey-level small { color: #3155c6; font-size: 11px; font-weight: 750; }
+.site-shell .journey-command-grid {
+  margin-top: 25px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(280px, .7fr);
+  gap: 14px;
+}
+.site-shell .next-action-card {
+  min-height: 230px;
+  padding: 23px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 13px 17px;
+  align-items: start;
+  overflow: hidden;
+  position: relative;
+  border-radius: 21px;
+  color: #fff;
+  background:
+    radial-gradient(circle at 92% 12%, rgba(102,148,245,.46), transparent 15rem),
+    linear-gradient(135deg, #091540, #193783);
+  box-shadow: 0 18px 42px rgba(9,21,64,.18);
+}
+.site-shell .next-action-card::after {
+  content: "ABC";
+  position: absolute;
+  right: -13px;
+  bottom: -35px;
+  color: rgba(255,255,255,.04);
+  font-size: 112px;
+  font-weight: 900;
+  letter-spacing: -.11em;
+  pointer-events: none;
+}
+.site-shell .next-action-topline {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #adc3fa;
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.site-shell .next-action-topline b { padding: 5px 8px; border: 1px solid rgba(255,255,255,.13); border-radius: 30px; color: #fff; background: rgba(255,255,255,.08); font-size: 9px; }
+.site-shell .next-action-icon {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 16px;
+  color: #091540;
+  background: #fff;
+  box-shadow: 0 10px 25px rgba(0,0,0,.16);
+  font-size: 15px;
+  font-weight: 900;
+}
+.site-shell .next-action-card h3 { margin: 1px 0 7px; color: #fff; font-size: 25px; line-height: 1.18; letter-spacing: -.035em; }
+.site-shell .next-action-card p { margin: 3px 0 0; color: #ced9f6; font-size: 13px; line-height: 1.55; }
+.site-shell .next-action-card p[lang="te"] { color: #aebfe9; }
+.site-shell .next-action-card > button {
+  grid-column: 1 / -1;
+  width: fit-content;
+  min-height: 43px;
+  padding: 9px 15px;
+  position: relative;
+  z-index: 1;
+  border: 0;
+  border-radius: 12px;
+  color: #091540;
+  background: #fff;
+  box-shadow: 0 9px 23px rgba(0,0,0,.17);
+  font-size: 12px;
+  font-weight: 850;
+  cursor: pointer;
+}
+.site-shell .next-action-card > button span { margin-left: 7px; font-size: 16px; }
+.site-shell .journey-side-card {
+  padding: 21px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e0e5ef;
+  border-radius: 21px;
+  background: #f8f9fc;
+}
+.site-shell .journey-goal-heading { display: flex; justify-content: space-between; gap: 15px; align-items: center; }
+.site-shell .journey-goal-heading > div { display: grid; gap: 5px; }
+.site-shell .journey-goal-heading span { color: #707b91; font-size: 10px; font-weight: 850; letter-spacing: .06em; text-transform: uppercase; }
+.site-shell .journey-goal-heading strong { color: #14214a; font-size: 17px; }
+.site-shell .journey-goal-heading > b { color: #3155c6; font-size: 24px; }
+.site-shell .journey-goal-rail { height: 8px; margin-top: 15px; overflow: hidden; border-radius: 20px; background: #e3e7f0; }
+.site-shell .journey-goal-rail span { height: 100%; display: block; border-radius: inherit; background: linear-gradient(90deg, #3155c6, #83a7f4); }
+.site-shell .journey-side-card > button { width: fit-content; margin-top: 10px; padding: 5px 0; border: 0; color: #3155c6; background: transparent; font-size: 11px; font-weight: 800; cursor: pointer; }
+.site-shell .journey-review-row {
+  margin-top: auto;
+  padding-top: 18px;
+  display: grid;
+  gap: 9px;
+  border-top: 1px solid #e2e6ef;
+}
+.site-shell .journey-review-row > span { color: #5f6a81; font-size: 12px; }
+.site-shell .journey-review-row > span b { color: #d04d59; font-size: 18px; }
+.site-shell .journey-review-row button { min-height: 39px; border: 0; border-radius: 11px; color: #fff; background: #3155c6; font-size: 11px; font-weight: 850; cursor: pointer; }
+.site-shell .journey-review-row button:disabled { color: #718099; background: #e6eaf2; cursor: default; }
+.site-shell .mission-flow {
+  margin-top: 17px;
+  padding: 8px;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 5px;
+  border: 1px solid #e1e5ee;
+  border-radius: 18px;
+  background: #f5f6f9;
+}
+.site-shell .mission-flow button {
+  min-width: 0;
+  min-height: 76px;
+  padding: 9px 7px;
+  display: grid;
+  grid-template-columns: auto minmax(0,1fr);
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  border: 1px solid transparent;
+  border-radius: 13px;
+  color: #707b90;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+.site-shell .mission-flow button.current { border-color: #cfdafb; color: #14214a; background: #fff; box-shadow: 0 7px 19px rgba(9,21,64,.07); }
+.site-shell .mission-flow button.done { color: #2f6253; }
+.site-shell .mission-step-number { width: 29px; height: 29px; display: grid; place-items: center; border-radius: 9px; color: #667188; background: #e6e9ef; font-size: 9px; font-weight: 900; }
+.site-shell .mission-flow button.current .mission-step-number { color: #fff; background: #3155c6; }
+.site-shell .mission-flow button.done .mission-step-number { color: #197a5b; background: #dff2ea; }
+.site-shell .mission-flow strong, .site-shell .mission-flow small { display: block; overflow: hidden; text-overflow: ellipsis; }
+.site-shell .mission-flow strong { font-size: 11px; white-space: nowrap; }
+.site-shell .mission-flow small { margin-top: 3px; font-size: 9px; line-height: 1.35; }
+.site-shell .mastery-panel {
+  margin-top: 17px;
+  padding: 23px;
+  border: 1px solid #e2e6ef;
+  border-radius: 20px;
+  background: #fff;
+}
+.site-shell .mastery-heading { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; }
+.site-shell .mastery-heading h3, .site-shell .course-roadmap h3 { margin: 2px 0 0; color: #091540; font-size: 21px; letter-spacing: -.03em; }
+.site-shell .mastery-heading > span { color: #7a8498; font-size: 11px; }
+.site-shell .mastery-grid { margin-top: 18px; display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; }
+.site-shell .mastery-grid article { padding: 14px; border: 1px solid #e3e7ef; border-radius: 14px; background: #fafbfe; }
+.site-shell .mastery-grid article > div { display: flex; justify-content: space-between; gap: 10px; }
+.site-shell .mastery-grid article strong { color: #28324b; font-size: 12px; }
+.site-shell .mastery-grid article span { color: #3155c6; font-size: 12px; font-weight: 850; }
+.site-shell .mastery-grid article i { height: 5px; margin-top: 10px; display: block; overflow: hidden; border-radius: 20px; background: #e6e9f0; }
+.site-shell .mastery-grid article em { height: 100%; display: block; border-radius: inherit; background: linear-gradient(90deg, #3155c6, #7da2ef); }
+.site-shell .mastery-grid article small { margin-top: 8px; display: block; color: #7b8497; font-size: 9px; }
+.site-shell .course-roadmap {
+  margin-top: 17px;
+  padding: 23px;
+  display: grid;
+  grid-template-columns: minmax(180px,.65fr) minmax(0,1.6fr);
+  gap: 25px;
+  align-items: center;
+  border-radius: 20px;
+  color: #fff;
+  background: linear-gradient(135deg, #091540, #182f72);
+}
+.site-shell .course-roadmap .kicker { color: #9db9ff; }
+.site-shell .course-roadmap h3 { color: #fff; line-height: 1.2; }
+.site-shell .roadmap-stages { display: grid; grid-template-columns: repeat(auto-fit, minmax(135px,1fr)); gap: 8px; }
+.site-shell .roadmap-stages article { min-width: 0; padding: 12px; display: grid; grid-template-columns: auto minmax(0,1fr); gap: 2px 9px; align-items: center; border: 1px solid rgba(255,255,255,.1); border-radius: 13px; background: rgba(255,255,255,.055); }
+.site-shell .roadmap-stages article.active { border-color: rgba(157,185,255,.5); background: rgba(91,141,239,.19); }
+.site-shell .roadmap-stages article > span { grid-row: 1 / 3; color: #9db9ff; font-size: 10px; font-weight: 900; }
+.site-shell .roadmap-stages strong, .site-shell .roadmap-stages small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.site-shell .roadmap-stages strong { font-size: 11px; }
+.site-shell .roadmap-stages small { margin-top: 3px; color: #aebad9; font-size: 9px; }
+.site-shell .roadmap-stages b { grid-column: 2; color: #fff; font-size: 10px; }
 
 /* Skill labs, lessons and interactions */
 .site-shell .skills-lab { padding: 30px; }
@@ -516,6 +881,12 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
     box-shadow: 20px 0 55px rgba(9,21,64,.2);
   }
   .site-shell .lesson-main { width: min(940px, calc(100% - 32px)); }
+  .site-shell .journey-command-grid { grid-template-columns: 1fr; }
+  .site-shell .foundation-entry { grid-template-columns: 1fr; }
+  .site-shell .letter-game { grid-template-columns: 1fr; }
+  .site-shell .journey-review-row { margin-top: 22px; }
+  .site-shell .mission-flow { grid-template-columns: repeat(4, minmax(0,1fr)); }
+  .site-shell .course-roadmap { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 700px) {
@@ -529,6 +900,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .site-shell .sidebar { top: 68px; height: calc(100svh - 68px); }
   .site-shell .lesson-main { width: calc(100% - 20px); padding-top: 12px; }
   .site-shell .lesson-hero,
+  .site-shell .foundation-entry,
+  .site-shell .foundation-zone,
+  .site-shell .foundation-ready,
+  .site-shell .journey-board,
   .site-shell .skills-lab,
   .site-shell .teacher-card,
   .site-shell .rule-column,
@@ -539,6 +914,34 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .site-shell .daily-test-hub,
   .site-shell .word-power { border-radius: 20px; }
   .site-shell .lesson-hero { padding-inline: 20px; }
+  .site-shell .foundation-entry, .site-shell .foundation-zone { padding: 21px 15px; }
+  .site-shell .reading-level-grid { grid-template-columns: 1fr; }
+  .site-shell .reading-level-grid button { min-height: 125px; }
+  .site-shell .foundation-header { display: grid; }
+  .site-shell .foundation-stars { min-width: 0; width: 100%; grid-template-columns: auto auto 1fr; justify-items: start; align-items: center; gap: 8px; }
+  .site-shell .foundation-stars strong { margin: 0; }
+  .site-shell .foundation-tabs button { padding: 7px 5px; }
+  .site-shell .foundation-tabs button b { font-size: 10px; }
+  .site-shell .alphabet-grid { grid-template-columns: repeat(5,1fr); padding: 10px; }
+  .site-shell .first-word-game { grid-template-columns: 1fr; padding: 15px; }
+  .site-shell .game-progress, .site-shell .foundation-feedback, .site-shell .next-foundation-game { grid-column: 1; }
+  .site-shell .next-foundation-game { justify-self: stretch; }
+  .site-shell .foundation-feedback, .site-shell .foundation-footer, .site-shell .foundation-ready { align-items: stretch; flex-direction: column; }
+  .site-shell .foundation-footer button, .site-shell .foundation-ready > button { width: 100%; }
+  .site-shell .journey-board { padding: 21px 15px; }
+  .site-shell .journey-board-header { display: grid; gap: 17px; }
+  .site-shell .journey-level { width: 100%; min-width: 0; }
+  .site-shell .journey-command-grid { margin-top: 17px; }
+  .site-shell .next-action-card { min-height: 0; padding: 19px; }
+  .site-shell .next-action-card h3 { font-size: 21px; }
+  .site-shell .journey-side-card { padding: 18px; }
+  .site-shell .mission-flow { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .site-shell .mission-flow button { min-height: 66px; }
+  .site-shell .mastery-panel, .site-shell .course-roadmap { padding: 18px; }
+  .site-shell .mastery-heading { align-items: flex-start; flex-direction: column; gap: 6px; }
+  .site-shell .mastery-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .site-shell .roadmap-stages { grid-template-columns: 1fr; }
+  .site-shell .roadmap-stages article { min-height: 59px; }
   .site-shell .skills-lab, .site-shell .daily-test-hub { padding: 21px 15px; }
   .site-shell .word-power, .site-shell .speaking-recorder { padding: 22px 16px; }
   .site-shell .skill-tabs, .site-shell .word-tabs { gap: 4px; padding: 5px; }
