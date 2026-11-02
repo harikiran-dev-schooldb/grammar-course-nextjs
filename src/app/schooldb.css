@@ -1,0 +1,563 @@
+/*
+ * Grammar Studio — SchoolDB Premium
+ * One calm, native-feeling visual system shared by authentication, lessons,
+ * practice labs, reports, tests and mobile navigation.
+ */
+:root {
+  --ink: #111b36;
+  --navy: #091540;
+  --blue: #3155c6;
+  --blue-pale: #eef2ff;
+  --paper: #f3f5fa;
+  --paper-deep: #eef1f7;
+  --cream: #ffffff;
+  --gold: #f2b84b;
+  --gold-pale: #fff7df;
+  --coral: #d45d63;
+  --green: #197a5b;
+  --green-pale: #e9f7f1;
+  --muted: #68728a;
+  --line: #e2e6ef;
+  --white: #ffffff;
+  --schooldb-navy: #091540;
+  --schooldb-blue: #3155c6;
+  --schooldb-cyan: #5b8def;
+  --schooldb-surface: rgba(255, 255, 255, .92);
+  --schooldb-border: rgba(19, 35, 78, .09);
+  --schooldb-shadow: 0 16px 44px rgba(9, 21, 64, .08), 0 2px 8px rgba(9, 21, 64, .04);
+  --schooldb-shadow-strong: 0 24px 70px rgba(9, 21, 64, .17), 0 5px 16px rgba(9, 21, 64, .08);
+}
+
+html { background: #f3f5fa; }
+body {
+  color: var(--ink);
+  background: #f3f5fa;
+  font-family: Inter, ui-rounded, -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", "Noto Sans Telugu", sans-serif;
+  text-rendering: optimizeLegibility;
+}
+button, input, textarea, select { font-family: inherit; }
+button { touch-action: manipulation; }
+button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+  outline: 3px solid rgba(91, 141, 239, .48);
+  outline-offset: 3px;
+}
+
+/* Loading and account entry */
+.app-loading {
+  color: var(--schooldb-navy);
+  background:
+    radial-gradient(circle at 50% 42%, rgba(91, 141, 239, .13), transparent 26rem),
+    #f4f6fb;
+}
+.app-loading .brand-mark {
+  border-radius: 15px;
+  color: white;
+  background: linear-gradient(145deg, #203a98, #091540);
+  box-shadow: 0 13px 30px rgba(9, 21, 64, .22);
+  transform: none;
+}
+.app-loading p { color: #69748d; font-size: 13px; }
+
+.auth-screen {
+  padding: clamp(16px, 3vw, 34px);
+  background:
+    radial-gradient(circle at 7% 8%, rgba(91, 141, 239, .16), transparent 28rem),
+    radial-gradient(circle at 92% 92%, rgba(121, 94, 226, .12), transparent 30rem),
+    #f1f4fa;
+}
+.auth-layout {
+  max-width: 1240px;
+  min-height: min(820px, calc(100svh - 68px));
+  border: 1px solid rgba(9, 21, 64, .08);
+  border-radius: 30px;
+  background: rgba(255, 255, 255, .94);
+  box-shadow: 0 32px 90px rgba(9, 21, 64, .15);
+}
+.auth-panel { padding: clamp(34px, 5vw, 70px); background: rgba(255,255,255,.96); }
+.auth-brand-mark {
+  border-radius: 13px;
+  color: #fff;
+  background: linear-gradient(145deg, #2747b2, #091540);
+  box-shadow: 0 11px 25px rgba(9,21,64,.19), inset 0 1px rgba(255,255,255,.25);
+  transform: none;
+}
+.auth-brand-copy strong, .auth-header h1 { color: var(--schooldb-navy); font-family: inherit; }
+.auth-brand-copy strong { font-weight: 850; letter-spacing: -.03em; }
+.auth-brand-copy small, .auth-header > p, .auth-bottom-note { color: #707b91; }
+.auth-header h1 { font-weight: 850; letter-spacing: -.045em; }
+.auth-kicker { color: #3155c6; }
+.auth-telugu { color: #476186; }
+.auth-field label { color: #46516a; }
+.auth-input-wrap {
+  min-height: 54px;
+  border: 1px solid #d8deea;
+  border-radius: 14px;
+  background: #f8f9fc;
+  box-shadow: inset 0 1px 2px rgba(9,21,64,.025);
+}
+.auth-input-wrap:focus-within {
+  border-color: #6389e2;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(91,141,239,.13);
+}
+.auth-primary {
+  min-height: 54px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #1f3d9d, #091540);
+  box-shadow: 0 12px 26px rgba(9,21,64,.18), inset 0 1px rgba(255,255,255,.2);
+}
+.auth-primary:hover:not(:disabled) { background: linear-gradient(135deg, #3155c6, #14296f); }
+.auth-link { color: #3155c6; }
+.auth-account-switch { border-color: #e6e9f1; }
+.auth-showcase {
+  background:
+    radial-gradient(circle at 74% 25%, rgba(91,141,239,.34), transparent 23rem),
+    radial-gradient(circle at 18% 86%, rgba(111,84,216,.24), transparent 22rem),
+    linear-gradient(145deg, #091540 0%, #152968 58%, #243f96 100%);
+}
+.auth-showcase::before { border-color: rgba(255,255,255,.045); }
+.auth-showcase::after { background: rgba(91,141,239,.14); }
+.auth-course-pill, .auth-course-steps > div {
+  border-color: rgba(255,255,255,.14);
+  background: rgba(255,255,255,.075);
+  box-shadow: inset 0 1px rgba(255,255,255,.07);
+}
+.auth-showcase-eyebrow, .auth-showcase-center h2 em, .auth-course-steps > div > span { color: #9dbbff; }
+.auth-showcase-center h2 { font-family: inherit; font-weight: 850; }
+.auth-showcase-center > p, .auth-course-steps small, .auth-showcase-bottom { color: #c9d5f4; }
+.auth-alert { border-radius: 13px; }
+
+/* App chrome */
+.site-shell {
+  --glass-ink: #111b36;
+  --glass-lift: var(--schooldb-shadow);
+  --glass-inner: inset 0 1px rgba(255,255,255,.8);
+  min-height: 100svh;
+  background:
+    radial-gradient(circle at 77% 6%, rgba(91, 141, 239, .10), transparent 27rem),
+    radial-gradient(circle at 44% 48%, rgba(143, 117, 230, .065), transparent 34rem),
+    #f3f5fa;
+}
+.site-shell .course-layout { min-height: calc(100svh - 76px); background: transparent; }
+.site-shell .topbar {
+  height: 76px;
+  padding: 0 28px;
+  border: 0;
+  border-bottom: 1px solid rgba(255,255,255,.1);
+  background: rgba(9, 21, 64, .97);
+  box-shadow: 0 10px 30px rgba(9,21,64,.16);
+}
+.site-shell .brand-mark {
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 13px;
+  color: #091540;
+  background: linear-gradient(145deg, #f9cc72, #e8a932);
+  box-shadow: inset 0 1px rgba(255,255,255,.5), 0 8px 20px rgba(0,0,0,.17);
+  transform: none;
+}
+.site-shell .brand-copy strong { font-family: inherit; font-weight: 850; letter-spacing: -.025em; }
+.site-shell .brand-copy small { color: #aebce0; opacity: 1; }
+.site-shell .top-progress {
+  padding: 8px 12px;
+  border: 1px solid rgba(255,255,255,.11);
+  border-radius: 13px;
+  background: rgba(255,255,255,.06);
+  box-shadow: inset 0 1px rgba(255,255,255,.06);
+}
+.site-shell .progress-rail { height: 5px; background: rgba(255,255,255,.13); }
+.site-shell .progress-rail span { background: linear-gradient(90deg, #6f9cf5, #a9c2ff); }
+.site-shell .account-button {
+  min-width: 132px;
+  border-color: rgba(255,255,255,.14);
+  border-radius: 14px;
+  background: rgba(255,255,255,.07);
+  box-shadow: inset 0 1px rgba(255,255,255,.08);
+}
+.site-shell .account-button > span { border-radius: 10px; color: #091540; background: #f2b84b; font-family: inherit; }
+.site-shell .account-button b { color: #aab6d7; }
+
+.site-shell .course-layout { grid-template-columns: 320px minmax(0, 1fr); }
+.site-shell .sidebar {
+  top: 76px;
+  height: calc(100svh - 76px);
+  padding: 29px 20px 44px;
+  border-right: 1px solid rgba(9,21,64,.075);
+  background: rgba(247, 248, 252, .94);
+  box-shadow: 8px 0 28px rgba(9,21,64,.025);
+  scrollbar-color: #cbd2e1 transparent;
+}
+.site-shell .sidebar-intro h2 { color: var(--schooldb-navy); font-family: inherit; font-weight: 850; letter-spacing: -.04em; }
+.site-shell .sidebar-intro .kicker, .site-shell .kicker { color: #4769c8; }
+.site-shell .sidebar-intro > p:not(.kicker) { color: #69738a; }
+.site-shell .offline-card {
+  border: 1px solid #dfe4ee;
+  border-radius: 17px;
+  background: rgba(255,255,255,.88);
+  box-shadow: 0 8px 24px rgba(9,21,64,.045);
+}
+.site-shell .offline-card.ready { border-color: #cbe5d9; background: #f3fbf7; }
+.site-shell .offline-card button { border-radius: 11px; background: #3155c6; }
+.site-shell .offline-card .install-button { color: #091540; background: #f2b84b; }
+.site-shell .learning-path-card {
+  border: 0;
+  border-radius: 19px;
+  background:
+    radial-gradient(circle at 102% 0%, rgba(91,141,239,.45), transparent 10rem),
+    linear-gradient(145deg, #091540, #172e76);
+  box-shadow: 0 16px 34px rgba(9,21,64,.16);
+}
+.site-shell .learning-path-card .kicker { color: #a6c0ff; }
+.site-shell .learning-path-card > div:first-child > strong { font-family: inherit; }
+.site-shell .path-stages em { background: linear-gradient(90deg, #719cf3, #bad0ff); }
+.site-shell .nav-group > h3 { color: #7d869a; }
+.site-shell .lesson-link {
+  border-radius: 14px;
+  color: #2a334d;
+}
+.site-shell .lesson-link:hover { background: #eef2fb; }
+.site-shell .lesson-link.active {
+  border-color: #dce3f3;
+  background: #fff;
+  box-shadow: 0 10px 25px rgba(9,21,64,.07);
+}
+.site-shell .lesson-link.active::before { background: #3155c6; }
+.site-shell .lesson-number { color: #69738a; background: #e8ebf2; }
+.site-shell .lesson-link.active .lesson-number { color: #fff; background: linear-gradient(145deg, #4268d2, #203d9a); }
+.site-shell .lesson-link.completed:not(.active) .lesson-number { color: #197a5b; background: #dff2ea; }
+.site-shell .lesson-link-copy strong { color: #202a45; }
+.site-shell .lesson-link-copy small { color: #758096; }
+
+/* Shared premium surfaces */
+.site-shell .lesson-main { width: min(1160px, calc(100% - 62px)); padding: 34px 0 96px; }
+.site-shell .section-block { margin-top: 26px; }
+.site-shell .skills-lab,
+.site-shell .teacher-card,
+.site-shell .rule-column,
+.site-shell .example-column,
+.site-shell .speaking-recorder,
+.site-shell .daily-test-hub,
+.site-shell .word-power,
+.site-shell .daily-revision-card,
+.site-shell .badge-section,
+.site-shell .teacher-report,
+.site-shell .metric-grid article,
+.site-shell .word-learning-card,
+.site-shell .spelling-quiz,
+.site-shell .daily-quiz,
+.site-shell .speaking-playback,
+.site-shell .pronunciation-coach,
+.site-shell .placement-test fieldset,
+.site-shell .goal-progress {
+  border: 1px solid var(--schooldb-border);
+  background: var(--schooldb-surface);
+  box-shadow: var(--schooldb-shadow);
+}
+.site-shell .skills-lab,
+.site-shell .daily-test-hub,
+.site-shell .word-power,
+.site-shell .speaking-recorder { border-radius: 24px; }
+.site-shell .teacher-card,
+.site-shell .rule-column,
+.site-shell .example-column { border-radius: 21px; }
+.site-shell .skills-lab::before,
+.site-shell .teacher-card::before,
+.site-shell .rule-column::before,
+.site-shell .example-column::before,
+.site-shell .speaking-recorder::before,
+.site-shell .daily-test-hub::before,
+.site-shell .word-power::before { display: none; }
+.site-shell .section-heading h2,
+.site-shell .skills-lab-header h2,
+.site-shell .daily-test-header h2,
+.site-shell .word-power-header h2,
+.site-shell .conversation-header h2,
+.site-shell .speaking-recorder h3,
+.site-shell .badge-section h3,
+.site-shell .teacher-report h3,
+.site-shell .revision-intro h3 { color: var(--schooldb-navy); font-family: inherit; font-weight: 820; letter-spacing: -.035em; }
+.site-shell .section-count { color: #c5cbd9; font-family: inherit; font-weight: 800; }
+
+.site-shell .lesson-hero {
+  border: 0;
+  border-radius: 25px;
+  background:
+    radial-gradient(circle at 84% 22%, rgba(91,141,239,.36), transparent 19rem),
+    radial-gradient(circle at 16% 120%, rgba(117,93,218,.26), transparent 22rem),
+    linear-gradient(135deg, #091540 0%, #142963 58%, #234394 100%);
+  box-shadow: var(--schooldb-shadow-strong);
+}
+.site-shell .lesson-hero::before {
+  right: -80px;
+  top: -180px;
+  width: 480px;
+  height: 480px;
+  background: radial-gradient(circle, rgba(152,183,255,.15), transparent 66%);
+}
+.site-shell .lesson-hero::after { background: linear-gradient(90deg, transparent, rgba(255,255,255,.25), transparent); }
+.site-shell .hero-topline { color: #a9c1ff; }
+.site-shell .day-chip { border-color: rgba(255,255,255,.16); background: rgba(255,255,255,.07); }
+.site-shell .hero-grid h1 { font-family: inherit; font-weight: 850; letter-spacing: -.05em; }
+.site-shell .hero-telugu, .site-shell .hero-objective.telugu { color: #d7e2ff; }
+.site-shell .hero-objective { color: #d4dcf2; }
+.site-shell .hero-progress-panel {
+  border-color: rgba(255,255,255,.14);
+  border-radius: 18px;
+  background: rgba(255,255,255,.075);
+  box-shadow: inset 0 1px rgba(255,255,255,.12);
+}
+.site-shell .hero-progress-kicker { color: #b8c8ef; }
+.site-shell .hero-progress-panel > strong { color: #fff; font-family: inherit; }
+.site-shell .hero-progress-track > span { background: linear-gradient(90deg, #6f9cf5, #b4caff); }
+.site-shell .hero-controls { border-color: rgba(255,255,255,.1); background: rgba(2,8,31,.2); }
+.site-shell .language-switch { border-color: rgba(255,255,255,.15); background: rgba(255,255,255,.06); }
+.site-shell .language-switch button.active { color: #091540; background: #fff; box-shadow: 0 6px 17px rgba(0,0,0,.18); }
+
+/* Skill labs, lessons and interactions */
+.site-shell .skills-lab { padding: 30px; }
+.site-shell .skills-score strong { color: #3155c6; font-family: inherit; }
+.site-shell .skill-tabs, .site-shell .word-tabs {
+  border: 0;
+  border-radius: 16px;
+  background: #eff1f6;
+  box-shadow: inset 0 1px 3px rgba(9,21,64,.04);
+}
+.site-shell .skill-tabs button, .site-shell .word-tabs button { border-radius: 12px; color: #606b83; }
+.site-shell .skill-tabs button.active, .site-shell .word-tabs button.active {
+  color: #fff;
+  background: linear-gradient(135deg, #3155c6, #1c378c);
+  box-shadow: 0 9px 20px rgba(49,85,198,.22);
+}
+.site-shell .skill-tabs button.active small { color: #dbe5ff; }
+.site-shell .skill-tabs button > span, .site-shell .word-tabs button > span { color: #3155c6; background: #fff; }
+.site-shell .skill-panel {
+  border: 1px solid #e1e5ee;
+  border-radius: 18px;
+  background: #fbfcfe;
+  box-shadow: none;
+}
+.site-shell .skill-instruction, .site-shell .reading-passage, .site-shell .spelling-prompt {
+  border: 1px solid #dfe5f2;
+  border-radius: 16px;
+  background: #f0f4fc;
+  box-shadow: none;
+}
+.site-shell .skill-number { color: #3155c6; background: #dfe8ff; }
+.site-shell .skill-options button,
+.site-shell .daily-quiz-option,
+.site-shell .example-row,
+.site-shell .conversation-choice,
+.site-shell .answer-option {
+  border: 1px solid #dfe4ee;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 3px 11px rgba(9,21,64,.035);
+}
+.site-shell .skill-options button:hover, .site-shell .example-row:hover { border-color: #9bb5ee; background: #f7f9ff; }
+.site-shell .skill-options button > span, .site-shell .answer-option > span, .site-shell .conversation-choice > span { color: #3155c6; background: #edf2ff; }
+.site-shell .primary-skill-audio,
+.site-shell .start-spelling,
+.site-shell .daily-test-primary,
+.site-shell .writing-footer button,
+.site-shell .reveal-model,
+.site-shell .pronunciation-coach > button,
+.site-shell .teacher-report button,
+.site-shell .revision-list button,
+.site-shell .submit-test {
+  border: 0;
+  border-radius: 12px;
+  color: #fff;
+  background: linear-gradient(135deg, #3155c6, #1b3688);
+  box-shadow: 0 9px 20px rgba(49,85,198,.2);
+}
+.site-shell textarea, .site-shell input, .site-shell select {
+  border-color: #d9deea;
+  border-radius: 12px;
+  background: #f9fafd;
+}
+.site-shell textarea:focus, .site-shell input:focus, .site-shell select:focus { border-color: #7395e3; box-shadow: 0 0 0 4px rgba(91,141,239,.12); }
+.site-shell .writing-tips span { color: #465b91; background: #edf2ff; }
+.site-shell .writing-coach, .site-shell .transcript-box, .site-shell .model-translation { border-color: #dfe5f2; background: #f2f5fb; }
+.site-shell .teacher-card.english-card, .site-shell .teacher-card.telugu-card { background: #fff; }
+.site-shell .language-badge { color: #3155c6; background: #edf2ff; }
+.site-shell .rule-list li { border-color: #ebedf3; }
+.site-shell .rule-list li > span, .site-shell .example-index { color: #3155c6; background: #edf2ff; }
+.site-shell .example-row p { font-family: inherit; font-weight: 700; }
+.site-shell .example-row small { color: #5c6880; }
+.site-shell .example-row .example-audio-group button, .site-shell .word-listen, .site-shell .round-audio { color: #3155c6; background: #edf2ff; }
+
+.site-shell .practice-section, .site-shell .conversation-lab {
+  border: 0;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(91,141,239,.33), transparent 17rem),
+    linear-gradient(135deg, #091540, #172e75);
+  box-shadow: var(--schooldb-shadow-strong);
+}
+.site-shell .practice-section::before, .site-shell .conversation-lab::before { opacity: .38; }
+.site-shell .practice-section .kicker, .site-shell .conversation-header .kicker, .site-shell .speaker-label { color: #9db9ff; }
+.site-shell .practice-section .section-heading h2, .site-shell .conversation-header h2 { color: #fff; }
+.site-shell .question-copy, .site-shell .partner-bubble, .site-shell .choice-list {
+  border-color: rgba(255,255,255,.12);
+  background: rgba(255,255,255,.07);
+}
+.site-shell .practice-section .answer-option, .site-shell .conversation-choice {
+  color: #fff;
+  border-color: rgba(255,255,255,.13);
+  background: rgba(255,255,255,.07);
+}
+.site-shell .practice-section .answer-option > span, .site-shell .conversation-choice > span { color: #bcd0ff; background: rgba(255,255,255,.1); }
+.site-shell .question-copy h3, .site-shell .conversation-prompt, .site-shell .conversation-reply p { font-family: inherit; }
+.site-shell .speak-card {
+  border: 1px solid #dfe5f2;
+  border-radius: 21px;
+  background: linear-gradient(135deg, #f4f7ff, #e9efff);
+  box-shadow: var(--schooldb-shadow);
+}
+.site-shell .speak-mark, .site-shell .speak-card h2 { color: #223f98; font-family: inherit; }
+
+/* Word power, speaking and daily tests */
+.site-shell .word-power { background: #fff; }
+.site-shell .word-power::after { color: rgba(49,85,198,.045); font-family: inherit; }
+.site-shell .word-power-header .kicker, .site-shell .learning-label { color: #3155c6; }
+.site-shell .word-count, .site-shell .speaking-local-badge, .site-shell .daily-test-offline-tag { color: #3155c6; background: #edf2ff; }
+.site-shell .word-main h3 { color: var(--schooldb-navy); font-family: inherit; font-weight: 850; }
+.site-shell .syllable-row span { border-color: #dbe4fb; color: #3155c6; background: #f0f4ff; font-family: inherit; }
+.site-shell .spelling-input-row button { border-radius: 11px; background: #3155c6; }
+.site-shell .speaking-recorder { background: #fff; }
+.site-shell .speaking-recorder h3, .site-shell .pronunciation-coach > div > strong { font-family: inherit; }
+.site-shell .speaking-record { background: linear-gradient(135deg, #3155c6, #1b3688); box-shadow: 0 9px 20px rgba(49,85,198,.2); }
+.site-shell .speaking-playback audio { border-radius: 12px; }
+.site-shell .pronunciation-result { background: #edf2ff; }
+.site-shell .pronunciation-result > strong { color: #3155c6; }
+.site-shell .daily-test-hub { background: #fff; }
+.site-shell .daily-test-stat-grid > div, .site-shell .daily-revision-card, .site-shell .daily-quiz {
+  border: 1px solid #e0e5ef;
+  border-radius: 17px;
+  background: #f9fafe;
+}
+.site-shell .daily-test-stat-grid strong, .site-shell .daily-test-big-score { color: #3155c6; font-family: inherit; }
+.site-shell .daily-weak-topic-list button, .site-shell .daily-revision-session { border-color: #dfe5f2; background: #fff; }
+
+/* Reports, tests and profile modal */
+.hub-overlay { background: rgba(4, 10, 32, .72); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.site-shell .hub-modal {
+  border: 1px solid rgba(255,255,255,.22);
+  border-radius: 25px;
+  background: #f7f8fb;
+  box-shadow: 0 38px 110px rgba(4,10,32,.38);
+}
+.site-shell .hub-header {
+  background:
+    radial-gradient(circle at 80% 0%, rgba(91,141,239,.35), transparent 17rem),
+    linear-gradient(135deg, #091540, #172e75);
+}
+.site-shell .hub-header h2 { font-family: inherit; font-weight: 850; }
+.site-shell .hub-tabs { border-color: #e2e6ef; background: #fff; }
+.site-shell .hub-tabs button.active { color: #3155c6; border-bottom-color: #3155c6; }
+.site-shell .hub-body { background: #f7f8fb; }
+.site-shell .metric-grid article, .site-shell .badge-section, .site-shell .teacher-report, .site-shell .revision-list article, .site-shell .final-test fieldset {
+  border-color: #e0e4ed;
+  border-radius: 16px;
+  background: #fff;
+}
+.site-shell .metric-grid strong { color: var(--schooldb-navy); font-family: inherit; font-weight: 850; }
+.site-shell .badge-list span { color: #3155c6; background: #edf2ff; }
+.site-shell .teacher-report { background: #f1f5ff; }
+.site-shell .placement-test fieldset, .site-shell .goal-progress { background: #fff; }
+.site-shell .placement-test label { background: #f5f7fb; }
+.site-shell .goals-panel select, .site-shell .goals-panel input { background: #fff; }
+.site-shell .goal-progress em { background: linear-gradient(90deg, #3155c6, #7b9ff1); }
+.site-shell .hub-logout { color: #a33e48; background: #fbecee; box-shadow: none; }
+.site-shell .certificate { border-color: #3155c6; color: #091540; }
+.site-shell .certificate-mark { color: #fff; background: #091540; font-family: inherit; }
+
+/* Footer and mobile */
+.site-shell .lesson-footer { border-color: #dfe3ec; }
+.site-shell .complete-button > span { border-color: #bbc2d0; border-radius: 9px; }
+.site-shell .complete-button.done { color: #197a5b; }
+.site-shell .complete-button.done > span { border-color: #197a5b; background: #197a5b; }
+.site-shell .lesson-pagination button { border-color: #dce1eb; border-radius: 12px; background: #fff; }
+.site-shell .lesson-pagination .next-button { border-color: #3155c6; background: #3155c6; }
+.site-shell .mobile-dock {
+  border-top: 1px solid rgba(9,21,64,.09);
+  background: rgba(250,251,253,.94);
+  box-shadow: 0 -12px 38px rgba(9,21,64,.1);
+}
+.site-shell .mobile-dock button { color: #818a9d; }
+.site-shell .mobile-dock button.active { color: #3155c6; background: #edf2ff; }
+
+@supports ((backdrop-filter: blur(18px)) or (-webkit-backdrop-filter: blur(18px))) {
+  .site-shell .topbar { background: rgba(9,21,64,.92); backdrop-filter: blur(20px) saturate(1.25); -webkit-backdrop-filter: blur(20px) saturate(1.25); }
+  .site-shell .sidebar { backdrop-filter: blur(18px) saturate(1.1); -webkit-backdrop-filter: blur(18px) saturate(1.1); }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .site-shell .skills-lab:hover,
+  .site-shell .teacher-card:hover,
+  .site-shell .rule-column:hover,
+  .site-shell .example-column:hover,
+  .site-shell .speaking-recorder:hover,
+  .site-shell .daily-test-hub:hover,
+  .site-shell .word-power:hover,
+  .site-shell .speak-card:hover {
+    translate: 0 -2px;
+    border-color: rgba(49,85,198,.18);
+    box-shadow: 0 20px 48px rgba(9,21,64,.11), 0 3px 9px rgba(9,21,64,.04);
+  }
+}
+
+@media (max-width: 980px) {
+  .site-shell .sidebar {
+    top: 76px;
+    height: calc(100svh - 76px);
+    background: #f7f8fc;
+    box-shadow: 20px 0 55px rgba(9,21,64,.2);
+  }
+  .site-shell .lesson-main { width: min(940px, calc(100% - 32px)); }
+}
+
+@media (max-width: 700px) {
+  body { background: #f3f5fa; }
+  .auth-screen { padding: 0; background: #fff; }
+  .auth-layout { border: 0; border-radius: 0; box-shadow: none; }
+  .auth-panel { padding: 24px 21px 38px; }
+  .site-shell .topbar { height: 68px; padding: 0 12px; }
+  .site-shell .brand-mark { width: 38px; height: 38px; border-radius: 12px; }
+  .site-shell .top-progress { border: 0; background: transparent; box-shadow: none; }
+  .site-shell .sidebar { top: 68px; height: calc(100svh - 68px); }
+  .site-shell .lesson-main { width: calc(100% - 20px); padding-top: 12px; }
+  .site-shell .lesson-hero,
+  .site-shell .skills-lab,
+  .site-shell .teacher-card,
+  .site-shell .rule-column,
+  .site-shell .example-column,
+  .site-shell .practice-section,
+  .site-shell .conversation-lab,
+  .site-shell .speaking-recorder,
+  .site-shell .daily-test-hub,
+  .site-shell .word-power { border-radius: 20px; }
+  .site-shell .lesson-hero { padding-inline: 20px; }
+  .site-shell .skills-lab, .site-shell .daily-test-hub { padding: 21px 15px; }
+  .site-shell .word-power, .site-shell .speaking-recorder { padding: 22px 16px; }
+  .site-shell .skill-tabs, .site-shell .word-tabs { gap: 4px; padding: 5px; }
+  .site-shell .skill-panel { border-radius: 15px; }
+  .site-shell .hub-modal { max-height: calc(100svh - 20px); border-radius: 22px; }
+  .site-shell .hub-header { padding: 23px 20px 18px; }
+  .site-shell .hub-tabs { padding-inline: 12px; overflow-x: auto; }
+  .site-shell .hub-tabs button { flex: 0 0 auto; }
+  .site-shell .hub-body { padding: 20px 16px 25px; }
+  .site-shell .metric-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .site-shell .mobile-dock { backdrop-filter: blur(22px) saturate(1.35); -webkit-backdrop-filter: blur(22px) saturate(1.35); }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .auth-screen, .site-shell { background: #f3f5fa; }
+  .site-shell .topbar { background: #091540; }
+  .site-shell .sidebar, .site-shell .skills-lab, .site-shell .teacher-card, .site-shell .daily-test-hub { background: #fff; backdrop-filter: none; -webkit-backdrop-filter: none; }
+}
+
+@media print {
+  .site-shell, .site-shell .hub-body { background: #fff !important; }
+}

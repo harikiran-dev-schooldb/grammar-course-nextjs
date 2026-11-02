@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
 import "./glass.css";
+import "./schooldb.css";
 
 export const metadata: Metadata = {
   title: "Grammar Studio | Complete English in Telugu",
@@ -23,7 +24,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#f6f7fb",
+  themeColor: "#091540",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
