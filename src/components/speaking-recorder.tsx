@@ -2,15 +2,32 @@
 
 import { useEffect, useRef, useState } from "react";
 import { formatRecordingDuration, getMicrophoneErrorMessage, getSupportedRecordingMimeType } from "@/lib/speaking";
+import { scorePronunciation } from "@/lib/pronunciation";
 
 type RecorderStatus = "idle" | "requesting" | "recording" | "processing" | "ready";
 const MAX_SECONDS = 60;
+
+type BrowserSpeechRecognition = {
+  lang: string;
+  interimResults: boolean;
+  continuous: boolean;
+  start: () => void;
+  stop: () => void;
+  onresult: ((event: { results: ArrayLike<{ 0: { transcript: string }; isFinal: boolean }> }) => void) | null;
+  onerror: (() => void) | null;
+  onend: (() => void) | null;
+};
+
+type SpeechWindow = Window & typeof globalThis & {
+  SpeechRecognition?: new () => BrowserSpeechRecognition;
+  webkitSpeechRecognition?: new () => BrowserSpeechRecognition;
+};
 
 /**
  * Privacy-first speaking practice: microphone audio is held in memory only.
  * A key on the parent component remounts this recorder for each lesson.
  */
-export default function SpeakingRecorder() {
+export default function SpeakingRecorder({ target, onScore }: { target: string; onScore?: (score: number, transcript: string) => void }) {
   const [status, setStatus] = useState<RecorderStatus>("idle");
   const [seconds, setSeconds] = useState(0);
   const [recordingUrl, setRecordingUrl] = useState<string | null>(null);
@@ -22,6 +39,10 @@ export default function SpeakingRecorder() {
   const startedAtRef = useRef(0);
   const activeRef = useRef(true);
   const requestingRef = useRef(false);
+  const recognitionRef = useRef<BrowserSpeechRecognition | null>(null);
+  const [pronunciationStatus, setPronunciationStatus] = useState<"idle" | "listening" | "done">("idle");
+  const [pronunciationScore, setPronunciationScore] = useState<number | null>(null);
+  const [transcript, setTranscript] = useState("");
 
   useEffect(() => {
     activeRef.current = true;
@@ -40,6 +61,7 @@ export default function SpeakingRecorder() {
       }
       streamRef.current?.getTracks().forEach((track) => track.stop());
       if (urlRef.current) URL.revokeObjectURL(urlRef.current);
+      recognitionRef.current?.stop();
     };
   }, []);
 
@@ -181,6 +203,38 @@ export default function SpeakingRecorder() {
     setError("");
   };
 
+  const checkPronunciation = () => {
+    const speechWindow = window as SpeechWindow;
+    const Recognition = speechWindow.SpeechRecognition ?? speechWindow.webkitSpeechRecognition;
+    if (!Recognition) {
+      setError("Live pronunciation scoring is available in Chrome and supported Android browsers. You can still record and compare your voice.");
+      return;
+    }
+    setError("");
+    setTranscript("");
+    setPronunciationScore(null);
+    const recognition = new Recognition();
+    recognition.lang = "en-IN";
+    recognition.interimResults = false;
+    recognition.continuous = false;
+    recognition.onresult = (event) => {
+      const heard = Array.from(event.results).map((result) => result[0]?.transcript || "").join(" ").trim();
+      const nextScore = scorePronunciation(target, heard);
+      setTranscript(heard);
+      setPronunciationScore(nextScore);
+      setPronunciationStatus("done");
+      onScore?.(nextScore, heard);
+    };
+    recognition.onerror = () => {
+      setPronunciationStatus("idle");
+      setError("I could not hear that clearly. Move closer to the microphone and try again.");
+    };
+    recognition.onend = () => setPronunciationStatus((value) => value === "listening" ? "idle" : value);
+    recognitionRef.current = recognition;
+    setPronunciationStatus("listening");
+    recognition.start();
+  };
+
   return (
     <section className="speaking-recorder section-block" aria-labelledby="speaking-recorder-heading">
       <div className="speaking-recorder-header">
@@ -192,6 +246,11 @@ export default function SpeakingRecorder() {
         <span className="speaking-local-badge">Private · On this device</span>
       </div>
       <p className="speaking-recorder-help">Listen to the example above, say your answer aloud, and play it back. You can try as often as you like (up to 60 seconds per attempt).</p>
+      <div className="pronunciation-coach">
+        <div><span className="learning-label">Pronunciation coach</span><strong>Say: “{target}”</strong><small>Chrome/Android can score the words it hears. iPhone users can record and compare.</small></div>
+        <button type="button" onClick={checkPronunciation} disabled={pronunciationStatus === "listening"}>{pronunciationStatus === "listening" ? "Listening…" : "Check my pronunciation"}</button>
+        {pronunciationScore !== null && <div className={`pronunciation-result ${pronunciationScore >= 75 ? "good" : "practice"}`}><strong>{pronunciationScore}%</strong><span>{pronunciationScore >= 90 ? "Excellent clarity" : pronunciationScore >= 75 ? "Good—repeat once more" : "Practise slowly, word by word"}</span><small>I heard: “{transcript}”</small></div>}
+      </div>
       <div className="speaking-recorder-actions">
         {status === "recording" ? (
           <button className="speaking-stop" type="button" onClick={stopRecording}>

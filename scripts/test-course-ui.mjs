@@ -29,6 +29,6 @@ test("answer selections and language controls expose state", () => {
   assert.match(page, /aria-pressed=\{language === mode\}/);
 });
 test("offline shell updates without discarding downloaded audio", () => {
-  assert.match(worker, /grammar-studio-v9-floating-glass-ui/);
+  assert.match(worker, /grammar-studio-v10-complete-coach-glass/);
   assert.match(worker, /grammar-studio-v5-complete-english-audio/);
 });

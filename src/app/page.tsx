@@ -10,7 +10,7 @@ import { authClient } from "@/lib/auth-client";
 import { claimUsername, getMyUsername, requestLegacyPasswordReset, requestUsernamePasswordReset, signInWithUsername } from "@/app/actions/username-auth";
 import { isValidUsername, normalizeUsername } from "@/lib/usernames";
 import AuthShell, { AuthField, AuthPasswordField, PasswordStrength } from "@/components/auth/auth-ui";
-import { CloudProgress, emptyProgress, mergeProgress, Mistake, parseCompletedDays, parseSavedDayIndex } from "@/lib/progress";
+import { CloudProgress, defaultPreferences, emptyProgress, LearningPreferences, mergeProgress, Mistake, parseCompletedDays, parseSavedDayIndex, PronunciationResult } from "@/lib/progress";
 
 type InstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -19,9 +19,11 @@ type InstallPromptEvent = Event & {
 
 type OfflineStatus = "idle" | "downloading" | "ready" | "error";
 type SkillTab = "listen" | "read" | "write" | "translate";
-type HubView = "dashboard" | "revision" | "test" | "certificate";
+type HubView = "dashboard" | "placement" | "goals" | "revision" | "test" | "certificate";
 
 const todayKey = () => new Date().toLocaleDateString("en-CA");
+const OFFLINE_LEARNER_KEY = "grammar-studio-offline-learner";
+const placementQuestions = [lessons[0], lessons[7], lessons[14], lessons[21], lessons[28]];
 
 function calculateStreak(dates: string[], today: string) {
   if (!today) return 0;
@@ -92,6 +94,13 @@ export default function Home() {
   const [mistakes, setMistakes] = useState<Mistake[]>([]);
   const [activityDates, setActivityDates] = useState<string[]>([]);
   const [badges, setBadges] = useState<string[]>([]);
+  const [preferences, setPreferences] = useState<LearningPreferences>(defaultPreferences);
+  const [pronunciationResults, setPronunciationResults] = useState<PronunciationResult[]>([]);
+  const [studyMinutes, setStudyMinutes] = useState<Record<string, number>>({});
+  const [pendingChanges, setPendingChanges] = useState(0);
+  const [placementAnswers, setPlacementAnswers] = useState<Record<number, number>>({});
+  const [placementScore, setPlacementScore] = useState<number | null>(null);
+  const [reminderMessage, setReminderMessage] = useState("");
   const [hubView, setHubView] = useState<HubView | null>(null);
   const [testAnswers, setTestAnswers] = useState<Record<number, number>>({});
   const [testScore, setTestScore] = useState<number | null>(null);
@@ -123,15 +132,31 @@ export default function Home() {
     void authClient.getSession().then(({ data }) => {
       if (!active) return;
       if (data?.user) {
-        setLearnerName(data.user.name || data.user.email.split("@")[0]);
+        const name = data.user.name || data.user.email.split("@")[0];
+        setLearnerName(name);
         setLearnerEmail(data.user.email);
+        window.localStorage.setItem(OFFLINE_LEARNER_KEY, JSON.stringify({ name, email: data.user.email }));
         void getMyUsername().then((username) => {
           if (!active) return;
           setNeedsUsername(!username);
           if (username) setAuthUsername(username);
         });
+      } else if (!navigator.onLine) {
+        const cached = window.localStorage.getItem(OFFLINE_LEARNER_KEY);
+        if (cached) {
+          const learner = JSON.parse(cached) as { name?: string; email?: string };
+          if (learner.name && learner.email) { setLearnerName(learner.name); setLearnerEmail(learner.email); }
+        }
       }
-    }).catch(() => undefined).finally(() => { if (active) setAuthReady(true); });
+    }).catch(() => {
+      const cached = window.localStorage.getItem(OFFLINE_LEARNER_KEY);
+      if (cached && active) {
+        try {
+          const learner = JSON.parse(cached) as { name?: string; email?: string };
+          if (learner.name && learner.email) { setLearnerName(learner.name); setLearnerEmail(learner.email); }
+        } catch { /* Ignore a malformed offline identity. */ }
+      }
+    }).finally(() => { if (active) setAuthReady(true); });
     return () => { active = false; };
   }, []);
 
@@ -151,6 +176,9 @@ export default function Home() {
           setMistakes(saved.mistakes || []);
           setActivityDates(saved.activityDates || []);
           setBadges(saved.badges || []);
+          setPreferences({ ...defaultPreferences, ...(saved.preferences || {}) });
+          setPronunciationResults(saved.pronunciationResults || []);
+          setStudyMinutes(saved.studyMinutes || {});
         } else {
           setCompleted(parseCompletedDays(window.localStorage.getItem("grammar-studio-progress"), validDays));
           setCurrent(parseSavedDayIndex(window.localStorage.getItem("grammar-studio-day"), validDays));
@@ -218,7 +246,11 @@ export default function Home() {
       setMistakes(merged.mistakes);
       setActivityDates([...new Set([...merged.activityDates, todayKey()])]);
       setBadges(merged.badges);
+      setPreferences(merged.preferences);
+      setPronunciationResults(merged.pronunciationResults);
+      setStudyMinutes(merged.studyMinutes);
       setSyncStatus("synced");
+      setPendingChanges(0);
     }).catch(() => {
       if (active) {
         setActivityDates((dates) => [...new Set([...dates, todayKey()])]);
@@ -232,17 +264,18 @@ export default function Home() {
 
   useEffect(() => {
     if (!learnerName || !cloudLoaded) return;
-    const snapshot: CloudProgress = { displayName: learnerName, completed, currentDay: current + 1, skillsDone, writings, mistakes, activityDates, badges };
+    const snapshot: CloudProgress = { displayName: learnerName, completed, currentDay: current + 1, skillsDone, writings, mistakes, activityDates, badges, preferences, pronunciationResults, studyMinutes };
     window.localStorage.setItem("grammar-studio-cloud-progress", JSON.stringify(snapshot));
     const timer = window.setTimeout(() => {
+      setPendingChanges(1);
       if (!navigator.onLine) { setSyncStatus("local"); return; }
       setSyncStatus("syncing");
       void fetch("/api/progress", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(snapshot) })
-        .then((response) => { if (!response.ok) throw new Error("Sync failed"); setSyncStatus("synced"); })
+        .then((response) => { if (!response.ok) throw new Error("Sync failed"); setSyncStatus("synced"); setPendingChanges(0); })
         .catch(() => setSyncStatus("error"));
     }, 700);
     return () => window.clearTimeout(timer);
-  }, [activityDates, badges, cloudLoaded, completed, current, learnerName, mistakes, skillsDone, writings]);
+  }, [activityDates, badges, cloudLoaded, completed, current, learnerName, mistakes, preferences, pronunciationResults, skillsDone, studyMinutes, writings]);
 
   useEffect(() => {
     const environmentFrame = window.requestAnimationFrame(() => {
@@ -298,10 +331,37 @@ export default function Home() {
     audioRef.current = null;
   }, []);
 
+  useEffect(() => {
+    if (!learnerName) return;
+    const timer = window.setInterval(() => {
+      const date = todayKey();
+      setStudyMinutes((minutes) => ({ ...minutes, [date]: Math.min(1440, (minutes[date] || 0) + 1) }));
+    }, 60_000);
+    return () => window.clearInterval(timer);
+  }, [learnerName]);
+
+  useEffect(() => {
+    if (!preferences.remindersEnabled || typeof Notification === "undefined" || Notification.permission !== "granted") return;
+    const checkReminder = () => {
+      const now = new Date();
+      const clock = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+      const date = todayKey();
+      const sentKey = `grammar-studio-reminder-${date}`;
+      if (clock === preferences.reminderTime && !window.localStorage.getItem(sentKey)) {
+        new Notification("Time for English practice", { body: "Your Grammar Studio daily goal is waiting. రోజువారీ practice మొదలుపెట్టండి." });
+        window.localStorage.setItem(sentKey, "sent");
+      }
+    };
+    checkReminder();
+    const timer = window.setInterval(checkReminder, 30_000);
+    return () => window.clearInterval(timer);
+  }, [preferences.reminderTime, preferences.remindersEnabled]);
+
   const progress = Math.round((completed.length / lessons.length) * 100);
   const writingWordCount = writingText.trim() ? writingText.trim().split(/\s+/).length : 0;
   const streak = calculateStreak(activityDates, today);
-  const reviewItems = mistakes.filter((item) => !item.reviewed).sort((a, b) => b.attempts - a.attempts);
+  const reviewCutoff = today ? new Date(`${today}T23:59:59`).getTime() : 0;
+  const reviewItems = mistakes.filter((item) => !item.reviewed || !item.nextReviewAt || (reviewCutoff > 0 && new Date(item.nextReviewAt).getTime() <= reviewCutoff)).sort((a, b) => b.attempts - a.attempts);
   const achievementBadges = [
     ...(completed.length >= 1 ? ["First lesson"] : []),
     ...(completed.length >= 10 ? ["10-day explorer"] : []),
@@ -361,9 +421,52 @@ export default function Home() {
     const id = `${type}-${lesson.day}-${prompt.slice(0, 32)}`;
     setMistakes((items) => {
       const existing = items.find((item) => item.id === id);
-      if (existing) return items.map((item) => item.id === id ? { ...item, attempts: item.attempts + 1, reviewed: false, lastSeen: new Date().toISOString() } : item);
-      return [...items, { id, type, day: lesson.day, prompt, answer, attempts: 1, reviewed: false, lastSeen: new Date().toISOString() }].slice(-100);
+      if (existing) return items.map((item) => item.id === id ? { ...item, attempts: item.attempts + 1, reviewed: false, mastery: 0, nextReviewAt: new Date().toISOString(), lastSeen: new Date().toISOString() } : item);
+      return [...items, { id, type, day: lesson.day, prompt, answer, attempts: 1, reviewed: false, mastery: 0, nextReviewAt: new Date().toISOString(), lastSeen: new Date().toISOString() }].slice(-100);
     });
+  };
+
+  const completeReview = (id: string) => {
+    setMistakes((items) => items.map((item) => {
+      if (item.id !== id) return item;
+      const mastery = Math.min(4, (item.mastery || 0) + 1);
+      const intervals = [1, 3, 7, 14];
+      const next = new Date();
+      next.setDate(next.getDate() + intervals[Math.max(0, mastery - 1)]);
+      return { ...item, reviewed: true, mastery, nextReviewAt: next.toISOString() };
+    }));
+  };
+
+  const submitPlacement = () => {
+    const correct = placementQuestions.filter((item) => placementAnswers[item.day] === item.practice.answer).length;
+    const score = Math.round((correct / placementQuestions.length) * 100);
+    const level = score >= 80 ? "confident" : score >= 40 ? "everyday" : "beginner";
+    const recommendedDay = level === "confident" ? 21 : level === "everyday" ? 11 : 1;
+    setPlacementScore(score);
+    setPreferences((value) => ({ ...value, placementLevel: level }));
+    setCurrent(recommendedDay - 1);
+  };
+
+  const enableReminders = async () => {
+    if (typeof Notification === "undefined") {
+      setReminderMessage("Notifications are not supported in this browser. Your daily goal still works in the app.");
+      return;
+    }
+    const permission = await Notification.requestPermission();
+    const enabled = permission === "granted";
+    setPreferences((value) => ({ ...value, remindersEnabled: enabled }));
+    setReminderMessage(enabled ? `Daily reminder set for ${preferences.reminderTime}.` : "Notifications were not enabled. You can change this in browser settings.");
+  };
+
+  const exportLearnerData = () => {
+    const safeName = learnerName || "learner";
+    const report = { learnerName, learnerEmail, exportedAt: new Date().toISOString(), progress, completed, skillsDone, writings, mistakes, activityDates, badges: allBadges, preferences, pronunciationResults, studyMinutes };
+    const url = URL.createObjectURL(new Blob([JSON.stringify(report, null, 2)], { type: "application/json" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `grammar-studio-${safeName.toLocaleLowerCase("en").replace(/[^a-z0-9]+/g, "-")}-progress.json`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   const playAudio = (src: string, key: string) => {
@@ -529,6 +632,7 @@ export default function Home() {
       setSkipUsernameSetup(false);
       setLearnerName(user.name || user.email.split("@")[0]);
       setLearnerEmail(user.email);
+      window.localStorage.setItem(OFFLINE_LEARNER_KEY, JSON.stringify({ name: user.name || user.email.split("@")[0], email: user.email }));
       setCloudLoaded(false);
       setAuthPassword("");
     } catch (error) {
@@ -558,6 +662,7 @@ export default function Home() {
     setAuthNotice("");
     setNeedsUsername(false);
     setSkipUsernameSetup(false);
+    window.localStorage.removeItem(OFFLINE_LEARNER_KEY);
     setCloudLoaded(false);
     setHubView(null);
   };
@@ -708,25 +813,29 @@ export default function Home() {
           <div className="top-progress-copy"><span>Course progress</span><strong>{completed.length} / 30</strong></div>
           <div className="progress-rail"><span style={{ width: `${progress}%` }} /></div>
         </div>
-        <button type="button" className="account-button" onClick={() => setHubView("dashboard")} title="Open learner dashboard"><span>{learnerName.charAt(0).toUpperCase()}</span><small>{learnerName}</small><b>{syncStatus === "synced" ? "Cloud synced" : syncStatus === "syncing" ? "Syncing…" : syncStatus === "error" ? "Sync retry" : "Offline saved"}</b></button>
+        <button type="button" className="account-button" onClick={() => setHubView("dashboard")} title="Open learner dashboard"><span>{learnerName.charAt(0).toUpperCase()}</span><small>{learnerName}</small><b>{syncStatus === "synced" ? "Cloud synced" : syncStatus === "syncing" ? "Syncing…" : pendingChanges ? `${pendingChanges} update waiting` : syncStatus === "error" ? "Sync retry" : "Offline saved"}</b></button>
       </header>
 
       {hubView && (
         <div className="hub-overlay" role="dialog" aria-modal="true" aria-label="Learner progress hub">
           <section className="hub-modal">
-            <header className="hub-header"><div><p className="kicker">My learning hub · నా ప్రగతి</p><h2>{learnerName}&apos;s English journey</h2><small>{learnerEmail} · {syncStatus === "synced" ? "Saved securely in Neon" : "Saved offline; cloud will retry"}</small></div><button type="button" onClick={() => setHubView(null)} aria-label="Close dashboard">×</button></header>
+            <header className="hub-header"><div><p className="kicker">My learning hub · నా ప్రగతి</p><h2>{learnerName}&apos;s English journey</h2><small>{learnerEmail} · {syncStatus === "synced" ? "Saved securely in Neon" : `${pendingChanges || 1} update waiting safely on this device`}</small></div><button type="button" onClick={() => setHubView(null)} aria-label="Close dashboard">×</button></header>
             <nav className="hub-tabs" aria-label="Learning hub sections">
-              {([ ["dashboard", "Progress"], ["revision", `Review ${reviewItems.length}`], ["test", "Final test"], ["certificate", "Certificate"] ] as [HubView, string][]).map(([view, label]) => <button type="button" key={view} className={hubView === view ? "active" : ""} onClick={() => setHubView(view)}>{label}</button>)}
+              {([ ["dashboard", "Progress"], ["placement", "Placement"], ["goals", "Goals"], ["revision", `Review ${reviewItems.length}`], ["test", "Final test"], ["certificate", "Certificate"] ] as [HubView, string][]).map(([view, label]) => <button type="button" key={view} className={hubView === view ? "active" : ""} onClick={() => setHubView(view)}>{label}</button>)}
             </nav>
 
             {hubView === "dashboard" && <div className="hub-body dashboard-body">
-              <div className="metric-grid"><article><span>Course</span><strong>{progress}%</strong><small>{completed.length} of 30 lessons</small></article><article><span>Activities</span><strong>{skillsDone.length}</strong><small>of 120 complete</small></article><article><span>Current streak</span><strong>{streak} 🔥</strong><small>days learning</small></article><article><span>To review</span><strong>{reviewItems.length}</strong><small>personal practice items</small></article></div>
+              <div className="metric-grid"><article><span>Course</span><strong>{progress}%</strong><small>{completed.length} of 30 lessons</small></article><article><span>Today&apos;s goal</span><strong>{Math.min(100, Math.round(((studyMinutes[today] || 0) / preferences.dailyGoalMinutes) * 100))}%</strong><small>{studyMinutes[today] || 0} of {preferences.dailyGoalMinutes} minutes</small></article><article><span>Current streak</span><strong>{streak} 🔥</strong><small>days learning</small></article><article><span>To review</span><strong>{reviewItems.length}</strong><small>spaced practice items</small></article></div>
               <section className="badge-section"><h3>Achievements</h3><div className="badge-list">{allBadges.length ? allBadges.map((badge) => <span key={badge}>★ {badge}</span>) : <p>Complete your first lesson to earn a badge.</p>}</div></section>
-              <section className="teacher-report"><div><h3>Teacher / parent report</h3><p>Grammar {completed.length}/30 · Skill practice {skillsDone.length}/120 · Writing samples {Object.keys(writings).length} · Revision queue {reviewItems.length}</p><p lang="te">పాఠాలు, practice, writing, mistakes అన్నీ ఒకే చోట చూడవచ్చు.</p></div><button type="button" onClick={() => window.print()}>Print report</button></section>
+              <section className="teacher-report"><div><h3>Teacher / parent report</h3><p>Grammar {completed.length}/30 · Skill practice {skillsDone.length}/120 · Writing samples {Object.keys(writings).length} · Pronunciation checks {pronunciationResults.length} · Revision queue {reviewItems.length}</p><p lang="te">పాఠాలు, practice, writing, pronunciation, mistakes అన్నీ ఒకే చోట చూడవచ్చు.</p></div><div className="report-actions"><button type="button" onClick={() => window.print()}>Print / Save PDF</button><button type="button" onClick={exportLearnerData}>Download backup</button></div></section>
               <button type="button" className="hub-logout" onClick={() => void logout()}>Sign out of this account</button>
             </div>}
 
-            {hubView === "revision" && <div className="hub-body"><div className="revision-intro"><h3>Smart revision</h3><p>Your difficult questions rise to the top. Review them, then mark them done.</p><p lang="te">మీరు తప్పు చేసిన ప్రశ్నలను మళ్లీ practice చేయండి.</p></div>{reviewItems.length ? <div className="revision-list">{reviewItems.map((item) => <article key={item.id}><span>{item.type} · Day {item.day} · tried {item.attempts}×</span><h4>{item.prompt}</h4><p>Correct answer: <strong>{item.answer}</strong></p><div><button type="button" onClick={() => { setHubView(null); goToLesson(item.day - 1); }}>Open lesson</button><button type="button" onClick={() => setMistakes((items) => items.map((entry) => entry.id === item.id ? { ...entry, reviewed: true } : entry))}>I reviewed this ✓</button></div></article>)}</div> : <div className="empty-hub"><strong>All caught up!</strong><p>No mistakes are waiting for review.</p></div>}</div>}
+            {hubView === "placement" && <div className="hub-body"><div className="revision-intro"><h3>5-minute placement test</h3><p>Answer five questions. We will recommend the best starting stage without locking any lessons.</p><p lang="te">ఐదు ప్రశ్నలకు సమాధానం ఇవ్వండి. మీకు సరైన starting level చూపిస్తాం.</p></div><div className="placement-test">{placementQuestions.map((item, index) => <fieldset key={item.day}><legend>{index + 1}. {item.practice.prompt}</legend>{item.practice.options.map((option, optionIndex) => <label key={option}><input type="radio" name={`placement-${item.day}`} checked={placementAnswers[item.day] === optionIndex} onChange={() => { setPlacementAnswers((answers) => ({ ...answers, [item.day]: optionIndex })); setPlacementScore(null); }} />{option}</label>)}</fieldset>)}</div><button type="button" className="submit-test" disabled={Object.keys(placementAnswers).length < placementQuestions.length} onClick={submitPlacement}>Find my level</button>{placementScore !== null && <div className="placement-result"><strong>{placementScore}% · {preferences.placementLevel === "confident" ? "Confident English" : preferences.placementLevel === "everyday" ? "Everyday English" : "Beginner foundations"}</strong><p>Your recommended starting lesson is ready. You can still open all 30 lessons.</p></div>}</div>}
+
+            {hubView === "goals" && <div className="hub-body goals-panel"><div className="revision-intro"><h3>Daily goal & reminders</h3><p>Study time is counted while this course is open. Your goal and reminder settings sync across devices.</p><p lang="te">రోజూ కొంత సమయం practice చేయడానికి goal, reminder పెట్టుకోండి.</p></div><label>Daily study goal<select value={preferences.dailyGoalMinutes} onChange={(event) => setPreferences((value) => ({ ...value, dailyGoalMinutes: Number(event.target.value) }))}>{[10,15,20,30].map((minutes) => <option key={minutes} value={minutes}>{minutes} minutes</option>)}</select></label><label>Reminder time<input type="time" value={preferences.reminderTime} onChange={(event) => setPreferences((value) => ({ ...value, reminderTime: event.target.value }))} /></label><div className="goal-progress"><span><b>{studyMinutes[today] || 0}</b> / {preferences.dailyGoalMinutes} minutes today</span><i><em style={{ width: `${Math.min(100, Math.round(((studyMinutes[today] || 0) / preferences.dailyGoalMinutes) * 100))}%` }} /></i></div><button type="button" className="submit-test" onClick={() => void enableReminders()}>{preferences.remindersEnabled ? "Update reminder permission" : "Enable daily reminder"}</button>{reminderMessage && <p className="goal-message">{reminderMessage}</p>}<small>Browser reminders work while the installed app or browser is allowed to run notifications.</small></div>}
+
+            {hubView === "revision" && <div className="hub-body"><div className="revision-intro"><h3>Spaced-repetition revision</h3><p>Weak grammar, conversation, reading, and spelling return after 1, 3, 7, and 14 days until mastered.</p><p lang="te">మీరు తప్పు చేసిన ప్రశ్నలు సరైన సమయంలో మళ్లీ practice కోసం వస్తాయి.</p></div>{reviewItems.length ? <div className="revision-list">{reviewItems.map((item) => <article key={item.id}><span>{item.type} · Day {item.day} · tried {item.attempts}× · mastery {item.mastery || 0}/4</span><h4>{item.prompt}</h4><p>Correct answer: <strong>{item.answer}</strong></p><div><button type="button" onClick={() => { setHubView(null); goToLesson(item.day - 1); }}>Open lesson</button><button type="button" onClick={() => completeReview(item.id)}>I reviewed this ✓</button></div></article>)}</div> : <div className="empty-hub"><strong>All caught up!</strong><p>No reviews are due today. Completed items return later to strengthen memory.</p></div>}</div>}
 
             {hubView === "test" && <div className="hub-body"><div className="revision-intro"><h3>Final 10-question test</h3><p>Score 80% or higher to unlock your course certificate.</p><p lang="te">Certificate పొందడానికి కనీసం 80% score చేయండి.</p></div><div className="final-test">{testQuestions.map((item, questionIndex) => <fieldset key={item.day}><legend>{questionIndex + 1}. {item.practice.prompt}</legend>{item.practice.options.map((option, optionIndex) => <label key={option}><input type="radio" name={`test-${item.day}`} checked={testAnswers[item.day] === optionIndex} onChange={() => { setTestAnswers((answers) => ({ ...answers, [item.day]: optionIndex })); setTestScore(null); }} />{option}</label>)}</fieldset>)}</div><button type="button" className="submit-test" disabled={Object.keys(testAnswers).length < testQuestions.length} onClick={submitFinalTest}>Check my final test</button>{testScore !== null && <div className={`test-result ${testScore >= 80 ? "pass" : "retry"}`}><strong>{testScore}% — {testScore >= 80 ? "Passed! Certificate unlocked." : "Keep learning and try again."}</strong><p>{testScore >= 80 ? "Excellent work. చాలా బాగా చేశారు!" : "Review your mistakes and aim for 80%."}</p></div>}</div>}
 
@@ -744,7 +853,7 @@ export default function Home() {
             <p className="kicker">Your English learning path</p><h2>Every skill.<br />Real progress.</h2><p>30 guided days of grammar, listening, reading, writing, and speaking. One lesson at a time.</p>
             <section className={`offline-card ${offlineStatus}`} aria-live="polite">
               <div className="offline-card-heading"><strong>Offline course</strong><span className={isOnline ? "online" : "offline"}>{isOnline ? "Online" : "Offline"}</span></div>
-              <p>{offlineStatus === "ready" ? "The complete course and all neural audio are ready offline. అన్ని పాఠాలు సిద్ధం." : offlineStatus === "downloading" ? `Downloading neural audio ${offlineProgress.completed} / ${offlineProgress.total}…` : offlineStatus === "error" ? "Download paused. Connect to the internet and try again." : "Save every activity and all 420 audio clips to this device (about 12 MB)."}</p>
+              <p>{offlineStatus === "ready" ? "Course, audio, login identity, and progress are ready offline. Changes sync when internet returns." : offlineStatus === "downloading" ? `Downloading neural audio ${offlineProgress.completed} / ${offlineProgress.total}…` : offlineStatus === "error" ? "Download paused. Connect to the internet and try again." : "Save every activity and all 420 audio clips to this device (about 12 MB)."}</p>
               {offlineStatus !== "ready" && <button type="button" onClick={downloadForOffline} disabled={!isOnline || offlineStatus === "downloading"}>{offlineStatus === "downloading" ? "Downloading…" : offlineStatus === "error" ? "Try again" : "Download offline"}</button>}
               {offlineStatus === "downloading" && <div className="offline-progress"><span style={{ width: `${Math.round((offlineProgress.completed / offlineProgress.total) * 100)}%` }} /></div>}
               {!isInstalled && installPrompt && <button type="button" className="install-button" onClick={installApp}>Install app</button>}
@@ -931,7 +1040,7 @@ export default function Home() {
             </div>
           </section>
 
-          <SpeakingRecorder key={lesson.day} />
+          <SpeakingRecorder key={lesson.day} target={lesson.examples[0].en} onScore={(score, transcript) => setPronunciationResults((results) => [...results.filter((item) => item.day !== lesson.day), { day: lesson.day, score, transcript, updatedAt: new Date().toISOString() }].sort((a, b) => a.day - b.day))} />
           <DailyTestHub key={learnerName} learnerName={learnerName} lesson={lesson} onGoToDay={(day) => {
             const index = lessons.findIndex((item) => item.day === day);
             if (index >= 0) goToLesson(index);
@@ -1089,6 +1198,12 @@ export default function Home() {
           </footer>
         </main>
       </div>
+      <nav className="mobile-dock" aria-label="Quick navigation">
+        <button type="button" onClick={() => { setHubView(null); goToLesson(current); }} className={!hubView && !menuOpen ? "active" : ""}><span aria-hidden="true">⌂</span><b>Today</b></button>
+        <button type="button" onClick={() => setMenuOpen(true)} className={menuOpen ? "active" : ""}><span aria-hidden="true">☷</span><b>Lessons</b></button>
+        <button type="button" onClick={() => setHubView("revision")} className={hubView === "revision" ? "active" : ""}><span aria-hidden="true">↻</span><b>Review</b>{reviewItems.length > 0 && <i>{reviewItems.length}</i>}</button>
+        <button type="button" onClick={() => setHubView("dashboard")} className={hubView === "dashboard" ? "active" : ""}><span aria-hidden="true">◔</span><b>Progress</b></button>
+      </nav>
     </div>
   );
 }

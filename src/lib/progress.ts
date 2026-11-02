@@ -34,6 +34,24 @@ export type Mistake = {
   attempts: number;
   reviewed: boolean;
   lastSeen: string;
+  mastery?: number;
+  nextReviewAt?: string;
+};
+
+export type PlacementLevel = "beginner" | "everyday" | "confident";
+
+export type LearningPreferences = {
+  placementLevel: PlacementLevel | null;
+  dailyGoalMinutes: number;
+  reminderTime: string;
+  remindersEnabled: boolean;
+};
+
+export type PronunciationResult = {
+  day: number;
+  score: number;
+  transcript: string;
+  updatedAt: string;
 };
 
 export type CloudProgress = {
@@ -45,6 +63,16 @@ export type CloudProgress = {
   mistakes: Mistake[];
   activityDates: string[];
   badges: string[];
+  preferences: LearningPreferences;
+  pronunciationResults: PronunciationResult[];
+  studyMinutes: Record<string, number>;
+};
+
+export const defaultPreferences: LearningPreferences = {
+  placementLevel: null,
+  dailyGoalMinutes: 15,
+  reminderTime: "19:00",
+  remindersEnabled: false,
 };
 
 export const emptyProgress = (displayName = "Learner"): CloudProgress => ({
@@ -56,6 +84,9 @@ export const emptyProgress = (displayName = "Learner"): CloudProgress => ({
   mistakes: [],
   activityDates: [],
   badges: [],
+  preferences: defaultPreferences,
+  pronunciationResults: [],
+  studyMinutes: {},
 });
 
 export function mergeProgress(local: CloudProgress, remote: CloudProgress): CloudProgress {
@@ -69,5 +100,16 @@ export function mergeProgress(local: CloudProgress, remote: CloudProgress): Clou
     mistakes: [...mistakeMap.values()].slice(-100),
     activityDates: [...new Set([...local.activityDates, ...remote.activityDates])].sort(),
     badges: [...new Set([...local.badges, ...remote.badges])],
+    preferences: { ...defaultPreferences, ...local.preferences, ...remote.preferences },
+    pronunciationResults: [...remote.pronunciationResults, ...local.pronunciationResults]
+      .reduce<PronunciationResult[]>((items, result) => {
+        const existing = items.findIndex((item) => item.day === result.day);
+        if (existing < 0) return [...items, result];
+        if (new Date(result.updatedAt).getTime() > new Date(items[existing].updatedAt).getTime()) items[existing] = result;
+        return items;
+      }, [])
+      .sort((a, b) => a.day - b.day),
+    studyMinutes: Object.fromEntries([...new Set([...Object.keys(local.studyMinutes), ...Object.keys(remote.studyMinutes)])]
+      .map((date) => [date, Math.max(local.studyMinutes[date] || 0, remote.studyMinutes[date] || 0)])),
   };
 }

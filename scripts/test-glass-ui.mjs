@@ -27,6 +27,6 @@ test("touch and accessibility preferences disable costly effects", () => {
   assert.match(styles, /@media print/);
 });
 test("updated service worker preserves downloaded audio cache", () => {
-  assert.match(worker, /grammar-studio-v9-floating-glass-ui/);
+  assert.match(worker, /grammar-studio-v10-complete-coach-glass/);
   assert.match(worker, /grammar-studio-v5-complete-english-audio/);
 });

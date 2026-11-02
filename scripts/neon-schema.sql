@@ -8,5 +8,8 @@ CREATE TABLE IF NOT EXISTS learner_progress (
   mistakes JSONB NOT NULL DEFAULT '[]'::jsonb,
   activity_dates JSONB NOT NULL DEFAULT '[]'::jsonb,
   badges JSONB NOT NULL DEFAULT '[]'::jsonb,
+  preferences JSONB NOT NULL DEFAULT '{}'::jsonb,
+  pronunciation_results JSONB NOT NULL DEFAULT '[]'::jsonb,
+  study_minutes JSONB NOT NULL DEFAULT '{}'::jsonb,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
