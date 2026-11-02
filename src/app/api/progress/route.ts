@@ -49,6 +49,7 @@ function cleanProgress(value: Partial<CloudProgress>, fallbackName: string): Clo
   const rawPreferences = value.preferences && typeof value.preferences === "object" ? value.preferences : defaultPreferences;
   const placementLevel = ["beginner", "everyday", "confident"].includes(String(rawPreferences.placementLevel)) ? rawPreferences.placementLevel : null;
   const readingLevel = ["pre-reader", "word-reader", "sentence-reader"].includes(String(rawPreferences.readingLevel)) ? rawPreferences.readingLevel : null;
+  const ageMode = ["kids", "teens", "adults"].includes(String(rawPreferences.ageMode)) ? rawPreferences.ageMode as "kids" | "teens" | "adults" : "kids";
   const pronunciationResults = Array.isArray(value.pronunciationResults) ? value.pronunciationResults.filter((item) => item && Number.isInteger(item.day) && item.day >= 1 && item.day <= 30 && Number.isFinite(item.score) && typeof item.transcript === "string").map((item) => ({ day: item.day, score: Math.max(0, Math.min(100, Math.round(item.score))), transcript: item.transcript.slice(0, 500), updatedAt: typeof item.updatedAt === "string" ? item.updatedAt : new Date().toISOString() })).slice(-30) : [];
   const studyMinutes = value.studyMinutes && typeof value.studyMinutes === "object" ? Object.fromEntries(Object.entries(value.studyMinutes).filter(([date, minutes]) => /^\d{4}-\d{2}-\d{2}$/.test(date) && typeof minutes === "number" && Number.isFinite(minutes)).map(([date, minutes]) => [date, Math.max(0, Math.min(1440, Math.round(minutes)))]).slice(-90)) : {};
   const dailyTests = parseDailyTestRecords(JSON.stringify(value.dailyTests || {}), Array.from({ length: 30 }, (_, index) => index + 1));
@@ -67,6 +68,7 @@ function cleanProgress(value: Partial<CloudProgress>, fallbackName: string): Clo
       reminderTime: typeof rawPreferences.reminderTime === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(rawPreferences.reminderTime) ? rawPreferences.reminderTime : "19:00",
       remindersEnabled: rawPreferences.remindersEnabled === true,
       readingLevel,
+      ageMode,
     },
     pronunciationResults,
     studyMinutes,

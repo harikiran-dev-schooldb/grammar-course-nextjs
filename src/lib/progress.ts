@@ -40,6 +40,7 @@ export type Mistake = {
 
 export type PlacementLevel = "beginner" | "everyday" | "confident";
 export type ReadingLevel = "pre-reader" | "word-reader" | "sentence-reader";
+export type AgeMode = "kids" | "teens" | "adults";
 
 export type LearningPreferences = {
   placementLevel: PlacementLevel | null;
@@ -47,6 +48,7 @@ export type LearningPreferences = {
   reminderTime: string;
   remindersEnabled: boolean;
   readingLevel: ReadingLevel | null;
+  ageMode: AgeMode;
 };
 
 export type PronunciationResult = {
@@ -110,6 +112,7 @@ export const defaultPreferences: LearningPreferences = {
   reminderTime: "19:00",
   remindersEnabled: false,
   readingLevel: null,
+  ageMode: "kids",
 };
 
 export const emptyProgress = (displayName = "Learner"): CloudProgress => ({

@@ -10,6 +10,7 @@ const completeHub = readFileSync(new URL("../src/components/complete-learning-hu
 const routeNavigator = readFileSync(new URL("../src/components/lesson-route-navigator.tsx", import.meta.url), "utf8");
 const todayHome = readFileSync(new URL("../src/components/today-home.tsx", import.meta.url), "utf8");
 const speakingMission = readFileSync(new URL("../src/components/speaking-mission-coach.tsx", import.meta.url), "utf8");
+const curriculumPath = readFileSync(new URL("../src/components/curriculum-path.tsx", import.meta.url), "utf8");
 const worker = readFileSync(new URL("../public/sw.js", import.meta.url), "utf8");
 
 test("lesson overview displays completion based on the existing course progress", () => {
@@ -57,7 +58,7 @@ test("Starter Zone teaches pre-readers before grammar", () => {
   assert.doesNotMatch(foundation, /activeLetter\[0\].*activeLetter\[0\].*is for/);
 });
 test("offline shell updates without discarding downloaded audio", () => {
-  assert.match(worker, /grammar-studio-v18-today-speaking/);
+  assert.match(worker, /grammar-studio-v19-level-curriculum/);
   assert.match(worker, /grammar-studio-v5-complete-english-audio/);
 });
 
@@ -95,4 +96,15 @@ test("speaking missions accept real voice answers and bilingual coaching", () =>
   assert.match(speakingMission, /Turn \{turn\+1\} of/);
   assert.match(speakingMission, /Live speaking mission/);
   assert.match(page, /speaking-mission-\$\{lesson.day\}/);
+});
+
+test("level curriculum organizes content from pre-reader through B2", () => {
+  assert.match(curriculumPath, /Pre-reader/);
+  assert.match(curriculumPath, /A1/);
+  assert.match(curriculumPath, /A2/);
+  assert.match(curriculumPath, /B1/);
+  assert.match(curriculumPath, /B2/);
+  assert.match(curriculumPath, /Choose the learner experience/);
+  assert.match(curriculumPath, /Mastery gate passed/);
+  assert.match(page, /appView === "curriculum"/);
 });

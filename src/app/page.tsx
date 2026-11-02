@@ -12,6 +12,7 @@ import CompleteLearningHub from "@/components/complete-learning-hub";
 import LessonRouteNavigator from "@/components/lesson-route-navigator";
 import TodayHome from "@/components/today-home";
 import SpeakingMissionCoach from "@/components/speaking-mission-coach";
+import CurriculumPath from "@/components/curriculum-path";
 import { authClient } from "@/lib/auth-client";
 import { claimUsername, getMyUsername, requestLegacyPasswordReset, requestUsernamePasswordReset, signInWithUsername } from "@/app/actions/username-auth";
 import { isValidUsername, normalizeUsername } from "@/lib/usernames";
@@ -114,7 +115,7 @@ export default function Home() {
   const [hubView, setHubView] = useState<HubView | null>(null);
   const [testAnswers, setTestAnswers] = useState<Record<number, number>>({});
   const [testScore, setTestScore] = useState<number | null>(null);
-  const [appView, setAppView] = useState<"home" | "learn">("home");
+  const [appView, setAppView] = useState<"home" | "learn" | "curriculum">("home");
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const latestSnapshotRef = useRef<CloudProgress | null>(null);
   const lesson = lessons[current];
@@ -995,7 +996,21 @@ export default function Home() {
             onReview={() => setHubView("revision")}
             onSpeaking={() => openLearningTarget("#speaking-missions")}
             onProgress={() => setHubView("dashboard")}
-            onLessons={() => setMenuOpen(true)}
+            onLessons={() => setAppView("curriculum")}
+          /> : appView === "curriculum" ? <CurriculumPath
+            ageMode={preferences.ageMode}
+            readingLevel={preferences.readingLevel}
+            placementLevel={preferences.placementLevel}
+            completedDays={completed}
+            foundationCount={foundationSkillsDone.length}
+            checkpointScores={Object.fromEntries(Object.entries(dailyTests).map(([day, record]) => [Number(day), record.bestScore]))}
+            offlineReady={offlineStatus === "ready"}
+            onAgeMode={(ageMode) => setPreferences((value) => ({...value, ageMode}))}
+            onOpenDay={(day) => goToLesson(day - 1)}
+            onOpenStarter={() => openLearningTarget(".foundation-zone")}
+            onPlacement={() => setHubView("placement")}
+            onDownload={downloadForOffline}
+            onHome={() => setAppView("home")}
           /> : <>
           <section className="lesson-hero" id="lesson-overview">
             <div className="hero-topline"><span>{lesson.unit}</span><span className="day-chip">Day {lesson.day} of 30</span></div>
@@ -1379,7 +1394,7 @@ export default function Home() {
       </div>
       <nav className="mobile-dock" aria-label="Quick navigation">
         <button type="button" onClick={() => { setHubView(null); setMenuOpen(false); setAppView("home"); window.scrollTo({top:0,behavior:"smooth"}); }} className={appView === "home" && !hubView && !menuOpen ? "active" : ""}><span aria-hidden="true">⌂</span><b>Today</b></button>
-        <button type="button" onClick={() => setMenuOpen(true)} className={menuOpen ? "active" : ""}><span aria-hidden="true">☷</span><b>Lessons</b></button>
+        <button type="button" onClick={() => { setMenuOpen(false); setAppView("curriculum"); window.scrollTo({top:0,behavior:"smooth"}); }} className={appView === "curriculum" ? "active" : ""}><span aria-hidden="true">☷</span><b>Path</b></button>
         <button type="button" onClick={() => setHubView("revision")} className={hubView === "revision" ? "active" : ""}><span aria-hidden="true">↻</span><b>Review</b>{reviewItems.length > 0 && <i>{reviewItems.length}</i>}</button>
         <button type="button" onClick={() => setHubView("dashboard")} className={hubView === "dashboard" ? "active" : ""}><span aria-hidden="true">◔</span><b>Progress</b></button>
       </nav>

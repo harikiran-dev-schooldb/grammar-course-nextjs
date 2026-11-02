@@ -1,4 +1,4 @@
-const VERSION = "grammar-studio-v18-today-speaking";
+const VERSION = "grammar-studio-v19-level-curriculum";
 const CORE_CACHE = `${VERSION}-core`;
 // Preserve previously downloaded audio: the audio library itself has not changed.
 const AUDIO_CACHE = "grammar-studio-v5-complete-english-audio";
