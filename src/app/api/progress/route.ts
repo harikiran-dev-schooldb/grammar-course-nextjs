@@ -2,6 +2,7 @@ import { neon } from "@neondatabase/serverless";
 import { NextResponse } from "next/server";
 import { auth, neonConfigured } from "@/lib/auth-server";
 import { CloudProgress, defaultPreferences, emptyProgress } from "@/lib/progress";
+import { parseDailyTestRecords } from "@/lib/daily-test-core";
 
 const databaseConfigured = () => Boolean(process.env.DATABASE_URL);
 
@@ -26,11 +27,13 @@ async function ensureTable() {
     preferences JSONB NOT NULL DEFAULT '{}'::jsonb,
     pronunciation_results JSONB NOT NULL DEFAULT '[]'::jsonb,
     study_minutes JSONB NOT NULL DEFAULT '{}'::jsonb,
+    daily_tests JSONB NOT NULL DEFAULT '{}'::jsonb,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
   )`;
   await sql`ALTER TABLE learner_progress ADD COLUMN IF NOT EXISTS preferences JSONB NOT NULL DEFAULT '{}'::jsonb`;
   await sql`ALTER TABLE learner_progress ADD COLUMN IF NOT EXISTS pronunciation_results JSONB NOT NULL DEFAULT '[]'::jsonb`;
   await sql`ALTER TABLE learner_progress ADD COLUMN IF NOT EXISTS study_minutes JSONB NOT NULL DEFAULT '{}'::jsonb`;
+  await sql`ALTER TABLE learner_progress ADD COLUMN IF NOT EXISTS daily_tests JSONB NOT NULL DEFAULT '{}'::jsonb`;
   return sql;
 }
 
@@ -43,6 +46,7 @@ function cleanProgress(value: Partial<CloudProgress>, fallbackName: string): Clo
   const placementLevel = ["beginner", "everyday", "confident"].includes(String(rawPreferences.placementLevel)) ? rawPreferences.placementLevel : null;
   const pronunciationResults = Array.isArray(value.pronunciationResults) ? value.pronunciationResults.filter((item) => item && Number.isInteger(item.day) && item.day >= 1 && item.day <= 30 && Number.isFinite(item.score) && typeof item.transcript === "string").map((item) => ({ day: item.day, score: Math.max(0, Math.min(100, Math.round(item.score))), transcript: item.transcript.slice(0, 500), updatedAt: typeof item.updatedAt === "string" ? item.updatedAt : new Date().toISOString() })).slice(-30) : [];
   const studyMinutes = value.studyMinutes && typeof value.studyMinutes === "object" ? Object.fromEntries(Object.entries(value.studyMinutes).filter(([date, minutes]) => /^\d{4}-\d{2}-\d{2}$/.test(date) && typeof minutes === "number" && Number.isFinite(minutes)).map(([date, minutes]) => [date, Math.max(0, Math.min(1440, Math.round(minutes)))]).slice(-90)) : {};
+  const dailyTests = parseDailyTestRecords(JSON.stringify(value.dailyTests || {}), Array.from({ length: 30 }, (_, index) => index + 1));
   return {
     displayName: typeof value.displayName === "string" ? value.displayName.trim().slice(0, 80) || fallbackName : fallbackName,
     completed: cleanNumbers(value.completed),
@@ -60,6 +64,7 @@ function cleanProgress(value: Partial<CloudProgress>, fallbackName: string): Clo
     },
     pronunciationResults,
     studyMinutes,
+    dailyTests,
   };
 }
 
@@ -68,7 +73,7 @@ export async function GET() {
   const user = await userSession();
   if (!user) return NextResponse.json({ error: "Sign in required." }, { status: 401 });
   const sql = await ensureTable();
-  const rows = await sql`SELECT display_name, completed, current_day, skills_done, writings, mistakes, activity_dates, badges, preferences, pronunciation_results, study_minutes FROM learner_progress WHERE user_id = ${user.id}`;
+  const rows = await sql`SELECT display_name, completed, current_day, skills_done, writings, mistakes, activity_dates, badges, preferences, pronunciation_results, study_minutes, daily_tests FROM learner_progress WHERE user_id = ${user.id}`;
   if (!rows[0]) return NextResponse.json(emptyProgress(user.name || "Learner"));
   const row = rows[0];
   return NextResponse.json(cleanProgress({
@@ -83,6 +88,7 @@ export async function GET() {
     preferences: row.preferences as CloudProgress["preferences"],
     pronunciationResults: row.pronunciation_results as CloudProgress["pronunciationResults"],
     studyMinutes: row.study_minutes as CloudProgress["studyMinutes"],
+    dailyTests: row.daily_tests as CloudProgress["dailyTests"],
   }, user.name || "Learner"));
 }
 
@@ -92,8 +98,8 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: "Sign in required." }, { status: 401 });
   const progress = cleanProgress(await request.json(), user.name || "Learner");
   const sql = await ensureTable();
-  await sql`INSERT INTO learner_progress (user_id, display_name, completed, current_day, skills_done, writings, mistakes, activity_dates, badges, preferences, pronunciation_results, study_minutes, updated_at)
-    VALUES (${user.id}, ${progress.displayName}, ${JSON.stringify(progress.completed)}, ${progress.currentDay}, ${JSON.stringify(progress.skillsDone)}, ${JSON.stringify(progress.writings)}, ${JSON.stringify(progress.mistakes)}, ${JSON.stringify(progress.activityDates)}, ${JSON.stringify(progress.badges)}, ${JSON.stringify(progress.preferences)}, ${JSON.stringify(progress.pronunciationResults)}, ${JSON.stringify(progress.studyMinutes)}, NOW())
-    ON CONFLICT (user_id) DO UPDATE SET display_name = EXCLUDED.display_name, completed = EXCLUDED.completed, current_day = EXCLUDED.current_day, skills_done = EXCLUDED.skills_done, writings = EXCLUDED.writings, mistakes = EXCLUDED.mistakes, activity_dates = EXCLUDED.activity_dates, badges = EXCLUDED.badges, preferences = EXCLUDED.preferences, pronunciation_results = EXCLUDED.pronunciation_results, study_minutes = EXCLUDED.study_minutes, updated_at = NOW()`;
+  await sql`INSERT INTO learner_progress (user_id, display_name, completed, current_day, skills_done, writings, mistakes, activity_dates, badges, preferences, pronunciation_results, study_minutes, daily_tests, updated_at)
+    VALUES (${user.id}, ${progress.displayName}, ${JSON.stringify(progress.completed)}, ${progress.currentDay}, ${JSON.stringify(progress.skillsDone)}, ${JSON.stringify(progress.writings)}, ${JSON.stringify(progress.mistakes)}, ${JSON.stringify(progress.activityDates)}, ${JSON.stringify(progress.badges)}, ${JSON.stringify(progress.preferences)}, ${JSON.stringify(progress.pronunciationResults)}, ${JSON.stringify(progress.studyMinutes)}, ${JSON.stringify(progress.dailyTests)}, NOW())
+    ON CONFLICT (user_id) DO UPDATE SET display_name = EXCLUDED.display_name, completed = EXCLUDED.completed, current_day = EXCLUDED.current_day, skills_done = EXCLUDED.skills_done, writings = EXCLUDED.writings, mistakes = EXCLUDED.mistakes, activity_dates = EXCLUDED.activity_dates, badges = EXCLUDED.badges, preferences = EXCLUDED.preferences, pronunciation_results = EXCLUDED.pronunciation_results, study_minutes = EXCLUDED.study_minutes, daily_tests = EXCLUDED.daily_tests, updated_at = NOW()`;
   return NextResponse.json({ ok: true, updatedAt: new Date().toISOString() });
 }

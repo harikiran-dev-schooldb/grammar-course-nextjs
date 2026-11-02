@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { LanguageMode, lessons, units } from "@/data/lessons";
 import { conversations } from "@/data/conversations";
 import { wordPower } from "@/data/word-power";
@@ -11,6 +11,7 @@ import { claimUsername, getMyUsername, requestLegacyPasswordReset, requestUserna
 import { isValidUsername, normalizeUsername } from "@/lib/usernames";
 import AuthShell, { AuthField, AuthPasswordField, PasswordStrength } from "@/components/auth/auth-ui";
 import { CloudProgress, defaultPreferences, emptyProgress, LearningPreferences, mergeProgress, Mistake, parseCompletedDays, parseSavedDayIndex, PronunciationResult } from "@/lib/progress";
+import type { DailyTestRecords } from "@/lib/daily-test-core";
 
 type InstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -97,6 +98,7 @@ export default function Home() {
   const [preferences, setPreferences] = useState<LearningPreferences>(defaultPreferences);
   const [pronunciationResults, setPronunciationResults] = useState<PronunciationResult[]>([]);
   const [studyMinutes, setStudyMinutes] = useState<Record<string, number>>({});
+  const [dailyTests, setDailyTests] = useState<DailyTestRecords>({});
   const [pendingChanges, setPendingChanges] = useState(0);
   const [placementAnswers, setPlacementAnswers] = useState<Record<number, number>>({});
   const [placementScore, setPlacementScore] = useState<number | null>(null);
@@ -105,6 +107,7 @@ export default function Home() {
   const [testAnswers, setTestAnswers] = useState<Record<number, number>>({});
   const [testScore, setTestScore] = useState<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const latestSnapshotRef = useRef<CloudProgress | null>(null);
   const lesson = lessons[current];
   const conversation = conversations[current];
   const words = wordPower[current];
@@ -179,6 +182,7 @@ export default function Home() {
           setPreferences({ ...defaultPreferences, ...(saved.preferences || {}) });
           setPronunciationResults(saved.pronunciationResults || []);
           setStudyMinutes(saved.studyMinutes || {});
+          setDailyTests(saved.dailyTests || {});
         } else {
           setCompleted(parseCompletedDays(window.localStorage.getItem("grammar-studio-progress"), validDays));
           setCurrent(parseSavedDayIndex(window.localStorage.getItem("grammar-studio-day"), validDays));
@@ -249,6 +253,7 @@ export default function Home() {
       setPreferences(merged.preferences);
       setPronunciationResults(merged.pronunciationResults);
       setStudyMinutes(merged.studyMinutes);
+      setDailyTests(merged.dailyTests);
       setSyncStatus("synced");
       setPendingChanges(0);
     }).catch(() => {
@@ -262,20 +267,30 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [learnerName, cloudLoaded]);
 
+  const syncProgress = useCallback(async (snapshot: CloudProgress) => {
+    setPendingChanges(1);
+    if (!navigator.onLine) { setSyncStatus("local"); return; }
+    setSyncStatus("syncing");
+    try {
+      const response = await fetch("/api/progress", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(snapshot) });
+      if (!response.ok) throw new Error("Sync failed");
+      setSyncStatus("synced");
+      setPendingChanges(0);
+    } catch {
+      setSyncStatus("error");
+    }
+  }, []);
+
   useEffect(() => {
     if (!learnerName || !cloudLoaded) return;
-    const snapshot: CloudProgress = { displayName: learnerName, completed, currentDay: current + 1, skillsDone, writings, mistakes, activityDates, badges, preferences, pronunciationResults, studyMinutes };
+    const snapshot: CloudProgress = { displayName: learnerName, completed, currentDay: current + 1, skillsDone, writings, mistakes, activityDates, badges, preferences, pronunciationResults, studyMinutes, dailyTests };
+    latestSnapshotRef.current = snapshot;
     window.localStorage.setItem("grammar-studio-cloud-progress", JSON.stringify(snapshot));
     const timer = window.setTimeout(() => {
-      setPendingChanges(1);
-      if (!navigator.onLine) { setSyncStatus("local"); return; }
-      setSyncStatus("syncing");
-      void fetch("/api/progress", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(snapshot) })
-        .then((response) => { if (!response.ok) throw new Error("Sync failed"); setSyncStatus("synced"); setPendingChanges(0); })
-        .catch(() => setSyncStatus("error"));
+      void syncProgress(snapshot);
     }, 700);
     return () => window.clearTimeout(timer);
-  }, [activityDates, badges, cloudLoaded, completed, current, learnerName, mistakes, preferences, pronunciationResults, skillsDone, studyMinutes, writings]);
+  }, [activityDates, badges, cloudLoaded, completed, current, dailyTests, learnerName, mistakes, preferences, pronunciationResults, skillsDone, studyMinutes, syncProgress, writings]);
 
   useEffect(() => {
     const environmentFrame = window.requestAnimationFrame(() => {
@@ -284,8 +299,11 @@ export default function Home() {
       setToday(todayKey());
       setDisplayDate(new Date().toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }));
     });
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
+    const handleOnline = () => {
+      setIsOnline(true);
+      if (latestSnapshotRef.current) void syncProgress(latestSnapshotRef.current);
+    };
+    const handleOffline = () => { setIsOnline(false); setSyncStatus("local"); };
     const handleInstallPrompt = (event: Event) => {
       event.preventDefault();
       setInstallPrompt(event as InstallPromptEvent);
@@ -324,7 +342,7 @@ export default function Home() {
       window.removeEventListener("appinstalled", handleInstalled);
       navigator.serviceWorker?.removeEventListener("message", handleServiceWorkerMessage);
     };
-  }, []);
+  }, [syncProgress]);
 
   useEffect(() => () => {
     audioRef.current?.pause();
@@ -460,7 +478,7 @@ export default function Home() {
 
   const exportLearnerData = () => {
     const safeName = learnerName || "learner";
-    const report = { learnerName, learnerEmail, exportedAt: new Date().toISOString(), progress, completed, skillsDone, writings, mistakes, activityDates, badges: allBadges, preferences, pronunciationResults, studyMinutes };
+    const report = { learnerName, learnerEmail, exportedAt: new Date().toISOString(), progress, completed, skillsDone, writings, mistakes, activityDates, badges: allBadges, preferences, pronunciationResults, studyMinutes, dailyTests };
     const url = URL.createObjectURL(new Blob([JSON.stringify(report, null, 2)], { type: "application/json" }));
     const link = document.createElement("a");
     link.href = url;
@@ -1041,7 +1059,7 @@ export default function Home() {
           </section>
 
           <SpeakingRecorder key={lesson.day} target={lesson.examples[0].en} onScore={(score, transcript) => setPronunciationResults((results) => [...results.filter((item) => item.day !== lesson.day), { day: lesson.day, score, transcript, updatedAt: new Date().toISOString() }].sort((a, b) => a.day - b.day))} />
-          <DailyTestHub key={learnerName} learnerName={learnerName} lesson={lesson} onGoToDay={(day) => {
+          <DailyTestHub key={learnerName} learnerName={learnerName} lesson={lesson} savedRecords={dailyTests} onRecordsChange={setDailyTests} onGoToDay={(day) => {
             const index = lessons.findIndex((item) => item.day === day);
             if (index >= 0) goToLesson(index);
           }} />

@@ -54,6 +54,37 @@ export type PronunciationResult = {
   updatedAt: string;
 };
 
+export type CloudDailyTestRecord = {
+  day: number;
+  attempts: number;
+  latestScore: number;
+  bestScore: number;
+  totalQuestions: number;
+  incorrectIds: string[];
+  updatedAt: number;
+};
+
+export type CloudDailyTestRecords = Record<number, CloudDailyTestRecord>;
+
+function mergeCloudDailyTests(local: CloudDailyTestRecords, remote: CloudDailyTestRecords): CloudDailyTestRecords {
+  const merged: CloudDailyTestRecords = {};
+  const days = new Set([...Object.keys(local), ...Object.keys(remote)].map(Number));
+  for (const day of days) {
+    const localRecord = local[day];
+    const remoteRecord = remote[day];
+    if (!localRecord) { merged[day] = remoteRecord; continue; }
+    if (!remoteRecord) { merged[day] = localRecord; continue; }
+    const newest = localRecord.updatedAt >= remoteRecord.updatedAt ? localRecord : remoteRecord;
+    merged[day] = {
+      ...newest,
+      attempts: Math.max(localRecord.attempts, remoteRecord.attempts),
+      bestScore: Math.max(localRecord.bestScore, remoteRecord.bestScore),
+      updatedAt: Math.max(localRecord.updatedAt, remoteRecord.updatedAt),
+    };
+  }
+  return merged;
+}
+
 export type CloudProgress = {
   displayName: string;
   completed: number[];
@@ -66,6 +97,7 @@ export type CloudProgress = {
   preferences: LearningPreferences;
   pronunciationResults: PronunciationResult[];
   studyMinutes: Record<string, number>;
+  dailyTests: CloudDailyTestRecords;
 };
 
 export const defaultPreferences: LearningPreferences = {
@@ -87,6 +119,7 @@ export const emptyProgress = (displayName = "Learner"): CloudProgress => ({
   preferences: defaultPreferences,
   pronunciationResults: [],
   studyMinutes: {},
+  dailyTests: {},
 });
 
 export function mergeProgress(local: CloudProgress, remote: CloudProgress): CloudProgress {
@@ -111,5 +144,6 @@ export function mergeProgress(local: CloudProgress, remote: CloudProgress): Clou
       .sort((a, b) => a.day - b.day),
     studyMinutes: Object.fromEntries([...new Set([...Object.keys(local.studyMinutes), ...Object.keys(remote.studyMinutes)])]
       .map((date) => [date, Math.max(local.studyMinutes[date] || 0, remote.studyMinutes[date] || 0)])),
+    dailyTests: mergeCloudDailyTests(local.dailyTests || {}, remote.dailyTests || {}),
   };
 }

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { percent, PASS_PERCENT, parseDailyTestRecords, createTestRecord, getRevisionQuestions, clearRevisedMistakes } from "../src/lib/daily-test-core.ts";
+import { percent, PASS_PERCENT, parseDailyTestRecords, createTestRecord, getRevisionQuestions, clearRevisedMistakes, mergeDailyTestRecords } from "../src/lib/daily-test-core.ts";
 
 const questions = Array.from({ length: 5 }, (_, index) => ({
   id: "day-2-q-" + index, day: 2, prompt: "Question " + index,
@@ -59,4 +59,13 @@ test("reviewed mistakes clear without inflating the test score", () => {
   assert.equal(revised[2].incorrectIds.length, record.incorrectIds.length - 1);
   assert.equal(revised[2].latestScore, record.latestScore);
   assert.equal(revised[2].bestScore, record.bestScore);
+});
+
+test("device and cloud tests keep the newest attempt and highest best score", () => {
+  const olderPerfect = createTestRecord(undefined, 2, questions, correct, 100);
+  const newerRetry = createTestRecord(undefined, 2, questions, [2,2,2,2,2], 200);
+  const merged = mergeDailyTestRecords({ 2: newerRetry }, { 2: olderPerfect });
+  assert.equal(merged[2].updatedAt, 200);
+  assert.equal(merged[2].latestScore, newerRetry.latestScore);
+  assert.equal(merged[2].bestScore, 5);
 });

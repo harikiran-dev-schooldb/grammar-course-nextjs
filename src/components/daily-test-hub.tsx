@@ -6,12 +6,14 @@ import { getDailyTestQuestions, getQuestionsForDay } from "../data/daily-test-qu
 import {
   type DailyTestRecord, type DailyTestRecords, type TestQuestion,
   PASS_PERCENT, percent, parseDailyTestRecords, createTestRecord,
-  getRevisionQuestions, clearRevisedMistakes,
+  getRevisionQuestions, clearRevisedMistakes, mergeDailyTestRecords,
 } from "../lib/daily-test-core";
 
 type Props = {
   learnerName: string;
   lesson: Lesson;
+  savedRecords: DailyTestRecords;
+  onRecordsChange: (records: DailyTestRecords) => void;
   onGoToDay: (day: number) => void;
 };
 
@@ -114,7 +116,7 @@ function DailyQuiz({
   );
 }
 
-export default function DailyTestHub({ lesson, learnerName, onGoToDay }: Props) {
+export default function DailyTestHub({ lesson, learnerName, savedRecords, onRecordsChange, onGoToDay }: Props) {
   const [records, setRecords] = useState<DailyTestRecords>({});
   const [loaded, setLoaded] = useState(false);
   const [storageError, setStorageError] = useState(false);
@@ -128,20 +130,40 @@ export default function DailyTestHub({ lesson, learnerName, onGoToDay }: Props) 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
       try {
-        setRecords(parseDailyTestRecords(
+        const deviceRecords = parseDailyTestRecords(
           window.localStorage.getItem(storageKey(learnerName)),
           lessons.map((item) => item.day),
-        ));
+        );
+        setRecords(deviceRecords);
+        onRecordsChange(deviceRecords);
       } catch {
         setStorageError(true);
       }
       setLoaded(true);
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [learnerName]);
+  }, [learnerName, onRecordsChange]);
+
+  useEffect(() => {
+    if (!loaded) return;
+    const frame = window.requestAnimationFrame(() => {
+      const merged = mergeDailyTestRecords(records, savedRecords);
+      const mergedJson = JSON.stringify(merged);
+      if (mergedJson !== JSON.stringify(records)) setRecords(merged);
+      if (mergedJson !== JSON.stringify(savedRecords)) onRecordsChange(merged);
+      try {
+        window.localStorage.setItem(storageKey(learnerName), mergedJson);
+        setStorageError(false);
+      } catch {
+        setStorageError(true);
+      }
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [learnerName, loaded, onRecordsChange, records, savedRecords]);
 
   const saveRecords = (next: DailyTestRecords) => {
     setRecords(next);
+    onRecordsChange(next);
     try {
       window.localStorage.setItem(storageKey(learnerName), JSON.stringify(next));
       setStorageError(false);
@@ -280,7 +302,7 @@ export default function DailyTestHub({ lesson, learnerName, onGoToDay }: Props) 
           </details>
 
           {storageError && <p className="daily-test-error" role="alert">Your browser is blocking local storage. Scores will work temporarily but may not survive a refresh.</p>}
-          <p className="daily-test-privacy">Your daily test scores and revision history stay in this browser. Passing a test requires at least {PASS_PERCENT}% (4 of 5 correct). Finishing a lesson and passing its test are tracked separately.</p>
+          <p className="daily-test-privacy">Daily test scores and revision history are saved on this device and synced to your Neon account. Passing requires at least {PASS_PERCENT}% (4 of 5 correct). Finishing a lesson and passing its test are tracked separately.</p>
         </>
       )}
     </section>
