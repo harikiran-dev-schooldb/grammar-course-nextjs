@@ -394,7 +394,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .site-shell .foundation-stars > span { color: #e5a525; font-size: 27px; line-height: 1; }
 .site-shell .foundation-stars strong { margin-top: 3px; color: #8a651f; font-size: 25px; }
 .site-shell .foundation-stars small { color: #8a7651; font-size: 9px; font-weight: 800; }
-.site-shell .foundation-tabs { margin-top: 24px; padding: 6px; display: grid; grid-template-columns: repeat(3,1fr); gap: 5px; position: relative; z-index: 1; border-radius: 16px; background: #eef1f7; }
+.site-shell .foundation-tabs { margin-top: 24px; padding: 6px; display: grid; grid-template-columns: repeat(4,1fr); gap: 5px; position: relative; z-index: 1; border-radius: 16px; background: #eef1f7; }
 .site-shell .foundation-tabs button { min-height: 52px; padding: 9px 12px; display: flex; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 12px; color: #647087; background: transparent; font-size: 12px; cursor: pointer; }
 .site-shell .foundation-tabs button > span { font-size: 16px; font-weight: 900; }
 .site-shell .foundation-tabs button.active { color: #fff; background: linear-gradient(135deg,#3155c6,#1d3789); box-shadow: 0 9px 20px rgba(49,85,198,.22); }
@@ -449,6 +449,65 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .site-shell .sentence-actions button { min-height: 42px; padding: 8px 14px; border: 1px solid #dbe1ed; border-radius: 11px; color: #5f6b83; background: #fff; font-size: 11px; font-weight: 800; cursor: pointer; }
 .site-shell .sentence-actions button:last-child { border-color: #3155c6; color: #fff; background: #3155c6; }
 .site-shell .sentence-actions button:disabled { opacity: .4; }
+.site-shell .reading-adventure { margin-top: 16px; position: relative; z-index: 1; }
+.site-shell .adventure-intro { padding: 21px 24px; display: flex; align-items: center; justify-content: space-between; gap: 20px; overflow: hidden; border-radius: 20px; color: #fff; background: linear-gradient(120deg,#13265e,#3155c6 58%,#5e7ce2); }
+.site-shell .adventure-intro h3 { margin: 4px 0 3px; color: #fff; font-size: 24px; }
+.site-shell .adventure-intro p { margin: 3px 0 0; color: #dce6ff; font-size: 11px; }
+.site-shell .adventure-intro .kicker { color: #ffdb79; }
+.site-shell .adventure-intro > span { font-size: 65px; filter: drop-shadow(0 9px 12px rgba(4,14,50,.25)); }
+.site-shell .story-worlds { margin-top: 12px; display: grid; grid-template-columns: repeat(3,1fr); gap: 9px; }
+.site-shell .story-worlds button { min-height: 82px; padding: 11px 13px; display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; align-items: center; column-gap: 10px; border: 1px solid #dfe5f1; border-radius: 15px; color: #24304d; background: #fff; text-align: left; cursor: pointer; }
+.site-shell .story-worlds button > span { grid-row: 1 / 3; font-size: 30px; }
+.site-shell .story-worlds small { color: #7a8499; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
+.site-shell .story-worlds strong { font-size: 12px; }
+.site-shell .story-worlds i { grid-column: 2; margin-top: 3px; color: #b17a09; font-size: 8px; font-style: normal; font-weight: 850; }
+.site-shell .story-worlds button.active { border-color: #6f8fe1; background: #edf2ff; box-shadow: 0 7px 18px rgba(49,85,198,.1); }
+.site-shell .story-worlds button:disabled { opacity: .55; cursor: not-allowed; }
+.site-shell .adventure-learning-grid { margin-top: 12px; display: grid; grid-template-columns: 1.25fr .75fr; gap: 12px; }
+.site-shell .blend-lab, .site-shell .sight-word-lab, .site-shell .story-reader, .site-shell .story-question { padding: 17px; border: 1px solid #e1e6ef; border-radius: 18px; background: #f8f9fc; }
+.site-shell .adventure-section-title { display: flex; align-items: center; gap: 9px; }
+.site-shell .adventure-section-title > span { width: 27px; height: 27px; display: grid; place-items: center; flex: 0 0 auto; border-radius: 9px; color: #fff; background: #3155c6; font-size: 11px; font-weight: 900; }
+.site-shell .adventure-section-title strong, .site-shell .adventure-section-title small { display: block; }
+.site-shell .adventure-section-title strong { color: #202d4d; font-size: 12px; }
+.site-shell .adventure-section-title small { margin-top: 2px; color: #7a8499; font-size: 9px; }
+.site-shell .blend-buttons { margin-top: 13px; display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+.site-shell .blend-buttons button { min-height: 60px; padding: 8px; display: flex; align-items: center; justify-content: center; gap: 4px; border: 1px solid #dce3f0; border-radius: 12px; color: #334267; background: #fff; cursor: pointer; }
+.site-shell .blend-buttons span { color: #3155c6; font-size: 17px; font-weight: 900; }
+.site-shell .blend-buttons i { color: #9aa3b5; font-size: 10px; font-style: normal; }
+.site-shell .blend-buttons b { margin-left: 3px; color: #172348; font-size: 17px; }
+.site-shell .blend-buttons small { font-size: 9px; }
+.site-shell .sight-word-lab > div:last-child { margin-top: 13px; display: grid; grid-template-columns: repeat(2,1fr); gap: 8px; }
+.site-shell .sight-word-lab button { min-height: 40px; border: 1px solid #f1d89a; border-radius: 11px; color: #765614; background: #fff8e4; font-size: 14px; font-weight: 900; cursor: pointer; }
+.site-shell .sight-word-lab button small { margin-left: 5px; font-size: 8px; }
+.site-shell .story-reader { margin-top: 12px; }
+.site-shell .story-book { margin-top: 13px; display: grid; grid-template-columns: 190px 1fr; overflow: hidden; border: 1px solid #dde4f1; border-radius: 16px; background: #fff; }
+.site-shell .story-book-art { min-height: 220px; padding: 20px; display: grid; align-content: center; justify-items: center; color: #fff; background: linear-gradient(145deg,#294bb4,#172b6b); text-align: center; }
+.site-shell .story-book-art > span { font-size: 64px; }
+.site-shell .story-book-art small { margin-top: 10px; color: #cddaff; font-size: 9px; font-weight: 850; text-transform: uppercase; letter-spacing: .08em; }
+.site-shell .story-book-art strong { margin-top: 4px; font-size: 17px; }
+.site-shell .story-book-page { padding: 22px; align-self: center; }
+.site-shell .read-along-text { margin: 0; color: #1d2946; font-size: 21px; font-weight: 750; line-height: 1.85; }
+.site-shell .read-along-text span { padding: 2px 2px; border-radius: 5px; transition: .18s ease; }
+.site-shell .read-along-text span.speaking { color: #1a3d9f; background: #ffe79b; box-shadow: 0 0 0 2px #ffe79b; }
+.site-shell .story-book-page > p[lang="te"] { margin: 8px 0 0; color: #687690; font-size: 11px; line-height: 1.65; }
+.site-shell .story-audio-actions { margin-top: 15px; display: flex; gap: 8px; }
+.site-shell .story-audio-actions button { min-height: 41px; padding: 8px 13px; border: 1px solid #dbe2f0; border-radius: 11px; color: #3155c6; background: #edf2ff; font-size: 10px; font-weight: 850; cursor: pointer; }
+.site-shell .story-audio-actions button:last-child { border-color: #3155c6; color: #fff; background: #3155c6; }
+.site-shell .story-audio-actions button.listening { background: #d14460; animation: schooldb-pulse 1s infinite; }
+.site-shell .reading-result { margin: 11px 0 0; padding: 10px 12px; display: grid; gap: 2px; border-radius: 11px; color: #665428; background: #fff7dd; font-size: 10px; }
+.site-shell .reading-result.great { color: #17684d; background: #e8f7f0; }
+.site-shell .reading-result.try { color: #7b5523; background: #fff4d7; }
+.site-shell .reading-result small { opacity: .75; }
+.site-shell .story-question { margin-top: 12px; }
+.site-shell .story-question h4 { margin: 14px 0 2px; color: #1e2b4b; font-size: 16px; }
+.site-shell .story-question > p[lang="te"] { margin: 0; color: #69758b; font-size: 10px; }
+.site-shell .story-question > div:nth-of-type(2) { margin-top: 11px; display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+.site-shell .story-question > div:nth-of-type(2) button { min-height: 45px; border: 1px solid #dce3ef; border-radius: 11px; color: #273451; background: #fff; font-size: 11px; font-weight: 800; cursor: pointer; }
+.site-shell .story-question button.correct { border-color: #70bf9f!important; color: #17684d!important; background: #e8f7f0!important; }
+.site-shell .story-question button.wrong { border-color: #eda99e!important; color: #914c3f!important; background: #fcece8!important; }
+.site-shell .story-question > p.answer-right, .site-shell .story-question > p.answer-wrong { margin: 10px 0 0; padding: 9px 11px; border-radius: 10px; font-size: 10px; font-weight: 800; }
+.site-shell .story-question > p.answer-right { color: #17684d; background: #e8f7f0; }
+.site-shell .story-question > p.answer-wrong { color: #914c3f; background: #fcece8; }
 .site-shell .foundation-footer { margin-top: 17px; padding-top: 17px; display: flex; justify-content: space-between; align-items: center; gap: 15px; border-top: 1px solid #e4e7ef; }
 .site-shell .foundation-footer strong, .site-shell .foundation-footer span { display: block; }
 .site-shell .foundation-footer strong { color: #202c49; font-size: 12px; }
@@ -922,12 +981,20 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .site-shell .foundation-stars strong { margin: 0; }
   .site-shell .foundation-tabs button { padding: 7px 5px; }
   .site-shell .foundation-tabs button b { font-size: 10px; }
+  .site-shell .foundation-tabs { grid-template-columns: repeat(2,1fr); }
   .site-shell .alphabet-grid { grid-template-columns: repeat(5,1fr); padding: 10px; }
   .site-shell .first-word-game { grid-template-columns: 1fr; padding: 15px; }
   .site-shell .game-progress, .site-shell .foundation-feedback, .site-shell .next-foundation-game { grid-column: 1; }
   .site-shell .next-foundation-game { justify-self: stretch; }
   .site-shell .foundation-feedback, .site-shell .foundation-footer, .site-shell .foundation-ready { align-items: stretch; flex-direction: column; }
   .site-shell .foundation-footer button, .site-shell .foundation-ready > button { width: 100%; }
+  .site-shell .story-worlds { grid-template-columns: 1fr; }
+  .site-shell .adventure-learning-grid { grid-template-columns: 1fr; }
+  .site-shell .story-book { grid-template-columns: 1fr; }
+  .site-shell .story-book-art { min-height: 150px; }
+  .site-shell .story-audio-actions { display: grid; }
+  .site-shell .story-question > div:nth-of-type(2) { grid-template-columns: 1fr; }
+  .site-shell .blend-buttons { grid-template-columns: 1fr; }
   .site-shell .journey-board { padding: 21px 15px; }
   .site-shell .journey-board-header { display: grid; gap: 17px; }
   .site-shell .journey-level { width: 100%; min-width: 0; }
