@@ -1,4 +1,4 @@
-const VERSION = "grammar-studio-v20-120-lessons";
+const VERSION = "grammar-studio-v21-user-guide";
 const CORE_CACHE = `${VERSION}-core`;
 // Preserve previously downloaded audio: the audio library itself has not changed.
 const AUDIO_CACHE = "grammar-studio-v5-complete-english-audio";

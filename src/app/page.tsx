@@ -14,6 +14,7 @@ import TodayHome from "@/components/today-home";
 import SpeakingMissionCoach from "@/components/speaking-mission-coach";
 import CurriculumPath from "@/components/curriculum-path";
 import CourseLibrary from "@/components/course-library";
+import UserGuide from "@/components/user-guide";
 import type { CourseLevel } from "@/data/expanded-curriculum";
 import { authClient } from "@/lib/auth-client";
 import { claimUsername, getMyUsername, requestLegacyPasswordReset, requestUsernamePasswordReset, signInWithUsername } from "@/app/actions/username-auth";
@@ -117,7 +118,7 @@ export default function Home() {
   const [hubView, setHubView] = useState<HubView | null>(null);
   const [testAnswers, setTestAnswers] = useState<Record<number, number>>({});
   const [testScore, setTestScore] = useState<number | null>(null);
-  const [appView, setAppView] = useState<"home" | "learn" | "curriculum" | "library">("home");
+  const [appView, setAppView] = useState<"home" | "learn" | "curriculum" | "library" | "guide">("home");
   const [libraryLevel, setLibraryLevel] = useState<CourseLevel>("START");
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const latestSnapshotRef = useRef<CloudProgress | null>(null);
@@ -903,6 +904,7 @@ export default function Home() {
           <div className="top-progress-copy"><span>Course progress</span><strong>{completed.length} / 30</strong></div>
           <div className="progress-rail"><span style={{ width: `${progress}%` }} /></div>
         </div>
+        <button type="button" className="guide-button" onClick={() => { setHubView(null); setAppView("guide"); window.scrollTo({top:0,behavior:"smooth"}); }}>? <span>User guide</span></button>
         <button type="button" className="account-button" onClick={() => setHubView("dashboard")} title="Open learner dashboard"><span>{learnerName.charAt(0).toUpperCase()}</span><small>{learnerName}</small><b>{syncStatus === "synced" ? "Cloud synced" : syncStatus === "syncing" ? "Syncing…" : pendingChanges ? `${pendingChanges} update waiting` : syncStatus === "error" ? "Sync retry" : "Offline saved"}</b></button>
       </header>
 
@@ -982,7 +984,11 @@ export default function Home() {
         {menuOpen && <button className="page-overlay" aria-label="Close navigation" onClick={() => setMenuOpen(false)} />}
 
         <main id="lesson-content" className="lesson-main" tabIndex={-1}>
-          {appView === "home" ? <TodayHome
+          {appView === "guide" ? <UserGuide
+            onHome={() => { setAppView("home"); window.scrollTo({top:0,behavior:"smooth"}); }}
+            onPath={() => { setAppView("curriculum"); window.scrollTo({top:0,behavior:"smooth"}); }}
+            onProgress={() => setHubView("dashboard")}
+          /> : appView === "home" ? <TodayHome
             learnerName={learnerName}
             day={lesson.day}
             lessonTitle={lesson.title}
@@ -1400,6 +1406,7 @@ export default function Home() {
         <button type="button" onClick={() => { setHubView(null); setMenuOpen(false); setAppView("home"); window.scrollTo({top:0,behavior:"smooth"}); }} className={appView === "home" && !hubView && !menuOpen ? "active" : ""}><span aria-hidden="true">⌂</span><b>Today</b></button>
         <button type="button" onClick={() => { setMenuOpen(false); setAppView("curriculum"); window.scrollTo({top:0,behavior:"smooth"}); }} className={appView === "curriculum" ? "active" : ""}><span aria-hidden="true">☷</span><b>Path</b></button>
         <button type="button" onClick={() => setHubView("revision")} className={hubView === "revision" ? "active" : ""}><span aria-hidden="true">↻</span><b>Review</b>{reviewItems.length > 0 && <i>{reviewItems.length}</i>}</button>
+        <button type="button" onClick={() => { setHubView(null); setMenuOpen(false); setAppView("guide"); window.scrollTo({top:0,behavior:"smooth"}); }} className={appView === "guide" ? "active" : ""}><span aria-hidden="true">?</span><b>Guide</b></button>
         <button type="button" onClick={() => setHubView("dashboard")} className={hubView === "dashboard" ? "active" : ""}><span aria-hidden="true">◔</span><b>Progress</b></button>
       </nav>
     </div>
