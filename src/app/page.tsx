@@ -15,6 +15,7 @@ import SpeakingMissionCoach from "@/components/speaking-mission-coach";
 import CurriculumPath from "@/components/curriculum-path";
 import CourseLibrary from "@/components/course-library";
 import UserGuide from "@/components/user-guide";
+import PhonicsAcademy from "@/components/phonics-academy";
 import type { CourseLevel } from "@/data/expanded-curriculum";
 import { authClient } from "@/lib/auth-client";
 import { claimUsername, getMyUsername, requestLegacyPasswordReset, requestUsernamePasswordReset, signInWithUsername } from "@/app/actions/username-auth";
@@ -118,7 +119,7 @@ export default function Home() {
   const [hubView, setHubView] = useState<HubView | null>(null);
   const [testAnswers, setTestAnswers] = useState<Record<number, number>>({});
   const [testScore, setTestScore] = useState<number | null>(null);
-  const [appView, setAppView] = useState<"home" | "learn" | "curriculum" | "library" | "guide">("home");
+  const [appView, setAppView] = useState<"home" | "learn" | "curriculum" | "library" | "guide" | "phonics">("home");
   const [libraryLevel, setLibraryLevel] = useState<CourseLevel>("START");
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const latestSnapshotRef = useRef<CloudProgress | null>(null);
@@ -984,10 +985,11 @@ export default function Home() {
         {menuOpen && <button className="page-overlay" aria-label="Close navigation" onClick={() => setMenuOpen(false)} />}
 
         <main id="lesson-content" className="lesson-main" tabIndex={-1}>
-          {appView === "guide" ? <UserGuide
+          {appView === "phonics" ? <PhonicsAcademy completedSkills={skillsDone} onComplete={completeFoundationSkill} onBack={() => {setAppView("home");window.scrollTo({top:0,behavior:"smooth"})}} /> : appView === "guide" ? <UserGuide
             onHome={() => { setAppView("home"); window.scrollTo({top:0,behavior:"smooth"}); }}
             onPath={() => { setAppView("curriculum"); window.scrollTo({top:0,behavior:"smooth"}); }}
             onProgress={() => setHubView("dashboard")}
+            onPhonics={() => { setAppView("phonics"); window.scrollTo({top:0,behavior:"smooth"}); }}
           /> : appView === "home" ? <TodayHome
             learnerName={learnerName}
             day={lesson.day}
@@ -1006,6 +1008,7 @@ export default function Home() {
             onSpeaking={() => openLearningTarget("#speaking-missions")}
             onProgress={() => setHubView("dashboard")}
             onLessons={() => setAppView("curriculum")}
+            onPhonics={() => { setAppView("phonics"); window.scrollTo({top:0,behavior:"smooth"}); }}
           /> : appView === "library" ? <CourseLibrary initialLevel={libraryLevel} ageMode={preferences.ageMode} completedSkills={skillsDone} onComplete={completeFoundationSkill} onBack={()=>setAppView("curriculum")} /> : appView === "curriculum" ? <CurriculumPath
             ageMode={preferences.ageMode}
             readingLevel={preferences.readingLevel}

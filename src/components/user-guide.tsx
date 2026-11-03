@@ -1,6 +1,6 @@
 "use client";
 
-type Props = { onHome: () => void; onPath: () => void; onProgress: () => void };
+type Props = { onHome: () => void; onPath: () => void; onProgress: () => void; onPhonics: () => void };
 
 const steps = [
   { icon: "1", title: "Start with Today", te: "Today పేజీతో మొదలుపెట్టండి", text: "Press Continue. The app chooses the right next activity, so you do not need to search.", textTe: "Continue నొక్కండి. తర్వాత ఏ activity చేయాలో app మీకు చూపిస్తుంది." },
@@ -12,7 +12,7 @@ const steps = [
   { icon: "7", title: "Learn every day", te: "ప్రతిరోజూ నేర్చుకోండి", text: "Fifteen to twenty minutes daily is better than a long session once a week.", textTe: "వారానికి ఒకసారి ఎక్కువసేపు కాకుండా, రోజూ 15–20 నిమిషాలు practice చేయండి." },
 ];
 
-export default function UserGuide({ onHome, onPath, onProgress }: Props) {
+export default function UserGuide({ onHome, onPath, onProgress, onPhonics }: Props) {
   return <section className="user-guide" aria-labelledby="guide-title">
     <header className="guide-hero">
       <button type="button" onClick={onHome}>← Today</button>
@@ -24,6 +24,7 @@ export default function UserGuide({ onHome, onPath, onProgress }: Props) {
       <button type="button" onClick={onHome}><span>▶</span><b>Start today</b><small>ఈ రోజు lesson</small></button>
       <button type="button" onClick={onPath}><span>🗺️</span><b>Open learning path</b><small>Learning order చూడండి</small></button>
       <button type="button" onClick={onProgress}><span>◔</span><b>See my progress</b><small>మీ progress చూడండి</small></button>
+      <button type="button" onClick={onPhonics}><span>🔤</span><b>Open Phonics</b><small>Sounds నుంచి reading</small></button>
     </nav>
 
     <section className="guide-section">
@@ -34,7 +35,7 @@ export default function UserGuide({ onHome, onPath, onProgress }: Props) {
     <section className="guide-section guide-levels">
       <div className="guide-heading"><p className="kicker">Where should I begin?</p><h2>Choose the right starting point</h2></div>
       <div>
-        <article><span>🌱</span><h3>Cannot read simple words yet</h3><p>Begin with <b>Starter Zone</b>: letters, sounds, first words and short sentences.</p><p lang="te">చిన్న English words చదవలేకపోతే Starter Zone నుంచి మొదలుపెట్టండి.</p></article>
+        <article><span>🌱</span><h3>Cannot read simple words yet</h3><p>Begin with <b>Phonics Academy</b>: sounds, blending, first words and fluent reading.</p><p lang="te">చిన్న English words చదవలేకపోతే Phonics Academy నుంచి మొదలుపెట్టండి.</p></article>
         <article><span>📘</span><h3>Can read words like cat and school</h3><p>Begin with <b>START or A1</b>, then follow every unit in order.</p><p lang="te">cat, school లాంటి words చదవగలిగితే START లేదా A1 నుంచి మొదలుపెట్టండి.</p></article>
         <article><span>🚀</span><h3>Can speak short sentences</h3><p>Take the <b>placement test</b> and use its recommended level.</p><p lang="te">చిన్న sentences మాట్లాడగలిగితే placement test రాయండి.</p></article>
       </div>

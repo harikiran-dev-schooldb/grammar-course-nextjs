@@ -14,6 +14,8 @@ const curriculumPath = readFileSync(new URL("../src/components/curriculum-path.t
 const courseLibrary = readFileSync(new URL("../src/components/course-library.tsx", import.meta.url), "utf8");
 const expandedCurriculum = readFileSync(new URL("../src/data/expanded-curriculum.ts", import.meta.url), "utf8");
 const userGuide = readFileSync(new URL("../src/components/user-guide.tsx", import.meta.url), "utf8");
+const phonicsAcademy = readFileSync(new URL("../src/components/phonics-academy.tsx", import.meta.url), "utf8");
+const phonicsCourse = readFileSync(new URL("../src/data/phonics-course.ts", import.meta.url), "utf8");
 const worker = readFileSync(new URL("../public/sw.js", import.meta.url), "utf8");
 
 test("lesson overview displays completion based on the existing course progress", () => {
@@ -61,7 +63,7 @@ test("Starter Zone teaches pre-readers before grammar", () => {
   assert.doesNotMatch(foundation, /activeLetter\[0\].*activeLetter\[0\].*is for/);
 });
 test("offline shell updates without discarding downloaded audio", () => {
-  assert.match(worker, /grammar-studio-v21-user-guide/);
+  assert.match(worker, /grammar-studio-v22-phonics-academy/);
   assert.match(worker, /grammar-studio-v5-complete-english-audio/);
 });
 
@@ -130,4 +132,18 @@ test("bilingual user guide explains the complete learning workflow", () => {
   assert.match(userGuide, /Your progress saves automatically/);
   assert.match(userGuide, /Download offline/);
   assert.match(userGuide, /lang="te"/);
+});
+
+test("complete phonics academy teaches sounds through fluent reading", () => {
+  assert.match(page, /appView === "phonics"/);
+  assert.match(todayHome, /Phonics Academy/);
+  assert.equal((phonicsCourse.match(/id:"/g) || []).length, 12);
+  assert.match(phonicsCourse, /Digraphs/);
+  assert.match(phonicsCourse, /Magic e/);
+  assert.match(phonicsCourse, /R-controlled vowels/);
+  assert.match(phonicsCourse, /Syllables & reading fluency/);
+  assert.match(phonicsAcademy, /Learn sounds/);
+  assert.match(phonicsAcademy, /Blend a word/);
+  assert.match(phonicsAcademy, /Quick check/);
+  assert.match(phonicsAcademy, /phonics-\$\{stage.id\}/);
 });
