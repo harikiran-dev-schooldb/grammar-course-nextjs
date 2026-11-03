@@ -55,13 +55,13 @@ export default function CompleteLearningHub({ learnerName, day, level, streak, w
       </header>
 
       <nav className="complete-hub-tabs" aria-label="Complete learning centre">
-        <button type="button" className={view === "coach" ? "active" : ""} onClick={() => setView("coach")}><span>✨</span><b>My Coach</b><small>Adaptive daily path</small></button>
+        <button type="button" className={view === "coach" ? "active" : ""} onClick={() => setView("coach")}><span>✨</span><b>My Coach</b><small>Adaptive learning path</small></button>
         <button type="button" className={view === "worlds" ? "active" : ""} onClick={() => setView("worlds")}><span>🗺️</span><b>Practice Worlds</b><small>Play with English</small></button>
         <button type="button" className={view === "parent" ? "active" : ""} onClick={() => setView("parent")}><span>📊</span><b>Parent View</b><small>Weekly report</small></button>
       </nav>
 
       {view === "coach" && <div className="adaptive-coach">
-        <div className="coach-greeting"><div><span>Day {day} · {levelLabel(level)} level</span><h3>{firstName}&apos;s best next steps</h3><p>Short, focused practice based on mastery and recent mistakes.</p></div><strong>{streak}<small>day streak 🔥</small></strong></div>
+        <div className="coach-greeting"><div><span>Core lesson {day} · {levelLabel(level)} level</span><h3>{firstName}&apos;s best next steps</h3><p>Short, focused practice based on mastery and recent mistakes.</p></div><strong>{streak}<small>day streak 🔥</small></strong></div>
         <div className="adaptive-actions">{actions.map((action, index) => <article key={action.label}><span>{action.icon}</span><div><small>Mission {index + 1}</small><h4>{action.label}</h4><p>{action.detail}</p></div><button type="button" onClick={action.action}>{action.button} →</button></article>)}</div>
         <div className="level-ladder">
           <div><p className="kicker">Basics to advanced</p><h3>Your level journey</h3></div>

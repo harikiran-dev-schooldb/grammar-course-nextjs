@@ -162,7 +162,7 @@ export default function FoundationPlayground({ readingLevel, completedSkills, on
         <div className="reading-level-grid">
           <button type="button" onClick={() => onChooseLevel("pre-reader")}><span>ABC</span><strong>I&apos;m learning letters</strong><small>అక్షరాలు, sounds నుంచి మొదలు</small></button>
           <button type="button" onClick={() => onChooseLevel("word-reader")}><span>CAT</span><strong>I can read small words</strong><small>cat, boy, book లాంటి words</small></button>
-          <button type="button" onClick={() => onChooseLevel("sentence-reader")}><span>Aa</span><strong>I can read sentences</strong><small>Start the 30-day English course</small></button>
+          <button type="button" onClick={() => onChooseLevel("sentence-reader")}><span>Aa</span><strong>I can read sentences</strong><small>Start the Core English Path</small></button>
         </div>
       </section>
     );
@@ -171,7 +171,7 @@ export default function FoundationPlayground({ readingLevel, completedSkills, on
   if (readingLevel === "sentence-reader" && !expanded) {
     return (
       <section className="foundation-ready section-block">
-        <div><span aria-hidden="true">✓</span><div><strong>Reading foundation ready</strong><small>You can begin the guided 30-day English course.</small></div></div>
+        <div><span aria-hidden="true">✓</span><div><strong>Reading foundation ready</strong><small>You can begin the guided Core English Path.</small></div></div>
         <button type="button" onClick={() => setExpanded(true)}>Open Starter Zone</button>
       </section>
     );

@@ -3,11 +3,11 @@
 type Props = { onHome: () => void; onPath: () => void; onProgress: () => void; onPhonics: () => void; onReadingCoach: () => void };
 
 const steps = [
-  { icon: "1", title: "Start with Today", te: "Today పేజీతో మొదలుపెట్టండి", text: "Press Continue. The app chooses the right next activity, so you do not need to search.", textTe: "Continue నొక్కండి. తర్వాత ఏ activity చేయాలో app మీకు చూపిస్తుంది." },
+  { icon: "1", title: "Start from Learning Home", te: "Learning Home నుంచి మొదలుపెట్టండి", text: "Press Continue. The app chooses the right next activity, so you do not need to search.", textTe: "Continue నొక్కండి. తర్వాత ఏ activity చేయాలో app మీకు చూపిస్తుంది." },
   { icon: "2", title: "Learn the lesson", te: "పాఠాన్ని నేర్చుకోండి", text: "Listen to the teacher explanation, read the examples, and understand the Telugu meaning.", textTe: "Teacher explanation వినండి, examples చదవండి, తెలుగు అర్థం తెలుసుకోండి." },
   { icon: "3", title: "Practise", te: "Practice చేయండి", text: "Answer each question. A wrong answer is okay—the app explains and lets you try again.", textTe: "ప్రతి ప్రశ్నకు answer ఇవ్వండి. తప్పు వచ్చినా పరవాలేదు; మళ్లీ ప్రయత్నించండి." },
   { icon: "4", title: "Speak aloud", te: "బిగ్గరగా మాట్లాడండి", text: "Open the speaking activity, allow the microphone, listen once, and repeat clearly.", textTe: "Speaking activity తెరిచి microphone allow చేసి, ఒకసారి విని స్పష్టంగా పలకండి." },
-  { icon: "5", title: "Finish the test", te: "Test పూర్తి చేయండి", text: "Complete the daily checkpoint and mark the lesson complete before moving ahead.", textTe: "Daily checkpoint పూర్తి చేసి lesson complete చేసిన తర్వాత ముందుకు వెళ్లండి." },
+  { icon: "5", title: "Finish the checkpoint", te: "Checkpoint పూర్తి చేయండి", text: "Complete the lesson checkpoint and mark the lesson complete before moving ahead.", textTe: "Lesson checkpoint పూర్తి చేసి lesson complete చేసిన తర్వాత ముందుకు వెళ్లండి." },
   { icon: "6", title: "Review weak skills", te: "తప్పులను మళ్లీ నేర్చుకోండి", text: "Review brings back difficult words and questions at the right time.", textTe: "కష్టమైన words, questions సరైన సమయంలో Review లో మళ్లీ వస్తాయి." },
   { icon: "7", title: "Learn every day", te: "ప్రతిరోజూ నేర్చుకోండి", text: "Fifteen to twenty minutes daily is better than a long session once a week.", textTe: "వారానికి ఒకసారి ఎక్కువసేపు కాకుండా, రోజూ 15–20 నిమిషాలు practice చేయండి." },
 ];
@@ -15,13 +15,13 @@ const steps = [
 export default function UserGuide({ onHome, onPath, onProgress, onPhonics, onReadingCoach }: Props) {
   return <section className="user-guide" aria-labelledby="guide-title">
     <header className="guide-hero">
-      <button type="button" onClick={onHome}>← Today</button>
+      <button type="button" onClick={onHome}>← Learning home</button>
       <div><p className="kicker">User guide · ఉపయోగించే విధానం</p><h1 id="guide-title">Learn English without getting lost</h1><p>Follow one clear path from your first sound to confident English.</p><p lang="te">మొదటి అక్షరం నుంచి ధైర్యంగా English మాట్లాడే వరకు ఒక స్పష్టమైన learning path.</p></div>
       <span aria-hidden="true">🧭</span>
     </header>
 
     <nav className="guide-quick-actions" aria-label="User guide quick actions">
-      <button type="button" onClick={onHome}><span>▶</span><b>Start today</b><small>ఈ రోజు lesson</small></button>
+      <button type="button" onClick={onHome}><span>▶</span><b>Continue learning</b><small>మీ lesson కొనసాగించండి</small></button>
       <button type="button" onClick={onPath}><span>🗺️</span><b>Open learning path</b><small>Learning order చూడండి</small></button>
       <button type="button" onClick={onProgress}><span>◔</span><b>See my progress</b><small>మీ progress చూడండి</small></button>
       <button type="button" onClick={onPhonics}><span>🔤</span><b>Open Phonics</b><small>Sounds నుంచి reading</small></button>
@@ -29,7 +29,7 @@ export default function UserGuide({ onHome, onPath, onProgress, onPhonics, onRea
     </nav>
 
     <section className="guide-section">
-      <div className="guide-heading"><p className="kicker">Your daily routine</p><h2>What to do, in the correct order</h2><p lang="te">ప్రతిరోజూ ఈ order లో activities పూర్తి చేయండి.</p></div>
+      <div className="guide-heading"><p className="kicker">Your learning routine</p><h2>What to do, in the correct order</h2><p lang="te">మీకు వీలైనప్పుడు ఈ order లో activities పూర్తి చేయండి.</p></div>
       <div className="guide-steps">{steps.map((step) => <article key={step.icon}><span>{step.icon}</span><div><h3>{step.title}</h3><strong lang="te">{step.te}</strong><p>{step.text}</p><p lang="te">{step.textTe}</p></div></article>)}</div>
     </section>
 
@@ -55,6 +55,6 @@ export default function UserGuide({ onHome, onPath, onProgress, onPhonics, onRea
       <details><summary>Can children and adults use the same course?<span>+</span></summary><p>Yes. Open the Path and choose Kids, Teens or Adults to change the lesson situations.</p><p lang="te">అవును. Path లో Kids, Teens లేదా Adults mode ఎంచుకోండి.</p></details>
     </section>
 
-    <footer className="guide-finish"><div><p className="kicker">Ready?</p><h2>Take one small step today.</h2><p lang="te">ఈ రోజు ఒక చిన్న అడుగు వేయండి.</p></div><button type="button" onClick={onHome}>Start today’s lesson →</button></footer>
+    <footer className="guide-finish"><div><p className="kicker">Ready?</p><h2>Continue your English journey.</h2><p lang="te">మీ English journey ని కొనసాగించండి.</p></div><button type="button" onClick={onHome}>Continue learning →</button></footer>
   </section>;
 }

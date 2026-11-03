@@ -41,7 +41,7 @@ export default function ReadAloudCoach({ results, onResult, onComplete, onBack }
   };
 
   return <section className="read-coach" aria-labelledby="read-coach-title">
-    <header className="read-coach-hero"><button type="button" onClick={onBack}>← Today</button><div><p className="kicker">AI Read-Aloud Coach · చదివే సాధన</p><h1 id="read-coach-title">Read. Listen. Improve.</h1><p>Your coach follows every word and shows exactly what to practise next.</p><p lang="te">మీరు చదివే ప్రతి word ని check చేసి, తర్వాత ఏది practice చేయాలో చూపిస్తుంది.</p></div><div className="read-coach-score"><strong>{completed}</strong><small>/ {readingPassages.length}<br/>passages mastered</small></div></header>
+    <header className="read-coach-hero"><button type="button" onClick={onBack}>← Learning home</button><div><p className="kicker">AI Read-Aloud Coach · చదివే సాధన</p><h1 id="read-coach-title">Read. Listen. Improve.</h1><p>Your coach follows every word and shows exactly what to practise next.</p><p lang="te">మీరు చదివే ప్రతి word ని check చేసి, తర్వాత ఏది practice చేయాలో చూపిస్తుంది.</p></div><div className="read-coach-score"><strong>{completed}</strong><small>/ {readingPassages.length}<br/>passages mastered</small></div></header>
 
     <section className="reading-report"><div><small>Reading level</small><strong>{results.length?readingPassages[Math.min(readingPassages.length-1,Math.max(0,completed))].level:"START"}</strong></div><div><small>Average accuracy</small><strong>{average}%</strong></div><div><small>Best reading speed</small><strong>{bestWpm}<i> wpm</i></strong></div><div><small>Words to practise</small><strong>{weakWords.length}</strong></div></section>
 

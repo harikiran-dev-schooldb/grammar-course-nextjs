@@ -6,7 +6,7 @@ import "./schooldb.css";
 
 export const metadata: Metadata = {
   title: "Grammar Studio | Complete English in Telugu",
-  description: "A 30-day complete English course with grammar, listening, reading, writing, speaking, vocabulary, translation, and natural Telugu support.",
+  description: "A complete English-learning app from phonics and first words to advanced speaking, listening, reading, writing, grammar, and vocabulary with Telugu support.",
   applicationName: "Grammar Studio",
   manifest: "/manifest.webmanifest",
   appleWebApp: {

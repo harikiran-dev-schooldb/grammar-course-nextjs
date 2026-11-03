@@ -43,13 +43,13 @@ test("answer selections and language controls expose state", () => {
   assert.match(page, /aria-pressed=\{chosen\}/);
   assert.match(page, /aria-pressed=\{language === mode\}/);
 });
-test("guided journey connects placement, daily mission, mastery and course roadmap", () => {
+test("guided journey connects placement, lesson mission, mastery and complete pathway", () => {
   assert.match(page, /<LearningJourney/);
   assert.match(page, /conversationDays/);
   assert.match(page, /wordDays/);
   assert.match(journey, /Next best action/);
   assert.match(journey, /Your six-skill mastery/);
-  assert.match(journey, /From foundations to real conversation/);
+  assert.match(journey, /From first sounds to advanced expression/);
 });
 test("Starter Zone teaches pre-readers before grammar", () => {
   assert.match(page, /<FoundationPlayground/);
@@ -84,7 +84,7 @@ test("adaptive command centre connects every English learning mode", () => {
 
 test("guided route makes the lesson order and next action explicit", () => {
   assert.match(routeNavigator, /Your lesson roadmap/);
-  assert.match(routeNavigator, /Guided lesson · Day/);
+  assert.match(routeNavigator, /Core pathway · Lesson/);
   assert.match(routeNavigator, /completionPercent/);
   assert.match(routeNavigator, /Lesson route progress/);
   assert.match(routeNavigator, /Previous/);
@@ -93,9 +93,9 @@ test("guided route makes the lesson order and next action explicit", () => {
   assert.match(page, /LessonRouteNavigator key=\{lesson.day\} day=\{lesson.day\} steps=\{journeySteps\}/);
 });
 
-test("Today home gives one focused entry point instead of a long page", () => {
+test("Learning home gives one focused entry point instead of a long page", () => {
   assert.match(todayHome, /Continue learning/);
-  assert.match(todayHome, /Daily challenge/);
+  assert.match(todayHome, /Speaking practice/);
   assert.match(todayHome, /Recommended order/);
   assert.match(page, /appView === "home"/);
 });

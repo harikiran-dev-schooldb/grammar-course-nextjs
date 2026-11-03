@@ -46,7 +46,7 @@ export default function LessonRouteNavigator({ day, steps, onNavigate }: Props) 
   return (
     <nav className="lesson-route-navigator" aria-label="Guided lesson route">
       <div className="route-summary">
-        <div className="route-identity"><span aria-hidden="true">↗</span><div><small>Guided lesson · Day {String(day).padStart(2, "0")}</small><b>Your lesson roadmap</b></div></div>
+        <div className="route-identity"><span aria-hidden="true">↗</span><div><small>Core pathway · Lesson {String(day).padStart(2, "0")}</small><b>Your lesson roadmap</b></div></div>
         <div className="route-status">
           <div><span><strong>{completedCount}</strong> of {steps.length} complete</span><b>Step {activeIndex + 1} · {active.label}</b></div>
           <i className="route-progress-rail" role="progressbar" aria-label="Lesson route progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={completionPercent}><em style={{ width: `${completionPercent}%` }} /></i>

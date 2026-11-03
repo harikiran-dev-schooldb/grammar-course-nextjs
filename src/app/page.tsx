@@ -445,7 +445,7 @@ export default function Home() {
     { key: "speak", number: "03", label: "Speak", labelTe: "మాట్లాడండి", detail: "Record your voice and check pronunciation.", done: pronunciationDone, target: "#speaking-practice" },
     { key: "conversation", number: "04", label: "Real talk", labelTe: "సంభాషణ", detail: "Choose a natural reply in a real-life conversation.", done: conversationDone, target: "#conversation-lab" },
     { key: "words", number: "05", label: "Words", labelTe: "పదాలు", detail: "Listen, repeat and practise today's spellings.", done: wordDays.includes(lesson.day) || (spellingChecked && spellingInput.trim().toLocaleLowerCase("en") === activeWord.word.toLocaleLowerCase("en")), target: "#word-power" },
-    { key: "test", number: "06", label: "Test", labelTe: "Test రాయండి", detail: "Take the daily test and revise any mistakes.", done: dailyTestDone, target: "#daily-tests" },
+    { key: "test", number: "06", label: "Checkpoint", labelTe: "Checkpoint పూర్తి చేయండి", detail: "Complete the lesson checkpoint and revise any mistakes.", done: dailyTestDone, target: "#daily-tests" },
     { key: "finish", number: "07", label: "Finish", labelTe: "పూర్తి చేయండి", detail: "Mark the lesson complete and continue your journey.", done: completed.includes(lesson.day), target: "#lesson-finish" },
   ];
   const skillPercent = (prefix: string) => Math.min(100, Math.round((skillsDone.filter((key) => key.startsWith(`${prefix}-`)).length / lessons.length) * 100));
@@ -905,7 +905,7 @@ export default function Home() {
 
   return (
     <div className="site-shell">
-      <a className="skip-to-lesson" href="#lesson-content">Skip to today’s lesson</a>
+      <a className="skip-to-lesson" href="#lesson-content">Skip to current lesson</a>
       <header className="topbar">
         <button className="menu-button" type="button" aria-label={menuOpen ? "Close course navigation" : "Open course navigation"} aria-controls="course-sidebar" aria-expanded={menuOpen} onClick={() => setMenuOpen((open) => !open)}><span /><span /><span /></button>
         <button className="brand" type="button" onClick={() => { setAppView("home"); setMenuOpen(false); }} aria-label="Grammar Studio home">
@@ -913,7 +913,7 @@ export default function Home() {
           <span className="brand-copy"><strong>Grammar Studio</strong><small>English · తెలుగు</small></span>
         </button>
         <div className="top-progress">
-          <div className="top-progress-copy"><span>Course progress</span><strong>{completed.length} / 30</strong></div>
+          <div className="top-progress-copy"><span>Core path progress</span><strong>{completed.length} / {lessons.length}</strong></div>
           <div className="progress-rail"><span style={{ width: `${progress}%` }} /></div>
         </div>
         <button type="button" className="guide-button" onClick={() => { setHubView(null); setAppView("guide"); window.scrollTo({top:0,behavior:"smooth"}); }}>? <span>User guide</span></button>
@@ -929,21 +929,21 @@ export default function Home() {
             </nav>
 
             {hubView === "dashboard" && <div className="hub-body dashboard-body">
-              <div className="metric-grid"><article><span>Course</span><strong>{progress}%</strong><small>{completed.length} of 30 lessons</small></article><article><span>Today&apos;s goal</span><strong>{Math.min(100, Math.round(((studyMinutes[today] || 0) / preferences.dailyGoalMinutes) * 100))}%</strong><small>{studyMinutes[today] || 0} of {preferences.dailyGoalMinutes} minutes</small></article><article><span>Current streak</span><strong>{streak} 🔥</strong><small>days learning</small></article><article><span>To review</span><strong>{reviewItems.length}</strong><small>spaced practice items</small></article></div>
+              <div className="metric-grid"><article><span>Core path</span><strong>{progress}%</strong><small>{completed.length} of {lessons.length} lessons</small></article><article><span>Today&apos;s goal</span><strong>{Math.min(100, Math.round(((studyMinutes[today] || 0) / preferences.dailyGoalMinutes) * 100))}%</strong><small>{studyMinutes[today] || 0} of {preferences.dailyGoalMinutes} minutes</small></article><article><span>Current streak</span><strong>{streak} 🔥</strong><small>days learning</small></article><article><span>To review</span><strong>{reviewItems.length}</strong><small>spaced practice items</small></article></div>
               <section className="badge-section"><h3>Achievements</h3><div className="badge-list">{allBadges.length ? allBadges.map((badge) => <span key={badge}>★ {badge}</span>) : <p>Complete your first lesson to earn a badge.</p>}</div></section>
-              <section className="teacher-report"><div><h3>Teacher / parent report</h3><p>Starter activities {foundationSkillsDone.length} · Grammar {completed.length}/30 · Skill practice {courseSkillsDone.length}/120 · Read-aloud passages {readingCoachResults.length}/12 · Real conversations {conversationDays.length}/30 · Word sets {wordDays.length}/30 · Pronunciation checks {pronunciationResults.length} · Revision queue {reviewItems.length}</p><p lang="te">పాఠాలు, reading accuracy, practice, pronunciation, mistakes అన్నీ ఒకే చోట చూడవచ్చు.</p></div><div className="report-actions"><button type="button" onClick={() => window.print()}>Print / Save PDF</button><button type="button" onClick={exportLearnerData}>Download backup</button></div></section>
+              <section className="teacher-report"><div><h3>Teacher / parent report</h3><p>Starter activities {foundationSkillsDone.length} · Core lessons {completed.length}/{lessons.length} · Skill practice {courseSkillsDone.length}/120 · Read-aloud passages {readingCoachResults.length}/12 · Real conversations {conversationDays.length}/{lessons.length} · Word sets {wordDays.length}/{lessons.length} · Pronunciation checks {pronunciationResults.length} · Revision queue {reviewItems.length}</p><p lang="te">పాఠాలు, reading accuracy, practice, pronunciation, mistakes అన్నీ ఒకే చోట చూడవచ్చు.</p></div><div className="report-actions"><button type="button" onClick={() => window.print()}>Print / Save PDF</button><button type="button" onClick={exportLearnerData}>Download backup</button></div></section>
               <button type="button" className="hub-logout" onClick={() => void logout()}>Sign out of this account</button>
             </div>}
 
-            {hubView === "placement" && <div className="hub-body"><div className="revision-intro"><h3>5-minute placement test</h3><p>Answer five questions. We will recommend the best starting stage without locking any lessons.</p><p lang="te">ఐదు ప్రశ్నలకు సమాధానం ఇవ్వండి. మీకు సరైన starting level చూపిస్తాం.</p></div><div className="placement-test">{placementQuestions.map((item, index) => <fieldset key={item.day}><legend>{index + 1}. {item.practice.prompt}</legend>{item.practice.options.map((option, optionIndex) => <label key={option}><input type="radio" name={`placement-${item.day}`} checked={placementAnswers[item.day] === optionIndex} onChange={() => { setPlacementAnswers((answers) => ({ ...answers, [item.day]: optionIndex })); setPlacementScore(null); }} />{option}</label>)}</fieldset>)}</div><button type="button" className="submit-test" disabled={Object.keys(placementAnswers).length < placementQuestions.length} onClick={submitPlacement}>Find my level</button>{placementScore !== null && <div className="placement-result"><strong>{placementScore}% · {preferences.placementLevel === "confident" ? "Confident English" : preferences.placementLevel === "everyday" ? "Everyday English" : "Beginner foundations"}</strong><p>Your recommended starting lesson is ready. You can still open all 30 lessons.</p></div>}</div>}
+            {hubView === "placement" && <div className="hub-body"><div className="revision-intro"><h3>5-minute placement test</h3><p>Answer five questions. We will recommend the best starting stage without locking any lessons.</p><p lang="te">ఐదు ప్రశ్నలకు సమాధానం ఇవ్వండి. మీకు సరైన starting level చూపిస్తాం.</p></div><div className="placement-test">{placementQuestions.map((item, index) => <fieldset key={item.day}><legend>{index + 1}. {item.practice.prompt}</legend>{item.practice.options.map((option, optionIndex) => <label key={option}><input type="radio" name={`placement-${item.day}`} checked={placementAnswers[item.day] === optionIndex} onChange={() => { setPlacementAnswers((answers) => ({ ...answers, [item.day]: optionIndex })); setPlacementScore(null); }} />{option}</label>)}</fieldset>)}</div><button type="button" className="submit-test" disabled={Object.keys(placementAnswers).length < placementQuestions.length} onClick={submitPlacement}>Find my level</button>{placementScore !== null && <div className="placement-result"><strong>{placementScore}% · {preferences.placementLevel === "confident" ? "Confident English" : preferences.placementLevel === "everyday" ? "Everyday English" : "Beginner foundations"}</strong><p>Your recommended starting lesson is ready. Every level remains open for exploration.</p></div>}</div>}
 
             {hubView === "goals" && <div className="hub-body goals-panel"><div className="revision-intro"><h3>Daily goal & reminders</h3><p>Study time is counted while this course is open. Your goal and reminder settings sync across devices.</p><p lang="te">రోజూ కొంత సమయం practice చేయడానికి goal, reminder పెట్టుకోండి.</p></div><label>Daily study goal<select value={preferences.dailyGoalMinutes} onChange={(event) => setPreferences((value) => ({ ...value, dailyGoalMinutes: Number(event.target.value) }))}>{[10,15,20,30].map((minutes) => <option key={minutes} value={minutes}>{minutes} minutes</option>)}</select></label><label>Reminder time<input type="time" value={preferences.reminderTime} onChange={(event) => setPreferences((value) => ({ ...value, reminderTime: event.target.value }))} /></label><div className="goal-progress"><span><b>{studyMinutes[today] || 0}</b> / {preferences.dailyGoalMinutes} minutes today</span><i><em style={{ width: `${Math.min(100, Math.round(((studyMinutes[today] || 0) / preferences.dailyGoalMinutes) * 100))}%` }} /></i></div><button type="button" className="submit-test" onClick={() => void enableReminders()}>{preferences.remindersEnabled ? "Update reminder permission" : "Enable daily reminder"}</button>{reminderMessage && <p className="goal-message">{reminderMessage}</p>}<small>Browser reminders work while the installed app or browser is allowed to run notifications.</small></div>}
 
-            {hubView === "revision" && <div className="hub-body"><div className="revision-intro"><h3>Spaced-repetition revision</h3><p>Weak grammar, conversation, reading, and spelling return after 1, 3, 7, and 14 days until mastered.</p><p lang="te">మీరు తప్పు చేసిన ప్రశ్నలు సరైన సమయంలో మళ్లీ practice కోసం వస్తాయి.</p></div>{reviewItems.length ? <div className="revision-list">{reviewItems.map((item) => <article key={item.id}><span>{item.type} · Day {item.day} · tried {item.attempts}× · mastery {item.mastery || 0}/4</span><h4>{item.prompt}</h4><p>Correct answer: <strong>{item.answer}</strong></p><div><button type="button" onClick={() => { setHubView(null); goToLesson(item.day - 1); }}>Open lesson</button><button type="button" onClick={() => completeReview(item.id)}>I reviewed this ✓</button></div></article>)}</div> : <div className="empty-hub"><strong>All caught up!</strong><p>No reviews are due today. Completed items return later to strengthen memory.</p></div>}</div>}
+            {hubView === "revision" && <div className="hub-body"><div className="revision-intro"><h3>Spaced-repetition revision</h3><p>Weak grammar, conversation, reading, and spelling return after 1, 3, 7, and 14 days until mastered.</p><p lang="te">మీరు తప్పు చేసిన ప్రశ్నలు సరైన సమయంలో మళ్లీ practice కోసం వస్తాయి.</p></div>{reviewItems.length ? <div className="revision-list">{reviewItems.map((item) => <article key={item.id}><span>{item.type} · Lesson {item.day} · tried {item.attempts}× · mastery {item.mastery || 0}/4</span><h4>{item.prompt}</h4><p>Correct answer: <strong>{item.answer}</strong></p><div><button type="button" onClick={() => { setHubView(null); goToLesson(item.day - 1); }}>Open lesson</button><button type="button" onClick={() => completeReview(item.id)}>I reviewed this ✓</button></div></article>)}</div> : <div className="empty-hub"><strong>All caught up!</strong><p>No reviews are due today. Completed items return later to strengthen memory.</p></div>}</div>}
 
             {hubView === "test" && <div className="hub-body"><div className="revision-intro"><h3>Final 10-question test</h3><p>Score 80% or higher to unlock your course certificate.</p><p lang="te">Certificate పొందడానికి కనీసం 80% score చేయండి.</p></div><div className="final-test">{testQuestions.map((item, questionIndex) => <fieldset key={item.day}><legend>{questionIndex + 1}. {item.practice.prompt}</legend>{item.practice.options.map((option, optionIndex) => <label key={option}><input type="radio" name={`test-${item.day}`} checked={testAnswers[item.day] === optionIndex} onChange={() => { setTestAnswers((answers) => ({ ...answers, [item.day]: optionIndex })); setTestScore(null); }} />{option}</label>)}</fieldset>)}</div><button type="button" className="submit-test" disabled={Object.keys(testAnswers).length < testQuestions.length} onClick={submitFinalTest}>Check my final test</button>{testScore !== null && <div className={`test-result ${testScore >= 80 ? "pass" : "retry"}`}><strong>{testScore}% — {testScore >= 80 ? "Passed! Certificate unlocked." : "Keep learning and try again."}</strong><p>{testScore >= 80 ? "Excellent work. చాలా బాగా చేశారు!" : "Review your mistakes and aim for 80%."}</p></div>}</div>}
 
-            {hubView === "certificate" && <div className="hub-body"><div className={`certificate ${badges.includes("Final test passed") ? "unlocked" : "locked"}`}><span className="certificate-mark">G</span><p>Certificate of Completion</p><h3>This certifies that</h3><strong>{learnerName}</strong><h4>completed the Grammar Studio English course</h4><p>English grammar · listening · reading · writing · speaking · vocabulary</p><div><span>30-day bilingual learning journey</span><span>{displayDate}</span></div>{!badges.includes("Final test passed") && <aside>Pass the final test with 80% to unlock this certificate.</aside>}</div>{badges.includes("Final test passed") && <button type="button" className="submit-test" onClick={() => window.print()}>Print / Save certificate as PDF</button>}</div>}
+            {hubView === "certificate" && <div className="hub-body"><div className={`certificate ${badges.includes("Final test passed") ? "unlocked" : "locked"}`}><span className="certificate-mark">G</span><p>Certificate of Completion</p><h3>This certifies that</h3><strong>{learnerName}</strong><h4>completed the Grammar Studio Core English Path</h4><p>English grammar · listening · reading · writing · speaking · vocabulary</p><div><span>Complete bilingual English pathway</span><span>{displayDate}</span></div>{!badges.includes("Final test passed") && <aside>Pass the final test with 80% to unlock this certificate.</aside>}</div>{badges.includes("Final test passed") && <button type="button" className="submit-test" onClick={() => window.print()}>Print / Save certificate as PDF</button>}</div>}
           </section>
         </div>
       )}
@@ -954,7 +954,7 @@ export default function Home() {
             <span>Course lessons</span><span aria-hidden="true">×</span>
           </button>
           <div className="sidebar-intro">
-            <p className="kicker">Your English learning path</p><h2>Every skill.<br />Real progress.</h2><p>30 guided days of grammar, listening, reading, writing, and speaking. One lesson at a time.</p>
+            <p className="kicker">Your complete English path</p><h2>Every skill.<br />Lifelong progress.</h2><p>Learn from phonics and first words to fluent speaking and advanced expression—at your own pace.</p>
             <section className={`offline-card ${offlineStatus}`} aria-live="polite">
               <div className="offline-card-heading"><strong>Offline course</strong><span className={isOnline ? "online" : "offline"}>{isOnline ? "Online" : "Offline"}</span></div>
               <p>{offlineStatus === "ready" ? "Course, audio, login identity, and progress are ready offline. Changes sync when internet returns." : offlineStatus === "downloading" ? `Downloading neural audio ${offlineProgress.completed} / ${offlineProgress.total}…` : offlineStatus === "error" ? "Download paused. Connect to the internet and try again." : "Save every activity and all 420 audio clips to this device (about 12 MB)."}</p>
@@ -982,7 +982,7 @@ export default function Home() {
                   const index = item.day - 1;
                   const done = completed.includes(item.day);
                   return (
-                    <button type="button" key={item.day} className={`lesson-link ${index === current ? "active" : ""} ${done ? "completed" : ""}`} aria-label={`Day ${item.day}: ${item.title}${done ? " — completed" : ""}`} aria-current={index === current ? "page" : undefined} onClick={() => goToLesson(index)}>
+                    <button type="button" key={item.day} className={`lesson-link ${index === current ? "active" : ""} ${done ? "completed" : ""}`} aria-label={`Lesson ${item.day}: ${item.title}${done ? " — completed" : ""}`} aria-current={index === current ? "page" : undefined} onClick={() => goToLesson(index)}>
                       <span className="lesson-number">{done ? <CheckIcon /> : item.day}</span>
                       <span className="lesson-link-copy"><strong>{item.title}</strong><small>{item.titleTe}</small></span>
                     </button>
@@ -1008,7 +1008,7 @@ export default function Home() {
             lessonTitle={lesson.title}
             lessonTitleTe={lesson.titleTe}
             nextLabel={journeySteps.find((step) => !step.done)?.label || "Next lesson"}
-            nextDetail={journeySteps.find((step) => !step.done)?.detail || "Today’s lesson is complete. Continue to the next day."}
+            nextDetail={journeySteps.find((step) => !step.done)?.detail || "This lesson is complete. Continue to the next lesson whenever you are ready."}
             progress={progress}
             streak={streak}
             minutes={studyMinutes[today] || 0}
@@ -1039,10 +1039,10 @@ export default function Home() {
             onOpenLibrary={(level) => {setLibraryLevel(level);setAppView("library");window.scrollTo({top:0,behavior:"smooth"})}}
           /> : <>
           <section className="lesson-hero" id="lesson-overview">
-            <div className="hero-topline"><span>{lesson.unit}</span><span className="day-chip">Day {lesson.day} of 30</span></div>
+            <div className="hero-topline"><span>{lesson.unit}</span><span className="day-chip">Core lesson {lesson.day} of {lessons.length}</span></div>
             <div className="hero-grid">
               <div>
-                <p className="lesson-label">Today’s lesson</p>
+                <p className="lesson-label">Current lesson</p>
                 <h1>{lesson.title}</h1>
                 {(language === "te" || language === "both") && <p className="hero-telugu" lang="te">{lesson.titleTe}</p>}
                 {(language === "en" || language === "both") && <p className="hero-objective">{lesson.objectiveEn}</p>}
@@ -1080,18 +1080,18 @@ export default function Home() {
             reviewCount={reviewItems.length}
             steps={journeySteps}
             skills={[
-              { label: "Grammar", value: progress, detail: `${completed.length}/30 lessons` },
-              { label: "Listening", value: skillPercent("listen"), detail: `${skillsDone.filter((key) => key.startsWith("listen-")).length}/30 activities` },
-              { label: "Reading", value: skillPercent("read"), detail: `${skillsDone.filter((key) => key.startsWith("read-")).length}/30 activities` },
-              { label: "Writing", value: skillPercent("write"), detail: `${Object.keys(writings).length}/30 samples` },
-              { label: "Speaking", value: Math.round((pronunciationResults.length / lessons.length) * 100), detail: `${pronunciationResults.length}/30 checks` },
-              { label: "Vocabulary", value: Math.round((wordDays.length / lessons.length) * 100), detail: `${wordDays.length}/30 word sets` },
+              { label: "Grammar", value: progress, detail: `${completed.length}/${lessons.length} core lessons` },
+              { label: "Listening", value: skillPercent("listen"), detail: `${skillsDone.filter((key) => key.startsWith("listen-")).length}/${lessons.length} activities` },
+              { label: "Reading", value: skillPercent("read"), detail: `${skillsDone.filter((key) => key.startsWith("read-")).length}/${lessons.length} activities` },
+              { label: "Writing", value: skillPercent("write"), detail: `${Object.keys(writings).length}/${lessons.length} samples` },
+              { label: "Speaking", value: Math.round((pronunciationResults.length / lessons.length) * 100), detail: `${pronunciationResults.length}/${lessons.length} checks` },
+              { label: "Vocabulary", value: Math.round((wordDays.length / lessons.length) * 100), detail: `${wordDays.length}/${lessons.length} word sets` },
             ]}
             stages={[
               { label: "ABC & first words", days: "Starter Zone", value: Math.min(100, Math.round((foundationSkillsDone.length / 12) * 100)), active: preferences.readingLevel !== "sentence-reader" },
-              { label: "Beginner foundations", days: "Days 1–10", value: stageProgress(1, 10), active: preferences.readingLevel === "sentence-reader" && lesson.day <= 10 },
-              { label: "Everyday English", days: "Days 11–20", value: stageProgress(11, 20), active: lesson.day > 10 && lesson.day <= 20 },
-              { label: "Confident English", days: "Days 21–30", value: stageProgress(21, 30), active: lesson.day > 20 },
+              { label: "Beginner foundations", days: "Core lessons 1–10", value: stageProgress(1, 10), active: preferences.readingLevel === "sentence-reader" && lesson.day <= 10 },
+              { label: "Everyday English", days: "Core lessons 11–20", value: stageProgress(11, 20), active: lesson.day > 10 && lesson.day <= 20 },
+              { label: "Confident English", days: "Core lessons 21–30", value: stageProgress(21, 30), active: lesson.day > 20 },
             ]}
             onOpenPlacement={() => setHubView("placement")}
             onOpenReview={() => setHubView("revision")}
@@ -1267,7 +1267,7 @@ export default function Home() {
                 <h2>Choose what you would say</h2>
                 <p lang="te">ఈ సందర్భంలో మీరు ఏమి చెబుతారో ఎంచుకోండి.</p>
               </div>
-              <span className="conversation-day">Day {lesson.day}</span>
+              <span className="conversation-day">Core lesson {lesson.day}</span>
             </div>
 
             <div className="scenario-meta">
@@ -1419,7 +1419,7 @@ export default function Home() {
         </main>
       </div>
       <nav className="mobile-dock" aria-label="Quick navigation">
-        <button type="button" onClick={() => { setHubView(null); setMenuOpen(false); setAppView("home"); window.scrollTo({top:0,behavior:"smooth"}); }} className={appView === "home" && !hubView && !menuOpen ? "active" : ""}><span aria-hidden="true">⌂</span><b>Today</b></button>
+        <button type="button" onClick={() => { setHubView(null); setMenuOpen(false); setAppView("home"); window.scrollTo({top:0,behavior:"smooth"}); }} className={appView === "home" && !hubView && !menuOpen ? "active" : ""}><span aria-hidden="true">⌂</span><b>Learn</b></button>
         <button type="button" onClick={() => { setMenuOpen(false); setAppView("curriculum"); window.scrollTo({top:0,behavior:"smooth"}); }} className={appView === "curriculum" ? "active" : ""}><span aria-hidden="true">☷</span><b>Path</b></button>
         <button type="button" onClick={() => setHubView("revision")} className={hubView === "revision" ? "active" : ""}><span aria-hidden="true">↻</span><b>Review</b>{reviewItems.length > 0 && <i>{reviewItems.length}</i>}</button>
         <button type="button" onClick={() => { setHubView(null); setMenuOpen(false); setAppView("guide"); window.scrollTo({top:0,behavior:"smooth"}); }} className={appView === "guide" ? "active" : ""}><span aria-hidden="true">?</span><b>Guide</b></button>

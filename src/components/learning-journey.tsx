@@ -73,10 +73,10 @@ export default function LearningJourney({
     <section className="journey-board section-block" aria-labelledby="journey-heading">
       <header className="journey-board-header">
         <div>
-          <p className="kicker">Your guided learning journey</p>
+          <p className="kicker">Your personalised learning journey</p>
           <h2 id="journey-heading">Good to see you, {firstName}.</h2>
-          <p>Follow today&apos;s mission in order. We&apos;ll guide you from understanding to confident speaking.</p>
-          <p lang="te">ఈ రోజు mission ను క్రమంగా పూర్తి చేయండి. అర్థం చేసుకోవడం నుంచి ధైర్యంగా మాట్లాడటం వరకు మేము guide చేస్తాం.</p>
+          <p>Follow the lesson mission in order. We&apos;ll guide you from understanding to confident speaking at your pace.</p>
+          <p lang="te">Lesson mission ను క్రమంగా పూర్తి చేయండి. మీ pace లో అర్థం చేసుకోవడం నుంచి ధైర్యంగా మాట్లాడటం వరకు మేము guide చేస్తాం.</p>
         </div>
         <button type="button" className="journey-level" onClick={onOpenPlacement}>
           <span>{level ? "Your level" : "Start here"}</span>
@@ -87,10 +87,10 @@ export default function LearningJourney({
 
       <div className="journey-command-grid">
         <article className="next-action-card">
-          <div className="next-action-topline"><span>Next best action</span><b>Day {day}</b></div>
+          <div className="next-action-topline"><span>Next best action</span><b>Core lesson {day}</b></div>
           <div className="next-action-icon" aria-hidden="true">{lessonComplete ? "✓" : nextStep?.number}</div>
           <div>
-            <h3>{lessonComplete ? "Today&apos;s mission is complete" : nextStep?.label}</h3>
+            <h3>{lessonComplete ? "This lesson mission is complete" : nextStep?.label}</h3>
             <p>{lessonComplete ? "Excellent work. Continue while the ideas are fresh, or review a weak point." : nextStep?.detail}</p>
             {!lessonComplete && <p lang="te">తర్వాత: {nextStep?.labelTe}</p>}
           </div>
@@ -110,7 +110,7 @@ export default function LearningJourney({
         </aside>
       </div>
 
-      <div className="mission-flow" aria-label="Today's lesson mission">
+      <div className="mission-flow" aria-label="Current lesson mission">
         {steps.map((step, index) => (
           <button type="button" key={step.key} className={`${step.done ? "done" : ""} ${nextStep?.key === step.key ? "current" : ""}`} onClick={() => onNavigate(step.target)}>
             <span className="mission-step-number">{step.done ? "✓" : step.number}</span>
@@ -137,7 +137,7 @@ export default function LearningJourney({
       </div>
 
       <div className="course-roadmap">
-        <div><p className="kicker">30-day roadmap</p><h3>From foundations to real conversation</h3></div>
+        <div><p className="kicker">Complete learning pathway</p><h3>From first sounds to advanced expression</h3></div>
         <div className="roadmap-stages">
           {stages.map((stage, index) => (
             <article key={stage.label} className={stage.active ? "active" : ""}>

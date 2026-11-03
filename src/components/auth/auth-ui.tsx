@@ -106,7 +106,7 @@ export default function AuthShell({ children }: { children: ReactNode }) {
         </section>
 
         <aside className="auth-showcase" aria-label="About the Grammar Studio course">
-          <div className="auth-showcase-top"><span className="auth-course-pill">YOUR 30-DAY ENGLISH JOURNEY</span><span className="auth-showcase-language">English <span>×</span> తెలుగు</span></div>
+          <div className="auth-showcase-top"><span className="auth-course-pill">YOUR COMPLETE ENGLISH JOURNEY</span><span className="auth-showcase-language">English <span>×</span> తెలుగు</span></div>
           <div className="auth-showcase-center">
             <span className="auth-showcase-eyebrow">Small lessons. Real confidence.</span>
             <h2>Speak better.<br /><em>Every day.</em></h2>
@@ -114,10 +114,10 @@ export default function AuthShell({ children }: { children: ReactNode }) {
             <div className="auth-course-steps">
               <div><span>01</span><strong>Understand</strong><small>Short lessons & clear examples</small></div>
               <div><span>02</span><strong>Practise</strong><small>Speak, listen, read & write</small></div>
-              <div><span>03</span><strong>Grow</strong><small>Daily tests & smart revision</small></div>
+              <div><span>03</span><strong>Grow</strong><small>Lesson checkpoints & smart revision</small></div>
             </div>
           </div>
-          <div className="auth-showcase-bottom"><span>30 guided days</span><span>•</span><span>Bilingual learning</span><span>•</span><span>Practice offline</span></div>
+          <div className="auth-showcase-bottom"><span>Basics to advanced</span><span>•</span><span>Bilingual learning</span><span>•</span><span>Practice offline</span></div>
         </aside>
       </div>
     </main>

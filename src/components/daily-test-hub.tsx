@@ -54,8 +54,8 @@ function DailyQuiz({
     <div className="daily-quiz" aria-labelledby="daily-quiz-title">
       <div className="daily-quiz-heading">
         <div>
-          <p className="kicker">Day {lesson.day} assessment</p>
-          <h3 id="daily-quiz-title">{lesson.title} — Daily Test</h3>
+          <p className="kicker">Core lesson {lesson.day} assessment</p>
+          <h3 id="daily-quiz-title">{lesson.title} — Lesson Checkpoint</h3>
           <p lang="te">{lesson.titleTe} · ప్రతి ప్రశ్నకు సమాధానం ఇవ్వండి.</p>
         </div>
         <span className="daily-test-pass-label">Pass: {PASS_PERCENT}%</span>
@@ -109,7 +109,7 @@ function DailyQuiz({
       ) : (
         <div className="daily-test-submit-row">
           <span>{answers.filter((answer) => answer !== null).length} / {questions.length} answered</span>
-          <button type="button" className="daily-test-primary" disabled={!complete || !questions.length} onClick={submit}>Submit daily test</button>
+          <button type="button" className="daily-test-primary" disabled={!complete || !questions.length} onClick={submit}>Submit lesson checkpoint</button>
         </div>
       )}
     </div>
@@ -218,16 +218,16 @@ export default function DailyTestHub({ lesson, learnerName, savedRecords, onReco
   };
 
   return (
-    <section className="daily-test-hub section-block" id="daily-tests" aria-label="Daily tests and personalized revision">
+    <section className="daily-test-hub section-block" id="daily-tests" aria-label="Lesson checkpoints and personalised revision">
       <header className="daily-test-header">
-        <div><p className="kicker">Learn • Test • Revise</p><h2>Daily Tests & Smart Revision</h2><p lang="te">ప్రతి రోజు test రాయండి. తప్పులను మళ్లీ practice చేయండి.</p></div>
+        <div><p className="kicker">Learn • Check • Revise</p><h2>Lesson Checkpoints & Smart Revision</h2><p lang="te">ప్రతి lesson తర్వాత checkpoint పూర్తి చేసి, mistakes ని మళ్లీ practice చేయండి.</p></div>
         <span className="daily-test-offline-tag">Works offline</span>
       </header>
       {!loaded ? <p>Loading saved test scores…</p> : (
         <>
           <div className="daily-test-stat-grid" aria-label="Learning dashboard">
-            <div><strong>{allResults.length} / {lessons.length}</strong><span>Days tested</span></div>
-            <div><strong>{passed}</strong><span>Days passed</span></div>
+            <div><strong>{allResults.length} / {lessons.length}</strong><span>Lessons checked</span></div>
+            <div><strong>{passed}</strong><span>Checkpoints passed</span></div>
             <div><strong>{average}%</strong><span>Average best score</span></div>
             <div><strong>{Object.values(records).reduce((sum, item) => sum + item.incorrectIds.length, 0)}</strong><span>Mistakes to revise</span></div>
           </div>
@@ -243,17 +243,17 @@ export default function DailyTestHub({ lesson, learnerName, savedRecords, onReco
                   const day = lessons.find((entry) => entry.day === item.day);
                   return (
                     <button type="button" key={item.day} onClick={() => onGoToDay(item.day)}>
-                      <span>Day {item.day}: {day?.title ?? "Grammar review"}</span>
+                      <span>Lesson {item.day}: {day?.title ?? "Grammar review"}</span>
                       <strong>{percent(item.bestScore, item.totalQuestions)}% best · {item.incorrectIds.length} to revise</strong>
                     </button>
                   );
                 })}
               </div>
-            ) : <p className="daily-revision-empty">No weak topics yet. Complete a daily test to see personalized suggestions.</p>}
+            ) : <p className="daily-revision-empty">No weak topics yet. Complete a lesson checkpoint to see personalised suggestions.</p>}
 
             {currentRevision && (
               <div className="daily-revision-session" aria-live="polite">
-                <div className="daily-revision-session-top"><span>Revision {revisionIndex + 1} / {revisionItems.length}</span><span>From Day {currentRevision.day}</span></div>
+                <div className="daily-revision-session-top"><span>Revision {revisionIndex + 1} / {revisionItems.length}</span><span>From lesson {currentRevision.day}</span></div>
                 <h4>{currentRevision.prompt}</h4>
                 <p lang="te">{currentRevision.promptTe}</p>
                 <fieldset disabled={revisionChecked}>
@@ -286,14 +286,14 @@ export default function DailyTestHub({ lesson, learnerName, savedRecords, onReco
           <DailyQuiz key={lesson.day} lesson={lesson} previous={records[lesson.day]} onSave={saveAttempt} />
 
           <details className="daily-score-history">
-            <summary>View scores for all 30 days</summary>
+            <summary>View scores for all core lessons</summary>
             <div className="daily-score-grid">
               {lessons.map((item) => {
                 const result = records[item.day];
                 const passedDay = result && percent(result.bestScore, result.totalQuestions) >= PASS_PERCENT;
                 return (
                   <button type="button" key={item.day} className={passedDay ? "passed" : ""} onClick={() => onGoToDay(item.day)}>
-                    <strong>Day {item.day}</strong>
+                    <strong>Lesson {item.day}</strong>
                     <span>{result ? percent(result.bestScore, result.totalQuestions) + "% best" : "Not taken"}</span>
                   </button>
                 );
@@ -302,7 +302,7 @@ export default function DailyTestHub({ lesson, learnerName, savedRecords, onReco
           </details>
 
           {storageError && <p className="daily-test-error" role="alert">Your browser is blocking local storage. Scores will work temporarily but may not survive a refresh.</p>}
-          <p className="daily-test-privacy">Daily test scores and revision history are saved on this device and synced to your Neon account. Passing requires at least {PASS_PERCENT}% (4 of 5 correct). Finishing a lesson and passing its test are tracked separately.</p>
+          <p className="daily-test-privacy">Checkpoint scores and revision history are saved on this device and synced to your Neon account. Passing requires at least {PASS_PERCENT}% (4 of 5 correct). Finishing a lesson and passing its checkpoint are tracked separately.</p>
         </>
       )}
     </section>

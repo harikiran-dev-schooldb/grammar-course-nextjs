@@ -27,13 +27,13 @@ export default function TodayHome({ learnerName, day, lessonTitle, lessonTitleTe
   const goalPercent = Math.min(100, Math.round((minutes / Math.max(1, goal)) * 100));
   return <section className="today-home" aria-labelledby="today-home-heading">
     <header className="today-welcome">
-      <div><p className="kicker">Today · ఈ రోజు</p><h1 id="today-home-heading">Ready for a small win, {firstName}?</h1><p>Your next activity is already chosen. Just continue—no searching needed.</p><p lang="te">తర్వాత ఏమి చేయాలో సిద్ధంగా ఉంది. Continue నొక్కి నేర్చుకోవడం మొదలుపెట్టండి.</p></div>
+      <div><p className="kicker">Learning home · నేర్చుకునే స్థలం</p><h1 id="today-home-heading">Ready for your next step, {firstName}?</h1><p>Your learning path is ready. Continue from where you stopped or choose any skill to practise.</p><p lang="te">మీ learning path సిద్ధంగా ఉంది. మీరు ఆపిన చోటు నుంచి continue చేయండి లేదా ఏ skill అయినా practice చేయండి.</p></div>
       <div className="today-streak"><span>🔥</span><strong>{streak}</strong><small>day streak</small></div>
     </header>
 
     <div className="today-primary-grid">
       <article className="continue-card">
-        <div className="continue-topline"><span>Continue learning</span><b>Day {day} of 30</b></div>
+        <div className="continue-topline"><span>Continue learning</span><b>Core lesson {day}</b></div>
         <p className="kicker">{nextLabel} is next</p><h2>{lessonTitle}</h2><p lang="te">{lessonTitleTe}</p><p>{nextDetail}</p>
         <div className="continue-progress"><span><b>{progress}%</b> course complete</span><i><em style={{width:`${progress}%`}} /></i></div>
         <button type="button" onClick={onContinue}>Continue: {nextLabel} <span>→</span></button>
@@ -42,9 +42,9 @@ export default function TodayHome({ learnerName, day, lessonTitle, lessonTitleTe
     </div>
 
     <div className="today-actions">
-      <button type="button" onClick={onSpeaking}><span>🎙️</span><small>Daily challenge</small><strong>{speakingDone ? "Speaking mission complete ✓" : "Start speaking mission"}</strong><p>Answer aloud and receive bilingual coaching.</p><b>{speakingDone ? "Practise again" : "Start mission"} →</b></button>
+      <button type="button" onClick={onSpeaking}><span>🎙️</span><small>Speaking practice</small><strong>{speakingDone ? "Speaking mission complete ✓" : "Start speaking mission"}</strong><p>Answer aloud and receive bilingual coaching.</p><b>{speakingDone ? "Practise again" : "Start mission"} →</b></button>
       <button type="button" onClick={onReview}><span>🧠</span><small>Memory practice</small><strong>{reviewCount ? `${reviewCount} reviews are ready` : "Revision is clear"}</strong><p>Weak words return at the right time.</p><b>{reviewCount ? "Review now" : "See revision"} →</b></button>
-      <button type="button" onClick={onLessons}><span>🗺️</span><small>Explore course</small><strong>All 30 lessons</strong><p>Move from foundations to confident English.</p><b>Open course map →</b></button>
+      <button type="button" onClick={onLessons}><span>🗺️</span><small>Explore the full pathway</small><strong>Basics to advanced</strong><p>Phonics, core English, real conversation and advanced expression.</p><b>Open learning path →</b></button>
       <button type="button" className="phonics-action" onClick={onPhonics}><span>🔤</span><small>Learn to read</small><strong>Phonics Academy</strong><p>Sounds, blending, digraphs and fluent reading.</p><b>Start phonics →</b></button>
     </div>
 
