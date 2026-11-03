@@ -35,6 +35,8 @@ export default function LessonRouteNavigator({ day, steps, onNavigate }: Props) 
   }, [steps]);
 
   const active = steps[activeIndex] || steps[0];
+  const completedCount = steps.filter((step) => step.done).length;
+  const completionPercent = Math.round((completedCount / Math.max(1, steps.length)) * 100);
   const moveTo = (index: number) => {
     const safeIndex = Math.max(0, Math.min(steps.length - 1, index));
     setActiveIndex(safeIndex);
@@ -44,8 +46,11 @@ export default function LessonRouteNavigator({ day, steps, onNavigate }: Props) 
   return (
     <nav className="lesson-route-navigator" aria-label="Guided lesson route">
       <div className="route-summary">
-        <span><b>Day {day} route</b><small>Follow in this order</small></span>
-        <strong>Step {activeIndex + 1} of {steps.length}</strong>
+        <div className="route-identity"><span aria-hidden="true">↗</span><div><small>Guided lesson · Day {String(day).padStart(2, "0")}</small><b>Your lesson roadmap</b></div></div>
+        <div className="route-status">
+          <div><span><strong>{completedCount}</strong> of {steps.length} complete</span><b>Step {activeIndex + 1} · {active.label}</b></div>
+          <i className="route-progress-rail" role="progressbar" aria-label="Lesson route progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={completionPercent}><em style={{ width: `${completionPercent}%` }} /></i>
+        </div>
       </div>
       <div className="route-track" role="list">
         {steps.map((step, index) => <button type="button" role="listitem" key={step.key} className={`${step.done ? "done" : ""} ${index === activeIndex ? "active" : ""}`} aria-current={index === activeIndex ? "step" : undefined} onClick={() => moveTo(index)}><span>{step.done ? "✓" : step.number}</span><b>{step.label}</b><small lang="te">{step.labelTe}</small>{index < steps.length - 1 && <i aria-hidden="true">→</i>}</button>)}

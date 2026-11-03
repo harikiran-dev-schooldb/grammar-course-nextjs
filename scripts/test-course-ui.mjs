@@ -63,7 +63,7 @@ test("Starter Zone teaches pre-readers before grammar", () => {
   assert.doesNotMatch(foundation, /activeLetter\[0\].*activeLetter\[0\].*is for/);
 });
 test("offline shell updates without discarding downloaded audio", () => {
-  assert.match(worker, /grammar-studio-v22-phonics-academy/);
+  assert.match(worker, /grammar-studio-v23-premium-route/);
   assert.match(worker, /grammar-studio-v5-complete-english-audio/);
 });
 
@@ -80,8 +80,10 @@ test("adaptive command centre connects every English learning mode", () => {
 });
 
 test("guided route makes the lesson order and next action explicit", () => {
-  assert.match(routeNavigator, /Follow in this order/);
-  assert.match(routeNavigator, /Step \{activeIndex \+ 1\} of \{steps.length\}/);
+  assert.match(routeNavigator, /Your lesson roadmap/);
+  assert.match(routeNavigator, /Guided lesson · Day/);
+  assert.match(routeNavigator, /completionPercent/);
+  assert.match(routeNavigator, /Lesson route progress/);
   assert.match(routeNavigator, /Previous/);
   assert.match(routeNavigator, /Next:/);
   assert.match(routeNavigator, /IntersectionObserver/);

@@ -603,31 +603,41 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .site-shell .parent-footer span { margin-top: 2px; color: #737e93; }
 
 /* Persistent step-by-step lesson navigation */
-.site-shell .lesson-route-navigator { margin: 15px 0; padding: 9px; position: sticky; top: 79px; z-index: 35; border: 1px solid rgba(208,217,235,.92); border-radius: 18px; background: rgba(255,255,255,.94); box-shadow: 0 13px 34px rgba(9,21,64,.13); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); }
-.site-shell .route-summary { padding: 3px 7px 8px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.site-shell .route-summary > span b, .site-shell .route-summary > span small { display: block; }
-.site-shell .route-summary > span b { color: #1d2947; font-size: 10px; }
-.site-shell .route-summary > span small { margin-top: 1px; color: #818a9c; font-size: 8px; }
-.site-shell .route-summary > strong { padding: 5px 8px; border-radius: 8px; color: #3155c6; background: #edf2ff; font-size: 8px; }
-.site-shell .route-track { display: grid; grid-template-columns: repeat(7,1fr); overflow: hidden; border-radius: 12px; background: #f0f2f7; }
-.site-shell .route-track button { min-width: 0; min-height: 54px; padding: 7px 5px; display: grid; grid-template-columns: auto 1fr auto; grid-template-rows: auto auto; align-items: center; column-gap: 5px; position: relative; border: 0; color: #657087; background: transparent; text-align: left; cursor: pointer; }
-.site-shell .route-track button > span { grid-row: 1 / 3; width: 23px; height: 23px; display: grid; place-items: center; border-radius: 7px; color: #68748a; background: #dde1e9; font-size: 7px; font-weight: 900; }
-.site-shell .route-track button > b { overflow: hidden; font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
-.site-shell .route-track button > small { overflow: hidden; color: #8891a2; font-size: 7px; text-overflow: ellipsis; white-space: nowrap; }
-.site-shell .route-track button > i { grid-column: 3; grid-row: 1 / 3; color: #aab1bf; font-size: 9px; font-style: normal; }
-.site-shell .route-track button.done > span { color: #17684d; background: #dff2ea; }
-.site-shell .route-track button.done { color: #41675c; }
-.site-shell .route-track button.active { color: #fff; background: linear-gradient(135deg,#3155c6,#1d3789); box-shadow: 0 7px 18px rgba(49,85,198,.22); }
-.site-shell .route-track button.active > span { color: #3155c6; background: #fff; }
-.site-shell .route-track button.active > small, .site-shell .route-track button.active > i { color: #dce6ff; }
-.site-shell .route-controls { padding: 8px 2px 0; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; }
-.site-shell .route-controls > span { min-width: 0; text-align: center; }
-.site-shell .route-controls > span b, .site-shell .route-controls > span small { display: block; }
-.site-shell .route-controls > span b { color: #25314e; font-size: 9px; }
-.site-shell .route-controls > span small { margin-top: 2px; overflow: hidden; color: #7b8496; font-size: 7px; text-overflow: ellipsis; white-space: nowrap; }
-.site-shell .route-controls > button { min-height: 31px; padding: 6px 10px; border: 1px solid #d9e0ed; border-radius: 9px; color: #5e6980; background: #fff; font-size: 8px; font-weight: 850; cursor: pointer; }
-.site-shell .route-controls > button:last-child { border-color: #3155c6; color: #fff; background: #3155c6; }
-.site-shell .route-controls > button:disabled { opacity: .35; cursor: not-allowed; }
+.site-shell .lesson-route-navigator { margin: 16px 0; padding: 8px; position: sticky; top: 79px; z-index: 35; border: 1px solid rgba(203,213,233,.9); border-radius: 22px; background: rgba(248,250,254,.96); box-shadow: 0 18px 45px rgba(9,21,64,.15),0 2px 8px rgba(9,21,64,.05); -webkit-backdrop-filter: blur(22px) saturate(1.25); backdrop-filter: blur(22px) saturate(1.25); }
+.site-shell .route-summary { min-height: 78px; padding: 13px 15px; display: grid; grid-template-columns: 1fr minmax(265px,.62fr); align-items: center; gap: 22px; border-radius: 16px; color: #fff; background: radial-gradient(circle at 88% 0%,rgba(90,137,239,.45),transparent 16rem),linear-gradient(135deg,#0b194b,#1d3d91); }
+.site-shell .route-identity { display:flex; align-items:center; gap:12px; min-width:0; }
+.site-shell .route-identity>span { width:42px; height:42px; display:grid; place-items:center; flex:0 0 42px; border:1px solid rgba(255,255,255,.18); border-radius:13px; color:#10245c; background:#ffc95c; box-shadow:0 7px 18px rgba(3,9,31,.2); font-size:20px; font-weight:900; }
+.site-shell .route-identity small,.site-shell .route-identity b { display:block; }
+.site-shell .route-identity small { color:rgba(255,255,255,.65); font-size:8px; font-weight:900; letter-spacing:.13em; text-transform:uppercase; }
+.site-shell .route-identity b { margin-top:3px; overflow:hidden; font-size:18px; letter-spacing:-.02em; text-overflow:ellipsis; white-space:nowrap; }
+.site-shell .route-status { min-width:0; display:grid; gap:8px; }
+.site-shell .route-status>div { display:flex; align-items:flex-end; justify-content:space-between; gap:12px; }
+.site-shell .route-status>div span,.site-shell .route-status>div b { font-size:9px; }
+.site-shell .route-status>div span { color:rgba(255,255,255,.68); }
+.site-shell .route-status>div span strong { color:#ffc95c; font-size:16px; }
+.site-shell .route-status>div>b { overflow:hidden; color:#fff; text-overflow:ellipsis; white-space:nowrap; }
+.site-shell .route-progress-rail { height:6px; display:block; overflow:hidden; border-radius:99px; background:rgba(255,255,255,.14); }
+.site-shell .route-progress-rail>em { height:100%; display:block; border-radius:inherit; background:linear-gradient(90deg,#ffc95c,#ffe6a4); transition:width .3s ease; }
+.site-shell .route-track { margin-top:7px; padding:5px; display:grid; grid-template-columns:repeat(7,1fr); gap:4px; overflow:hidden; border:1px solid #e4e8f1; border-radius:14px; background:#fff; }
+.site-shell .route-track button { min-width:0; min-height:58px; padding:8px 6px; display:grid; grid-template-columns:auto 1fr auto; grid-template-rows:auto auto; align-items:center; column-gap:6px; position:relative; border:0; border-radius:10px; color:#606c84; background:transparent; text-align:left; cursor:pointer; transition:background .18s ease,box-shadow .18s ease,transform .18s ease; }
+.site-shell .route-track button:hover { background:#f3f6fc; }
+.site-shell .route-track button>span { grid-row:1/3; width:27px; height:27px; display:grid; place-items:center; border:1px solid #d7ddea; border-radius:9px; color:#657188; background:#f2f4f8; font-size:8px; font-weight:900; }
+.site-shell .route-track button>b { overflow:hidden; font-size:9px; text-overflow:ellipsis; white-space:nowrap; }
+.site-shell .route-track button>small { overflow:hidden; color:#8b94a6; font-size:7px; text-overflow:ellipsis; white-space:nowrap; }
+.site-shell .route-track button>i { grid-column:3; grid-row:1/3; color:#c1c7d1; font-size:9px; font-style:normal; }
+.site-shell .route-track button.done>span { border-color:#b8dfd0; color:#17684d; background:#e4f5ee; }
+.site-shell .route-track button.done { color:#376a5a; }
+.site-shell .route-track button.active { color:#fff; background:linear-gradient(135deg,#315bd1,#1a377f); box-shadow:0 8px 20px rgba(49,85,198,.24); transform:translateY(-1px); }
+.site-shell .route-track button.active>span { border-color:#fff; color:#3155c6; background:#fff; }
+.site-shell .route-track button.active>small,.site-shell .route-track button.active>i { color:#dce6ff; }
+.site-shell .route-controls { padding:9px 3px 2px; display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:14px; }
+.site-shell .route-controls>span { min-width:0; text-align:center; }
+.site-shell .route-controls>span b,.site-shell .route-controls>span small { display:block; }
+.site-shell .route-controls>span b { color:#23304e; font-size:10px; }
+.site-shell .route-controls>span small { margin-top:3px; overflow:hidden; color:#7a8498; font-size:8px; text-overflow:ellipsis; white-space:nowrap; }
+.site-shell .route-controls>button { min-height:34px; padding:7px 12px; border:1px solid #d6ddea; border-radius:10px; color:#536078; background:#fff; font-size:9px; font-weight:850; cursor:pointer; }
+.site-shell .route-controls>button:last-child { border-color:#3155c6; color:#fff; background:#3155c6; box-shadow:0 6px 14px rgba(49,85,198,.16); }
+.site-shell .route-controls>button:disabled { opacity:.35; box-shadow:none; cursor:not-allowed; }
 
 /* Focused Today home */
 .site-shell .today-home { width: 100%; padding-bottom: 20px; }
@@ -1126,8 +1136,12 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .site-shell .parent-insights { grid-template-columns: 1fr; }
   .site-shell .parent-footer > div { min-width: 0; }
   .site-shell .lesson-route-navigator { top: 69px; margin-inline: -5px; border-radius: 15px; }
+  .site-shell .route-summary { min-height:0; grid-template-columns:1fr; gap:12px; padding:13px; }
+  .site-shell .route-identity>span { width:38px; height:38px; flex-basis:38px; }
+  .site-shell .route-identity b { font-size:16px; }
+  .site-shell .route-status>div span,.site-shell .route-status>div b { font-size:8px; }
   .site-shell .route-track { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; }
-  .site-shell .route-track button { min-width: 112px; flex: 0 0 112px; scroll-snap-align: center; }
+  .site-shell .route-track button { min-width: 126px; flex: 0 0 126px; scroll-snap-align: center; }
   .site-shell .route-controls { grid-template-columns: 1fr 1fr; }
   .site-shell .route-controls > span { grid-column: 1 / -1; grid-row: 1; }
   .site-shell .route-controls > button { grid-row: 2; }
