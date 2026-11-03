@@ -19,9 +19,10 @@ type Props = {
   onProgress: () => void;
   onLessons: () => void;
   onPhonics: () => void;
+  onReadingCoach: () => void;
 };
 
-export default function TodayHome({ learnerName, day, lessonTitle, lessonTitleTe, nextLabel, nextDetail, progress, streak, minutes, goal, reviewCount, speakingDone, onContinue, onReview, onSpeaking, onProgress, onLessons, onPhonics }: Props) {
+export default function TodayHome({ learnerName, day, lessonTitle, lessonTitleTe, nextLabel, nextDetail, progress, streak, minutes, goal, reviewCount, speakingDone, onContinue, onReview, onSpeaking, onProgress, onLessons, onPhonics, onReadingCoach }: Props) {
   const firstName = learnerName.trim().split(/\s+/)[0] || "Learner";
   const goalPercent = Math.min(100, Math.round((minutes / Math.max(1, goal)) * 100));
   return <section className="today-home" aria-labelledby="today-home-heading">
@@ -46,6 +47,8 @@ export default function TodayHome({ learnerName, day, lessonTitle, lessonTitleTe
       <button type="button" onClick={onLessons}><span>🗺️</span><small>Explore course</small><strong>All 30 lessons</strong><p>Move from foundations to confident English.</p><b>Open course map →</b></button>
       <button type="button" className="phonics-action" onClick={onPhonics}><span>🔤</span><small>Learn to read</small><strong>Phonics Academy</strong><p>Sounds, blending, digraphs and fluent reading.</p><b>Start phonics →</b></button>
     </div>
+
+    <button type="button" className="reading-coach-entry" onClick={onReadingCoach}><span>📖</span><div><small>NEW · PERSONAL READING COACH</small><strong>Read aloud and improve every word</strong><p>Get instant accuracy, reading speed and bilingual feedback.</p><p lang="te">చదివి, ప్రతి word కి వెంటనే feedback పొందండి.</p></div><b>Start reading →</b></button>
 
     <footer className="today-home-footer"><span>Recommended order</span><div><b>1</b> Learn <i>→</i><b>2</b> Practise <i>→</i><b>3</b> Speak <i>→</i><b>4</b> Talk <i>→</i><b>5</b> Words <i>→</i><b>6</b> Test <i>→</i><b>7</b> Finish</div></footer>
   </section>;

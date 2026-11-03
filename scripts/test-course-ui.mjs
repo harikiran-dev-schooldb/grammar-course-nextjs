@@ -16,6 +16,9 @@ const expandedCurriculum = readFileSync(new URL("../src/data/expanded-curriculum
 const userGuide = readFileSync(new URL("../src/components/user-guide.tsx", import.meta.url), "utf8");
 const phonicsAcademy = readFileSync(new URL("../src/components/phonics-academy.tsx", import.meta.url), "utf8");
 const phonicsCourse = readFileSync(new URL("../src/data/phonics-course.ts", import.meta.url), "utf8");
+const readingCoach = readFileSync(new URL("../src/components/read-aloud-coach.tsx", import.meta.url), "utf8");
+const readingPassages = readFileSync(new URL("../src/data/reading-passages.ts", import.meta.url), "utf8");
+const progressApi = readFileSync(new URL("../src/app/api/progress/route.ts", import.meta.url), "utf8");
 const worker = readFileSync(new URL("../public/sw.js", import.meta.url), "utf8");
 
 test("lesson overview displays completion based on the existing course progress", () => {
@@ -63,7 +66,7 @@ test("Starter Zone teaches pre-readers before grammar", () => {
   assert.doesNotMatch(foundation, /activeLetter\[0\].*activeLetter\[0\].*is for/);
 });
 test("offline shell updates without discarding downloaded audio", () => {
-  assert.match(worker, /grammar-studio-v23-premium-route/);
+  assert.match(worker, /grammar-studio-v24-reading-coach/);
   assert.match(worker, /grammar-studio-v5-complete-english-audio/);
 });
 
@@ -148,4 +151,16 @@ test("complete phonics academy teaches sounds through fluent reading", () => {
   assert.match(phonicsAcademy, /Blend a word/);
   assert.match(phonicsAcademy, /Quick check/);
   assert.match(phonicsAcademy, /phonics-\$\{stage.id\}/);
+});
+
+test("read-aloud coach scores every word and saves adaptive progress", () => {
+  assert.match(page, /appView === "reading-coach"/);
+  assert.match(todayHome, /Read aloud and improve every word/);
+  assert.equal((readingPassages.match(/id:"/g) || []).length, 12);
+  assert.match(readingCoach, /SpeechRecognition/);
+  assert.match(readingCoach, /analyzeReading/);
+  assert.match(readingCoach, /wordsPerMinute/);
+  assert.match(readingCoach, /Tap and repeat these words/);
+  assert.match(readingCoach, /reading-coach-\$\{passage.id\}/);
+  assert.match(progressApi, /reading_coach_results/);
 });

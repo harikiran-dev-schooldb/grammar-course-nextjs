@@ -26,6 +26,7 @@ async function ensureTable() {
     badges JSONB NOT NULL DEFAULT '[]'::jsonb,
     preferences JSONB NOT NULL DEFAULT '{}'::jsonb,
     pronunciation_results JSONB NOT NULL DEFAULT '[]'::jsonb,
+    reading_coach_results JSONB NOT NULL DEFAULT '[]'::jsonb,
     study_minutes JSONB NOT NULL DEFAULT '{}'::jsonb,
     daily_tests JSONB NOT NULL DEFAULT '{}'::jsonb,
     conversation_days JSONB NOT NULL DEFAULT '[]'::jsonb,
@@ -34,6 +35,7 @@ async function ensureTable() {
   )`;
   await sql`ALTER TABLE learner_progress ADD COLUMN IF NOT EXISTS preferences JSONB NOT NULL DEFAULT '{}'::jsonb`;
   await sql`ALTER TABLE learner_progress ADD COLUMN IF NOT EXISTS pronunciation_results JSONB NOT NULL DEFAULT '[]'::jsonb`;
+  await sql`ALTER TABLE learner_progress ADD COLUMN IF NOT EXISTS reading_coach_results JSONB NOT NULL DEFAULT '[]'::jsonb`;
   await sql`ALTER TABLE learner_progress ADD COLUMN IF NOT EXISTS study_minutes JSONB NOT NULL DEFAULT '{}'::jsonb`;
   await sql`ALTER TABLE learner_progress ADD COLUMN IF NOT EXISTS daily_tests JSONB NOT NULL DEFAULT '{}'::jsonb`;
   await sql`ALTER TABLE learner_progress ADD COLUMN IF NOT EXISTS conversation_days JSONB NOT NULL DEFAULT '[]'::jsonb`;
@@ -53,6 +55,7 @@ function cleanProgress(value: Partial<CloudProgress>, fallbackName: string): Clo
   const readingLevel = ["pre-reader", "word-reader", "sentence-reader"].includes(String(rawPreferences.readingLevel)) ? rawPreferences.readingLevel : null;
   const ageMode = ["kids", "teens", "adults"].includes(String(rawPreferences.ageMode)) ? rawPreferences.ageMode as "kids" | "teens" | "adults" : "kids";
   const pronunciationResults = Array.isArray(value.pronunciationResults) ? value.pronunciationResults.filter((item) => item && Number.isInteger(item.day) && item.day >= 1 && item.day <= 30 && Number.isFinite(item.score) && typeof item.transcript === "string").map((item) => ({ day: item.day, score: Math.max(0, Math.min(100, Math.round(item.score))), transcript: item.transcript.slice(0, 500), updatedAt: typeof item.updatedAt === "string" ? item.updatedAt : new Date().toISOString() })).slice(-30) : [];
+  const readingCoachResults = Array.isArray(value.readingCoachResults) ? value.readingCoachResults.filter((item) => item && typeof item.passageId === "string" && Number.isFinite(item.accuracy) && Number.isFinite(item.wordsPerMinute)).map((item) => ({ passageId: item.passageId.slice(0, 50), accuracy: Math.max(0, Math.min(100, Math.round(item.accuracy))), wordsPerMinute: Math.max(0, Math.min(300, Math.round(item.wordsPerMinute))), missedWords: cleanStrings(item.missedWords, 30).map((word) => word.slice(0, 40)), transcript: typeof item.transcript === "string" ? item.transcript.slice(0, 1500) : "", updatedAt: typeof item.updatedAt === "string" ? item.updatedAt : new Date().toISOString() })).slice(-30) : [];
   const studyMinutes = value.studyMinutes && typeof value.studyMinutes === "object" ? Object.fromEntries(Object.entries(value.studyMinutes).filter(([date, minutes]) => /^\d{4}-\d{2}-\d{2}$/.test(date) && typeof minutes === "number" && Number.isFinite(minutes)).map(([date, minutes]) => [date, Math.max(0, Math.min(1440, Math.round(minutes)))]).slice(-90)) : {};
   const dailyTests = parseDailyTestRecords(JSON.stringify(value.dailyTests || {}), Array.from({ length: 30 }, (_, index) => index + 1));
   return {
@@ -73,6 +76,7 @@ function cleanProgress(value: Partial<CloudProgress>, fallbackName: string): Clo
       ageMode,
     },
     pronunciationResults,
+    readingCoachResults,
     studyMinutes,
     dailyTests,
     conversationDays: cleanNumbers(value.conversationDays),
@@ -85,7 +89,7 @@ export async function GET() {
   const user = await userSession();
   if (!user) return NextResponse.json({ error: "Sign in required." }, { status: 401 });
   const sql = await ensureTable();
-  const rows = await sql`SELECT display_name, completed, current_day, skills_done, writings, mistakes, activity_dates, badges, preferences, pronunciation_results, study_minutes, daily_tests, conversation_days, word_days FROM learner_progress WHERE user_id = ${user.id}`;
+  const rows = await sql`SELECT display_name, completed, current_day, skills_done, writings, mistakes, activity_dates, badges, preferences, pronunciation_results, reading_coach_results, study_minutes, daily_tests, conversation_days, word_days FROM learner_progress WHERE user_id = ${user.id}`;
   if (!rows[0]) return NextResponse.json(emptyProgress(user.name || "Learner"));
   const row = rows[0];
   return NextResponse.json(cleanProgress({
@@ -99,6 +103,7 @@ export async function GET() {
     badges: row.badges as string[],
     preferences: row.preferences as CloudProgress["preferences"],
     pronunciationResults: row.pronunciation_results as CloudProgress["pronunciationResults"],
+    readingCoachResults: row.reading_coach_results as CloudProgress["readingCoachResults"],
     studyMinutes: row.study_minutes as CloudProgress["studyMinutes"],
     dailyTests: row.daily_tests as CloudProgress["dailyTests"],
     conversationDays: row.conversation_days as number[],
@@ -112,8 +117,8 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: "Sign in required." }, { status: 401 });
   const progress = cleanProgress(await request.json(), user.name || "Learner");
   const sql = await ensureTable();
-  await sql`INSERT INTO learner_progress (user_id, display_name, completed, current_day, skills_done, writings, mistakes, activity_dates, badges, preferences, pronunciation_results, study_minutes, daily_tests, conversation_days, word_days, updated_at)
-    VALUES (${user.id}, ${progress.displayName}, ${JSON.stringify(progress.completed)}, ${progress.currentDay}, ${JSON.stringify(progress.skillsDone)}, ${JSON.stringify(progress.writings)}, ${JSON.stringify(progress.mistakes)}, ${JSON.stringify(progress.activityDates)}, ${JSON.stringify(progress.badges)}, ${JSON.stringify(progress.preferences)}, ${JSON.stringify(progress.pronunciationResults)}, ${JSON.stringify(progress.studyMinutes)}, ${JSON.stringify(progress.dailyTests)}, ${JSON.stringify(progress.conversationDays)}, ${JSON.stringify(progress.wordDays)}, NOW())
-    ON CONFLICT (user_id) DO UPDATE SET display_name = EXCLUDED.display_name, completed = EXCLUDED.completed, current_day = EXCLUDED.current_day, skills_done = EXCLUDED.skills_done, writings = EXCLUDED.writings, mistakes = EXCLUDED.mistakes, activity_dates = EXCLUDED.activity_dates, badges = EXCLUDED.badges, preferences = EXCLUDED.preferences, pronunciation_results = EXCLUDED.pronunciation_results, study_minutes = EXCLUDED.study_minutes, daily_tests = EXCLUDED.daily_tests, conversation_days = EXCLUDED.conversation_days, word_days = EXCLUDED.word_days, updated_at = NOW()`;
+  await sql`INSERT INTO learner_progress (user_id, display_name, completed, current_day, skills_done, writings, mistakes, activity_dates, badges, preferences, pronunciation_results, reading_coach_results, study_minutes, daily_tests, conversation_days, word_days, updated_at)
+    VALUES (${user.id}, ${progress.displayName}, ${JSON.stringify(progress.completed)}, ${progress.currentDay}, ${JSON.stringify(progress.skillsDone)}, ${JSON.stringify(progress.writings)}, ${JSON.stringify(progress.mistakes)}, ${JSON.stringify(progress.activityDates)}, ${JSON.stringify(progress.badges)}, ${JSON.stringify(progress.preferences)}, ${JSON.stringify(progress.pronunciationResults)}, ${JSON.stringify(progress.readingCoachResults)}, ${JSON.stringify(progress.studyMinutes)}, ${JSON.stringify(progress.dailyTests)}, ${JSON.stringify(progress.conversationDays)}, ${JSON.stringify(progress.wordDays)}, NOW())
+    ON CONFLICT (user_id) DO UPDATE SET display_name = EXCLUDED.display_name, completed = EXCLUDED.completed, current_day = EXCLUDED.current_day, skills_done = EXCLUDED.skills_done, writings = EXCLUDED.writings, mistakes = EXCLUDED.mistakes, activity_dates = EXCLUDED.activity_dates, badges = EXCLUDED.badges, preferences = EXCLUDED.preferences, pronunciation_results = EXCLUDED.pronunciation_results, reading_coach_results = EXCLUDED.reading_coach_results, study_minutes = EXCLUDED.study_minutes, daily_tests = EXCLUDED.daily_tests, conversation_days = EXCLUDED.conversation_days, word_days = EXCLUDED.word_days, updated_at = NOW()`;
   return NextResponse.json({ ok: true, updatedAt: new Date().toISOString() });
 }

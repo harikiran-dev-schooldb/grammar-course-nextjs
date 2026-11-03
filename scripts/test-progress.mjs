@@ -45,3 +45,11 @@ test("conversation and vocabulary mastery merge across devices", () => {
   assert.deepEqual(merged.conversationDays, [1, 2, 3]);
   assert.deepEqual(merged.wordDays, [1, 2, 4]);
 });
+
+test("newest read-aloud result wins across devices", () => {
+  const local = { ...emptyProgress("Learner"), readingCoachResults: [{ passageId: "red-cap", accuracy: 82, wordsPerMinute: 45, missedWords: ["cap"], transcript: "Sam has red cap", updatedAt: "2026-11-03T10:00:00.000Z" }] };
+  const remote = { ...emptyProgress("Learner"), readingCoachResults: [{ passageId: "red-cap", accuracy: 70, wordsPerMinute: 38, missedWords: ["red", "cap"], transcript: "Sam has cap", updatedAt: "2026-11-03T09:00:00.000Z" }] };
+  const merged = mergeProgress(local, remote);
+  assert.equal(merged.readingCoachResults.length, 1);
+  assert.equal(merged.readingCoachResults[0].accuracy, 82);
+});

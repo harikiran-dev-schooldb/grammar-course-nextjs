@@ -58,6 +58,15 @@ export type PronunciationResult = {
   updatedAt: string;
 };
 
+export type ReadingCoachResult = {
+  passageId: string;
+  accuracy: number;
+  wordsPerMinute: number;
+  missedWords: string[];
+  transcript: string;
+  updatedAt: string;
+};
+
 export type CloudDailyTestRecord = {
   day: number;
   attempts: number;
@@ -100,6 +109,7 @@ export type CloudProgress = {
   badges: string[];
   preferences: LearningPreferences;
   pronunciationResults: PronunciationResult[];
+  readingCoachResults: ReadingCoachResult[];
   studyMinutes: Record<string, number>;
   dailyTests: CloudDailyTestRecords;
   conversationDays: number[];
@@ -126,6 +136,7 @@ export const emptyProgress = (displayName = "Learner"): CloudProgress => ({
   badges: [],
   preferences: defaultPreferences,
   pronunciationResults: [],
+  readingCoachResults: [],
   studyMinutes: {},
   dailyTests: {},
   conversationDays: [],
@@ -152,6 +163,13 @@ export function mergeProgress(local: CloudProgress, remote: CloudProgress): Clou
         return items;
       }, [])
       .sort((a, b) => a.day - b.day),
+    readingCoachResults: [...(remote.readingCoachResults || []), ...(local.readingCoachResults || [])]
+      .reduce<ReadingCoachResult[]>((items, result) => {
+        const existing = items.findIndex((item) => item.passageId === result.passageId);
+        if (existing < 0) return [...items, result];
+        if (new Date(result.updatedAt).getTime() > new Date(items[existing].updatedAt).getTime()) items[existing] = result;
+        return items;
+      }, []),
     studyMinutes: Object.fromEntries([...new Set([...Object.keys(local.studyMinutes), ...Object.keys(remote.studyMinutes)])]
       .map((date) => [date, Math.max(local.studyMinutes[date] || 0, remote.studyMinutes[date] || 0)])),
     dailyTests: mergeCloudDailyTests(local.dailyTests || {}, remote.dailyTests || {}),

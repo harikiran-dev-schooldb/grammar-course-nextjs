@@ -16,12 +16,13 @@ import CurriculumPath from "@/components/curriculum-path";
 import CourseLibrary from "@/components/course-library";
 import UserGuide from "@/components/user-guide";
 import PhonicsAcademy from "@/components/phonics-academy";
+import ReadAloudCoach from "@/components/read-aloud-coach";
 import type { CourseLevel } from "@/data/expanded-curriculum";
 import { authClient } from "@/lib/auth-client";
 import { claimUsername, getMyUsername, requestLegacyPasswordReset, requestUsernamePasswordReset, signInWithUsername } from "@/app/actions/username-auth";
 import { isValidUsername, normalizeUsername } from "@/lib/usernames";
 import AuthShell, { AuthField, AuthPasswordField, PasswordStrength } from "@/components/auth/auth-ui";
-import { CloudProgress, defaultPreferences, emptyProgress, LearningPreferences, mergeProgress, Mistake, parseCompletedDays, parseSavedDayIndex, PronunciationResult } from "@/lib/progress";
+import { CloudProgress, defaultPreferences, emptyProgress, LearningPreferences, mergeProgress, Mistake, parseCompletedDays, parseSavedDayIndex, PronunciationResult, ReadingCoachResult } from "@/lib/progress";
 import type { DailyTestRecords } from "@/lib/daily-test-core";
 
 type InstallPromptEvent = Event & {
@@ -108,6 +109,7 @@ export default function Home() {
   const [badges, setBadges] = useState<string[]>([]);
   const [preferences, setPreferences] = useState<LearningPreferences>(defaultPreferences);
   const [pronunciationResults, setPronunciationResults] = useState<PronunciationResult[]>([]);
+  const [readingCoachResults, setReadingCoachResults] = useState<ReadingCoachResult[]>([]);
   const [studyMinutes, setStudyMinutes] = useState<Record<string, number>>({});
   const [dailyTests, setDailyTests] = useState<DailyTestRecords>({});
   const [conversationDays, setConversationDays] = useState<number[]>([]);
@@ -119,7 +121,7 @@ export default function Home() {
   const [hubView, setHubView] = useState<HubView | null>(null);
   const [testAnswers, setTestAnswers] = useState<Record<number, number>>({});
   const [testScore, setTestScore] = useState<number | null>(null);
-  const [appView, setAppView] = useState<"home" | "learn" | "curriculum" | "library" | "guide" | "phonics">("home");
+  const [appView, setAppView] = useState<"home" | "learn" | "curriculum" | "library" | "guide" | "phonics" | "reading-coach">("home");
   const [libraryLevel, setLibraryLevel] = useState<CourseLevel>("START");
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const latestSnapshotRef = useRef<CloudProgress | null>(null);
@@ -196,6 +198,7 @@ export default function Home() {
           setBadges(saved.badges || []);
           setPreferences({ ...defaultPreferences, ...(saved.preferences || {}) });
           setPronunciationResults(saved.pronunciationResults || []);
+          setReadingCoachResults(saved.readingCoachResults || []);
           setStudyMinutes(saved.studyMinutes || {});
           setDailyTests(saved.dailyTests || {});
           setConversationDays(saved.conversationDays || []);
@@ -269,6 +272,7 @@ export default function Home() {
       setBadges(merged.badges);
       setPreferences(merged.preferences);
       setPronunciationResults(merged.pronunciationResults);
+      setReadingCoachResults(merged.readingCoachResults || []);
       setStudyMinutes(merged.studyMinutes);
       setDailyTests(merged.dailyTests);
       setConversationDays(merged.conversationDays);
@@ -302,14 +306,14 @@ export default function Home() {
 
   useEffect(() => {
     if (!learnerName || !cloudLoaded) return;
-    const snapshot: CloudProgress = { displayName: learnerName, completed, currentDay: current + 1, skillsDone, writings, mistakes, activityDates, badges, preferences, pronunciationResults, studyMinutes, dailyTests, conversationDays, wordDays };
+    const snapshot: CloudProgress = { displayName: learnerName, completed, currentDay: current + 1, skillsDone, writings, mistakes, activityDates, badges, preferences, pronunciationResults, readingCoachResults, studyMinutes, dailyTests, conversationDays, wordDays };
     latestSnapshotRef.current = snapshot;
     window.localStorage.setItem("grammar-studio-cloud-progress", JSON.stringify(snapshot));
     const timer = window.setTimeout(() => {
       void syncProgress(snapshot);
     }, 700);
     return () => window.clearTimeout(timer);
-  }, [activityDates, badges, cloudLoaded, completed, conversationDays, current, dailyTests, learnerName, mistakes, preferences, pronunciationResults, skillsDone, studyMinutes, syncProgress, wordDays, writings]);
+  }, [activityDates, badges, cloudLoaded, completed, conversationDays, current, dailyTests, learnerName, mistakes, preferences, pronunciationResults, readingCoachResults, skillsDone, studyMinutes, syncProgress, wordDays, writings]);
 
   useEffect(() => {
     const environmentFrame = window.requestAnimationFrame(() => {
@@ -541,7 +545,7 @@ export default function Home() {
 
   const exportLearnerData = () => {
     const safeName = learnerName || "learner";
-    const report = { learnerName, learnerEmail, exportedAt: new Date().toISOString(), progress, completed, skillsDone, writings, mistakes, activityDates, badges: allBadges, preferences, pronunciationResults, studyMinutes, dailyTests, conversationDays, wordDays };
+    const report = { learnerName, learnerEmail, exportedAt: new Date().toISOString(), progress, completed, skillsDone, writings, mistakes, activityDates, badges: allBadges, preferences, pronunciationResults, readingCoachResults, studyMinutes, dailyTests, conversationDays, wordDays };
     const url = URL.createObjectURL(new Blob([JSON.stringify(report, null, 2)], { type: "application/json" }));
     const link = document.createElement("a");
     link.href = url;
@@ -636,6 +640,13 @@ export default function Home() {
       const learnerKey = learnerName.trim().toLocaleLowerCase("en");
       window.localStorage.setItem(`grammar-studio-skills-${learnerKey}`, JSON.stringify(updated));
       return updated;
+    });
+  };
+
+  const saveReadingCoachResult = (result: ReadingCoachResult) => {
+    setReadingCoachResults((items) => {
+      const remaining = items.filter((item) => item.passageId !== result.passageId);
+      return [...remaining, result];
     });
   };
 
@@ -920,7 +931,7 @@ export default function Home() {
             {hubView === "dashboard" && <div className="hub-body dashboard-body">
               <div className="metric-grid"><article><span>Course</span><strong>{progress}%</strong><small>{completed.length} of 30 lessons</small></article><article><span>Today&apos;s goal</span><strong>{Math.min(100, Math.round(((studyMinutes[today] || 0) / preferences.dailyGoalMinutes) * 100))}%</strong><small>{studyMinutes[today] || 0} of {preferences.dailyGoalMinutes} minutes</small></article><article><span>Current streak</span><strong>{streak} 🔥</strong><small>days learning</small></article><article><span>To review</span><strong>{reviewItems.length}</strong><small>spaced practice items</small></article></div>
               <section className="badge-section"><h3>Achievements</h3><div className="badge-list">{allBadges.length ? allBadges.map((badge) => <span key={badge}>★ {badge}</span>) : <p>Complete your first lesson to earn a badge.</p>}</div></section>
-              <section className="teacher-report"><div><h3>Teacher / parent report</h3><p>Starter activities {foundationSkillsDone.length} · Grammar {completed.length}/30 · Skill practice {courseSkillsDone.length}/120 · Real conversations {conversationDays.length}/30 · Word sets {wordDays.length}/30 · Pronunciation checks {pronunciationResults.length} · Revision queue {reviewItems.length}</p><p lang="te">పాఠాలు, practice, writing, pronunciation, mistakes అన్నీ ఒకే చోట చూడవచ్చు.</p></div><div className="report-actions"><button type="button" onClick={() => window.print()}>Print / Save PDF</button><button type="button" onClick={exportLearnerData}>Download backup</button></div></section>
+              <section className="teacher-report"><div><h3>Teacher / parent report</h3><p>Starter activities {foundationSkillsDone.length} · Grammar {completed.length}/30 · Skill practice {courseSkillsDone.length}/120 · Read-aloud passages {readingCoachResults.length}/12 · Real conversations {conversationDays.length}/30 · Word sets {wordDays.length}/30 · Pronunciation checks {pronunciationResults.length} · Revision queue {reviewItems.length}</p><p lang="te">పాఠాలు, reading accuracy, practice, pronunciation, mistakes అన్నీ ఒకే చోట చూడవచ్చు.</p></div><div className="report-actions"><button type="button" onClick={() => window.print()}>Print / Save PDF</button><button type="button" onClick={exportLearnerData}>Download backup</button></div></section>
               <button type="button" className="hub-logout" onClick={() => void logout()}>Sign out of this account</button>
             </div>}
 
@@ -985,11 +996,12 @@ export default function Home() {
         {menuOpen && <button className="page-overlay" aria-label="Close navigation" onClick={() => setMenuOpen(false)} />}
 
         <main id="lesson-content" className="lesson-main" tabIndex={-1}>
-          {appView === "phonics" ? <PhonicsAcademy completedSkills={skillsDone} onComplete={completeFoundationSkill} onBack={() => {setAppView("home");window.scrollTo({top:0,behavior:"smooth"})}} /> : appView === "guide" ? <UserGuide
+          {appView === "reading-coach" ? <ReadAloudCoach results={readingCoachResults} onResult={saveReadingCoachResult} onComplete={completeFoundationSkill} onBack={() => {setAppView("home");window.scrollTo({top:0,behavior:"smooth"})}} /> : appView === "phonics" ? <PhonicsAcademy completedSkills={skillsDone} onComplete={completeFoundationSkill} onBack={() => {setAppView("home");window.scrollTo({top:0,behavior:"smooth"})}} /> : appView === "guide" ? <UserGuide
             onHome={() => { setAppView("home"); window.scrollTo({top:0,behavior:"smooth"}); }}
             onPath={() => { setAppView("curriculum"); window.scrollTo({top:0,behavior:"smooth"}); }}
             onProgress={() => setHubView("dashboard")}
             onPhonics={() => { setAppView("phonics"); window.scrollTo({top:0,behavior:"smooth"}); }}
+            onReadingCoach={() => { setAppView("reading-coach"); window.scrollTo({top:0,behavior:"smooth"}); }}
           /> : appView === "home" ? <TodayHome
             learnerName={learnerName}
             day={lesson.day}
@@ -1009,6 +1021,7 @@ export default function Home() {
             onProgress={() => setHubView("dashboard")}
             onLessons={() => setAppView("curriculum")}
             onPhonics={() => { setAppView("phonics"); window.scrollTo({top:0,behavior:"smooth"}); }}
+            onReadingCoach={() => { setAppView("reading-coach"); window.scrollTo({top:0,behavior:"smooth"}); }}
           /> : appView === "library" ? <CourseLibrary initialLevel={libraryLevel} ageMode={preferences.ageMode} completedSkills={skillsDone} onComplete={completeFoundationSkill} onBack={()=>setAppView("curriculum")} /> : appView === "curriculum" ? <CurriculumPath
             ageMode={preferences.ageMode}
             readingLevel={preferences.readingLevel}

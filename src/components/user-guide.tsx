@@ -1,6 +1,6 @@
 "use client";
 
-type Props = { onHome: () => void; onPath: () => void; onProgress: () => void; onPhonics: () => void };
+type Props = { onHome: () => void; onPath: () => void; onProgress: () => void; onPhonics: () => void; onReadingCoach: () => void };
 
 const steps = [
   { icon: "1", title: "Start with Today", te: "Today పేజీతో మొదలుపెట్టండి", text: "Press Continue. The app chooses the right next activity, so you do not need to search.", textTe: "Continue నొక్కండి. తర్వాత ఏ activity చేయాలో app మీకు చూపిస్తుంది." },
@@ -12,7 +12,7 @@ const steps = [
   { icon: "7", title: "Learn every day", te: "ప్రతిరోజూ నేర్చుకోండి", text: "Fifteen to twenty minutes daily is better than a long session once a week.", textTe: "వారానికి ఒకసారి ఎక్కువసేపు కాకుండా, రోజూ 15–20 నిమిషాలు practice చేయండి." },
 ];
 
-export default function UserGuide({ onHome, onPath, onProgress, onPhonics }: Props) {
+export default function UserGuide({ onHome, onPath, onProgress, onPhonics, onReadingCoach }: Props) {
   return <section className="user-guide" aria-labelledby="guide-title">
     <header className="guide-hero">
       <button type="button" onClick={onHome}>← Today</button>
@@ -25,6 +25,7 @@ export default function UserGuide({ onHome, onPath, onProgress, onPhonics }: Pro
       <button type="button" onClick={onPath}><span>🗺️</span><b>Open learning path</b><small>Learning order చూడండి</small></button>
       <button type="button" onClick={onProgress}><span>◔</span><b>See my progress</b><small>మీ progress చూడండి</small></button>
       <button type="button" onClick={onPhonics}><span>🔤</span><b>Open Phonics</b><small>Sounds నుంచి reading</small></button>
+      <button type="button" onClick={onReadingCoach}><span>📖</span><b>Reading Coach</b><small>చదివి feedback పొందండి</small></button>
     </nav>
 
     <section className="guide-section">
