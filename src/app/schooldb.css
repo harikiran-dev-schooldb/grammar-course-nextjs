@@ -639,10 +639,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .site-shell .route-controls>button:last-child { border-color:#3155c6; color:#fff; background:#3155c6; box-shadow:0 6px 14px rgba(49,85,198,.16); }
 .site-shell .route-controls>button:disabled { opacity:.35; box-shadow:none; cursor:not-allowed; }
 
-/* Focused Today home */
+/* Focused learning home */
 .site-shell .today-home { width: 100%; padding-bottom: 20px; }
 .site-shell .today-welcome { padding: 30px; display: flex; align-items: center; justify-content: space-between; gap: 24px; overflow: hidden; position: relative; border-radius: 25px; color: #fff; background: linear-gradient(125deg,#091540,#183b91 62%,#456bda); box-shadow: var(--schooldb-shadow); }
-.site-shell .today-welcome::after { content:"TODAY"; position:absolute; right:110px; bottom:-34px; color:rgba(255,255,255,.045); font-size:100px; font-weight:950; }
+.site-shell .today-welcome::after { content:"LEARN"; position:absolute; right:110px; bottom:-34px; color:rgba(255,255,255,.045); font-size:100px; font-weight:950; }
 .site-shell .today-welcome > div:first-child { max-width: 780px; position: relative; z-index: 1; }
 .site-shell .today-welcome .kicker { color:#ffdb79; }
 .site-shell .today-welcome h1 { margin:4px 0 8px; color:#fff; font-size:clamp(29px,4vw,46px); letter-spacing:-.045em; }
