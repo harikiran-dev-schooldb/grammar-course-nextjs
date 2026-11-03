@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { scorePronunciation } from "@/lib/pronunciation";
+import { speakText } from "@/lib/speech";
 
 type RecognitionEvent = { results: { [index: number]: { [index: number]: { transcript: string } } } };
 type Recognition = { lang:string; interimResults:boolean; continuous:boolean; onresult:((event:RecognitionEvent)=>void)|null; onerror:(()=>void)|null; onend:(()=>void)|null; start:()=>void };
@@ -25,7 +26,7 @@ const missions = [
   ]},
 ] as const;
 
-function speak(text:string){if(!("speechSynthesis" in window))return;window.speechSynthesis.cancel();const utterance=new SpeechSynthesisUtterance(text);utterance.lang="en-IN";utterance.rate=.82;const voices=window.speechSynthesis.getVoices();utterance.voice=voices.find(v=>v.lang==="en-IN")||voices.find(v=>v.lang.startsWith("en"))||null;window.speechSynthesis.speak(utterance);}
+function speak(text:string){void speakText(text,{rate:.82})}
 
 export default function SpeakingMissionCoach({day,completed,onComplete}:{day:number;completed:boolean;onComplete:(score:number,transcript:string)=>void}){
   const mission=missions[Math.min(missions.length-1,Math.floor((day-1)/10))];

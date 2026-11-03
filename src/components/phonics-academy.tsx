@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { phonicsActivityCount, phonicsStages } from "@/data/phonics-course";
+import { speakText } from "@/lib/speech";
 
 type Props = { completedSkills: string[]; onComplete: (key: string) => void; onBack: () => void };
 type Activity = "learn" | "blend" | "check";
@@ -13,16 +14,7 @@ export default function PhonicsAcademy({ completedSkills, onComplete, onBack }: 
   const stage = phonicsStages[stageIndex];
   const key = (kind: Activity) => `phonics-${stage.id}-${kind}`;
   const completed = useMemo(() => completedSkills.filter((item) => item.startsWith("phonics-")).length, [completedSkills]);
-  const speak = (text: string) => {
-    if (!("speechSynthesis" in window)) return;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "en-IN";
-    utterance.rate = .72;
-    const voices = window.speechSynthesis.getVoices();
-    utterance.voice = voices.find((voice) => voice.lang.toLowerCase().startsWith("en-in")) || voices.find((voice) => voice.lang.toLowerCase().startsWith("en")) || null;
-    window.speechSynthesis.speak(utterance);
-  };
+  const speak = (text: string) => { void speakText(text,{rate:.72}); };
   const finish = (kind: Activity) => onComplete(key(kind));
   const openStage = (index: number) => { setStageIndex(index); setActivity("learn"); setAnswer(null); window.scrollTo({top:0,behavior:"smooth"}); };
   const nextStage = () => openStage((stageIndex + 1) % phonicsStages.length);

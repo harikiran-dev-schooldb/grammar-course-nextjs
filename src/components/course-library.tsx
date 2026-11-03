@@ -3,11 +3,12 @@
 import { useMemo, useState } from "react";
 import { expandedUnits, type CourseLevel, type ExpandedUnit } from "@/data/expanded-curriculum";
 import type { AgeMode } from "@/lib/progress";
+import { speakText } from "@/lib/speech";
 
 const levels:CourseLevel[]=["START","A1","A2","B1","B2"];
 const typeNames=["Explore words","Read & listen","Speak & write","Checkpoint"];
 const typeIcons=["🔤","🎧","🎙️","✓"];
-function speak(text:string){if(!("speechSynthesis" in window))return;window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang="en-IN";u.rate=.8;const v=window.speechSynthesis.getVoices();u.voice=v.find(x=>x.lang==="en-IN")||v.find(x=>x.lang.startsWith("en"))||null;window.speechSynthesis.speak(u)}
+function speak(text:string){void speakText(text,{rate:.8})}
 
 export default function CourseLibrary({initialLevel,ageMode,completedSkills,onComplete,onBack}:{initialLevel:CourseLevel;ageMode:AgeMode;completedSkills:string[];onComplete:(key:string)=>void;onBack:()=>void}){
   const[level,setLevel]=useState<CourseLevel>(initialLevel);const[selected,setSelected]=useState<{unit:ExpandedUnit;index:number}|null>(null);const[writing,setWriting]=useState("");const[answer,setAnswer]=useState<number|null>(null);

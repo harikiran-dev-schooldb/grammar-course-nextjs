@@ -17,12 +17,13 @@ import CourseLibrary from "@/components/course-library";
 import UserGuide from "@/components/user-guide";
 import PhonicsAcademy from "@/components/phonics-academy";
 import ReadAloudCoach from "@/components/read-aloud-coach";
+import GrowthStudio from "@/components/growth-studio";
 import type { CourseLevel } from "@/data/expanded-curriculum";
 import { authClient } from "@/lib/auth-client";
 import { claimUsername, getMyUsername, requestLegacyPasswordReset, requestUsernamePasswordReset, signInWithUsername } from "@/app/actions/username-auth";
 import { isValidUsername, normalizeUsername } from "@/lib/usernames";
 import AuthShell, { AuthField, AuthPasswordField, PasswordStrength } from "@/components/auth/auth-ui";
-import { CloudProgress, defaultPreferences, emptyProgress, LearningPreferences, mergeProgress, Mistake, parseCompletedDays, parseSavedDayIndex, PronunciationResult, ReadingCoachResult } from "@/lib/progress";
+import { CloudProgress, defaultPreferences, emptyProgress, LearningPreferences, ManagedLearner, mergeProgress, Mistake, parseCompletedDays, parseSavedDayIndex, PronunciationResult, ReadingCoachResult } from "@/lib/progress";
 import type { DailyTestRecords } from "@/lib/daily-test-core";
 
 type InstallPromptEvent = Event & {
@@ -114,6 +115,7 @@ export default function Home() {
   const [dailyTests, setDailyTests] = useState<DailyTestRecords>({});
   const [conversationDays, setConversationDays] = useState<number[]>([]);
   const [wordDays, setWordDays] = useState<number[]>([]);
+  const [managedLearners, setManagedLearners] = useState<ManagedLearner[]>([]);
   const [pendingChanges, setPendingChanges] = useState(0);
   const [placementAnswers, setPlacementAnswers] = useState<Record<number, number>>({});
   const [placementScore, setPlacementScore] = useState<number | null>(null);
@@ -203,6 +205,7 @@ export default function Home() {
           setDailyTests(saved.dailyTests || {});
           setConversationDays(saved.conversationDays || []);
           setWordDays(saved.wordDays || []);
+          setManagedLearners(saved.managedLearners || []);
         } else {
           setCompleted(parseCompletedDays(window.localStorage.getItem("grammar-studio-progress"), validDays));
           setCurrent(parseSavedDayIndex(window.localStorage.getItem("grammar-studio-day"), validDays));
@@ -277,6 +280,7 @@ export default function Home() {
       setDailyTests(merged.dailyTests);
       setConversationDays(merged.conversationDays);
       setWordDays(merged.wordDays);
+      setManagedLearners(merged.managedLearners || []);
       setSyncStatus("synced");
       setPendingChanges(0);
     }).catch(() => {
@@ -306,14 +310,14 @@ export default function Home() {
 
   useEffect(() => {
     if (!learnerName || !cloudLoaded) return;
-    const snapshot: CloudProgress = { displayName: learnerName, completed, currentDay: current + 1, skillsDone, writings, mistakes, activityDates, badges, preferences, pronunciationResults, readingCoachResults, studyMinutes, dailyTests, conversationDays, wordDays };
+    const snapshot: CloudProgress = { displayName: learnerName, completed, currentDay: current + 1, skillsDone, writings, mistakes, activityDates, badges, preferences, pronunciationResults, readingCoachResults, studyMinutes, dailyTests, conversationDays, wordDays, managedLearners };
     latestSnapshotRef.current = snapshot;
     window.localStorage.setItem("grammar-studio-cloud-progress", JSON.stringify(snapshot));
     const timer = window.setTimeout(() => {
       void syncProgress(snapshot);
     }, 700);
     return () => window.clearTimeout(timer);
-  }, [activityDates, badges, cloudLoaded, completed, conversationDays, current, dailyTests, learnerName, mistakes, preferences, pronunciationResults, readingCoachResults, skillsDone, studyMinutes, syncProgress, wordDays, writings]);
+  }, [activityDates, badges, cloudLoaded, completed, conversationDays, current, dailyTests, learnerName, managedLearners, mistakes, preferences, pronunciationResults, readingCoachResults, skillsDone, studyMinutes, syncProgress, wordDays, writings]);
 
   useEffect(() => {
     const environmentFrame = window.requestAnimationFrame(() => {
@@ -545,7 +549,7 @@ export default function Home() {
 
   const exportLearnerData = () => {
     const safeName = learnerName || "learner";
-    const report = { learnerName, learnerEmail, exportedAt: new Date().toISOString(), progress, completed, skillsDone, writings, mistakes, activityDates, badges: allBadges, preferences, pronunciationResults, readingCoachResults, studyMinutes, dailyTests, conversationDays, wordDays };
+    const report = { learnerName, learnerEmail, exportedAt: new Date().toISOString(), progress, completed, skillsDone, writings, mistakes, activityDates, badges: allBadges, preferences, pronunciationResults, readingCoachResults, studyMinutes, dailyTests, conversationDays, wordDays, managedLearners };
     const url = URL.createObjectURL(new Blob([JSON.stringify(report, null, 2)], { type: "application/json" }));
     const link = document.createElement("a");
     link.href = url;
@@ -1022,6 +1026,7 @@ export default function Home() {
             onLessons={() => setAppView("curriculum")}
             onPhonics={() => { setAppView("phonics"); window.scrollTo({top:0,behavior:"smooth"}); }}
             onReadingCoach={() => { setAppView("reading-coach"); window.scrollTo({top:0,behavior:"smooth"}); }}
+            onGrowthStudio={() => openLearningTarget("#growth-studio")}
           /> : appView === "library" ? <CourseLibrary initialLevel={libraryLevel} ageMode={preferences.ageMode} completedSkills={skillsDone} onComplete={completeFoundationSkill} onBack={()=>setAppView("curriculum")} /> : appView === "curriculum" ? <CurriculumPath
             ageMode={preferences.ageMode}
             readingLevel={preferences.readingLevel}
@@ -1122,6 +1127,17 @@ export default function Home() {
             onOpenReview={() => setHubView("revision")}
             onOpenCertificate={() => setHubView("certificate")}
             onExportReport={exportLearnerData}
+          />
+
+          <GrowthStudio
+            learnerName={learnerName}
+            skills={masterySkills}
+            completedSkills={skillsDone}
+            completedLessons={completed.length}
+            streak={streak}
+            managedLearners={managedLearners}
+            onManagedLearners={setManagedLearners}
+            onComplete={completeFoundationSkill}
           />
 
           <LessonRouteNavigator key={lesson.day} day={lesson.day} steps={journeySteps} onNavigate={navigateToSection} />

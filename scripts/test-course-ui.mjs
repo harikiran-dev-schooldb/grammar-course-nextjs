@@ -66,7 +66,7 @@ test("Starter Zone teaches pre-readers before grammar", () => {
   assert.doesNotMatch(foundation, /activeLetter\[0\].*activeLetter\[0\].*is for/);
 });
 test("offline shell updates without discarding downloaded audio", () => {
-  assert.match(worker, /grammar-studio-v25-complete-english-path/);
+  assert.match(worker, /grammar-studio-v26-growth-studio/);
   assert.match(worker, /grammar-studio-v5-complete-english-audio/);
 });
 

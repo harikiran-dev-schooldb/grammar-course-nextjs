@@ -20,9 +20,10 @@ type Props = {
   onLessons: () => void;
   onPhonics: () => void;
   onReadingCoach: () => void;
+  onGrowthStudio: () => void;
 };
 
-export default function TodayHome({ learnerName, day, lessonTitle, lessonTitleTe, nextLabel, nextDetail, progress, streak, minutes, goal, reviewCount, speakingDone, onContinue, onReview, onSpeaking, onProgress, onLessons, onPhonics, onReadingCoach }: Props) {
+export default function TodayHome({ learnerName, day, lessonTitle, lessonTitleTe, nextLabel, nextDetail, progress, streak, minutes, goal, reviewCount, speakingDone, onContinue, onReview, onSpeaking, onProgress, onLessons, onPhonics, onReadingCoach, onGrowthStudio }: Props) {
   const firstName = learnerName.trim().split(/\s+/)[0] || "Learner";
   const goalPercent = Math.min(100, Math.round((minutes / Math.max(1, goal)) * 100));
   return <section className="today-home" aria-labelledby="today-home-heading">
@@ -49,6 +50,7 @@ export default function TodayHome({ learnerName, day, lessonTitle, lessonTitleTe
     </div>
 
     <button type="button" className="reading-coach-entry" onClick={onReadingCoach}><span>📖</span><div><small>NEW · PERSONAL READING COACH</small><strong>Read aloud and improve every word</strong><p>Get instant accuracy, reading speed and bilingual feedback.</p><p lang="te">చదివి, ప్రతి word కి వెంటనే feedback పొందండి.</p></div><b>Start reading →</b></button>
+    <button type="button" className="reading-coach-entry growth-studio-entry" onClick={onGrowthStudio}><span>🚀</span><div><small>NEW · GROWTH STUDIO</small><strong>Stories, weekly plans, rewards and family learning</strong><p>Go beyond lessons with playful, personalised practice.</p><p lang="te">Stories, conversations, rewards తో సరదాగా నేర్చుకోండి.</p></div><b>Explore studio →</b></button>
 
     <footer className="today-home-footer"><span>Recommended order</span><div><b>1</b> Learn <i>→</i><b>2</b> Practise <i>→</i><b>3</b> Speak <i>→</i><b>4</b> Talk <i>→</i><b>5</b> Words <i>→</i><b>6</b> Test <i>→</i><b>7</b> Finish</div></footer>
   </section>;

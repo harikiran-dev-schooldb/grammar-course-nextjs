@@ -44,11 +44,18 @@ Copy `.env.example` to `.env.local` and provide the values from a Neon project w
 NEON_AUTH_BASE_URL=https://your-neon-auth.example/auth
 NEON_AUTH_COOKIE_SECRET=at-least-32-random-characters
 DATABASE_URL=postgresql://user:password@host/database?sslmode=require
+AZURE_SPEECH_KEY=your-azure-speech-resource-key
+AZURE_SPEECH_REGION=centralindia
+# Optional voice overrides:
+AZURE_SPEECH_VOICE_EN=en-IN-NeerjaNeural
+AZURE_SPEECH_VOICE_TE=te-IN-ShrutiNeural
 ```
 
 Run `scripts/neon-schema.sql` once in the Neon SQL Editor. The API also creates the progress table safely if it is missing.
 
 Use **Download offline** in the course sidebar to cache every lesson and audio clip on the device. In supported browsers, use **Install app** to add Grammar Studio to the home screen or desktop.
+
+Azure Speech is optional. When its key and region are present, interactive English and Telugu audio uses neural voices through the server-only `/api/speech` route. Keys are never sent to the browser. Without Azure—or while offline—the app automatically uses the best voice installed on the learner's device. Generated neural clips are cached locally after first playback.
 
 ## Regenerate neural audio
 

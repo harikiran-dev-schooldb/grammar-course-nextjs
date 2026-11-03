@@ -4,13 +4,14 @@ import { useMemo, useRef, useState } from "react";
 import { analyzeReading, type ReadingAnalysis } from "@/lib/pronunciation";
 import type { ReadingCoachResult } from "@/lib/progress";
 import { readingPassages } from "@/data/reading-passages";
+import { speakText } from "@/lib/speech";
 
 type RecognitionEvent = { results: { length: number; [index: number]: { [index: number]: { transcript: string } } } };
 type Recognition = { lang:string; interimResults:boolean; continuous:boolean; onresult:((event:RecognitionEvent)=>void)|null; onerror:(()=>void)|null; onend:(()=>void)|null; start:()=>void; stop:()=>void };
 type RecognitionConstructor = new()=>Recognition;
 type Props = { results: ReadingCoachResult[]; onResult: (result: ReadingCoachResult) => void; onComplete: (key: string) => void; onBack: () => void };
 
-function speak(text:string, rate=.8){if(!("speechSynthesis" in window))return;window.speechSynthesis.cancel();const utterance=new SpeechSynthesisUtterance(text);utterance.lang="en-IN";utterance.rate=rate;const voices=window.speechSynthesis.getVoices();utterance.voice=voices.find((voice)=>voice.lang.toLowerCase().startsWith("en-in"))||voices.find((voice)=>voice.lang.toLowerCase().startsWith("en"))||null;window.speechSynthesis.speak(utterance);}
+function speak(text:string, rate=.8){void speakText(text,{rate})}
 
 export default function ReadAloudCoach({ results, onResult, onComplete, onBack }: Props) {
   const recommended = Math.max(0, readingPassages.findIndex((passage) => !results.some((result) => result.passageId === passage.id && result.accuracy >= 80)));

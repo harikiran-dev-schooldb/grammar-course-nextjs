@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { ReadingLevel } from "@/lib/progress";
 import { scorePronunciation } from "@/lib/pronunciation";
+import { speakText } from "@/lib/speech";
 
 type Props = {
   readingLevel: ReadingLevel | null;
@@ -66,15 +67,7 @@ type SpeechRecognitionLike = {
 type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
 
 function speak(text: string) {
-  if (!("speechSynthesis" in window)) return;
-  window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = "en-IN";
-  utterance.rate = .72;
-  utterance.pitch = 1.05;
-  const voices = window.speechSynthesis.getVoices();
-  utterance.voice = voices.find((voice) => voice.lang === "en-IN") || voices.find((voice) => voice.lang.startsWith("en")) || null;
-  window.speechSynthesis.speak(utterance);
+  void speakText(text,{rate:.72});
 }
 
 export default function FoundationPlayground({ readingLevel, completedSkills, onChooseLevel, onComplete, onContinueCourse }: Props) {

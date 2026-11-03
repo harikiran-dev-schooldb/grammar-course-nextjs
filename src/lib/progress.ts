@@ -67,6 +67,16 @@ export type ReadingCoachResult = {
   updatedAt: string;
 };
 
+export type ManagedLearner = {
+  id: string;
+  name: string;
+  age: number;
+  level: string;
+  progress: number;
+  weeklyMinutes: number;
+  updatedAt: string;
+};
+
 export type CloudDailyTestRecord = {
   day: number;
   attempts: number;
@@ -114,6 +124,7 @@ export type CloudProgress = {
   dailyTests: CloudDailyTestRecords;
   conversationDays: number[];
   wordDays: number[];
+  managedLearners: ManagedLearner[];
 };
 
 export const defaultPreferences: LearningPreferences = {
@@ -141,6 +152,7 @@ export const emptyProgress = (displayName = "Learner"): CloudProgress => ({
   dailyTests: {},
   conversationDays: [],
   wordDays: [],
+  managedLearners: [],
 });
 
 export function mergeProgress(local: CloudProgress, remote: CloudProgress): CloudProgress {
@@ -175,5 +187,13 @@ export function mergeProgress(local: CloudProgress, remote: CloudProgress): Clou
     dailyTests: mergeCloudDailyTests(local.dailyTests || {}, remote.dailyTests || {}),
     conversationDays: [...new Set([...(local.conversationDays || []), ...(remote.conversationDays || [])])].sort((a, b) => a - b),
     wordDays: [...new Set([...(local.wordDays || []), ...(remote.wordDays || [])])].sort((a, b) => a - b),
+    managedLearners: [...(remote.managedLearners || []), ...(local.managedLearners || [])]
+      .reduce<ManagedLearner[]>((items, learner) => {
+        const existing = items.findIndex((item) => item.id === learner.id);
+        if (existing < 0) return [...items, learner];
+        if (new Date(learner.updatedAt).getTime() >= new Date(items[existing].updatedAt).getTime()) items[existing] = learner;
+        return items;
+      }, [])
+      .slice(-50),
   };
 }
